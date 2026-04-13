@@ -1,0 +1,7 @@
+name: dcxxe
+type: theme
+base theme: radix
+description: 'dcxxe 子主题，基于 Radix'
+core_version_requirement: ^10 || ^11
+libraries:
+  - dcxxe/global-styling

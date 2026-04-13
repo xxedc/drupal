@@ -21,8 +21,10 @@
         "drupal/core-project-message": "^11.3",
         "drupal/core-recipe-unpack": "^11.3",
         "drupal/core-recommended": "^11.3",
+        "drupal/gin": "5.0.x-dev@dev",
         "drupal/metatag": "^2.2",
         "drupal/pathauto": "^1.14",
+        "drupal/radix": "6.0.x-dev@dev",
         "drupal/token": "^1.17",
         "drush/drush": "^13.7"
     },
