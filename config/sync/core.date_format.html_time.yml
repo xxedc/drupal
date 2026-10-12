@@ -1,0 +1,10 @@
+uuid: cedda813-29bf-467a-8ce5-0181aecc0d50
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: M7yqicYkU36hRy5p9drAaGBBihhUD1OyujFrAaQ93ZE
+id: html_time
+label: 'HTML 时间'
+locked: true
+pattern: 'H:i:s'

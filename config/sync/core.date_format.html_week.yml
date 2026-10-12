@@ -1,0 +1,10 @@
+uuid: 936e670d-0173-4c54-a548-06b5fc5e43a6
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: wKD4WsoV_wFgv2vgI4mcAAFSIzrye17ykzdwrnApkfY
+id: html_week
+label: 'HTML 周'
+locked: true
+pattern: Y-\WW

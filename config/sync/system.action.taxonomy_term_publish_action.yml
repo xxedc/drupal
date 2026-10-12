@@ -1,0 +1,13 @@
+uuid: 41ccc8c9-9930-4fd7-8203-30ecab503d7b
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - taxonomy
+_core:
+  default_config_hash: DoVt_VGgVLcDD4XmVbSFzr0K17SJy9imFiYusKkJBgY
+id: taxonomy_term_publish_action
+label: 发布分类术语
+type: taxonomy_term
+plugin: 'entity:publish_action:taxonomy_term'
+configuration: {  }

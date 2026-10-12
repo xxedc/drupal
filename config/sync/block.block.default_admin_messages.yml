@@ -1,0 +1,22 @@
+uuid: 1491c520-5c0f-4f68-89e7-eeca1e217e02
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - default_admin
+_core:
+  default_config_hash: '-8PL5mB7TwwrfyG9iaRNdXu5NdHT6M2jsbl4DFI3J0w'
+id: default_admin_messages
+theme: default_admin
+region: highlighted
+weight: 0
+provider: null
+plugin: system_messages_block
+settings:
+  id: system_messages_block
+  label: 状态消息
+  label_display: '0'
+  provider: system
+visibility: {  }

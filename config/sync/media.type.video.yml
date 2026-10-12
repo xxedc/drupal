@@ -1,0 +1,16 @@
+uuid: ecdf3d08-63d0-4c40-afb6-16187bc96132
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: hzgvcRgZHltqWf8hBmttoWh95tCJoPL25lPq9YSIRsY
+id: video
+label: 视频
+description: 本地托管的视频文件。
+source: video_file
+queue_thumbnail_downloads: false
+new_revision: true
+source_configuration:
+  source_field: field_media_video_file
+field_map:
+  name: name

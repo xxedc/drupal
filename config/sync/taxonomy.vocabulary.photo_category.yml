@@ -1,0 +1,9 @@
+uuid: 82652906-468e-4b59-9c83-f55a7f32d6ff
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: 图片栏目
+vid: photo_category
+description: 图片来源的分类栏目
+weight: 0
+new_revision: false

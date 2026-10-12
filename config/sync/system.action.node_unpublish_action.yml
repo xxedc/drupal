@@ -1,0 +1,13 @@
+uuid: 5ff8013a-4c21-41c7-ac01-c74ce7c27054
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: C7X8h9FWlwkQ9y5mnU2JzgaZICAdc6HFbPVbhvjlAYE
+id: node_unpublish_action
+label: 取消内容发布
+type: node
+plugin: 'entity:unpublish_action:node'
+configuration: {  }

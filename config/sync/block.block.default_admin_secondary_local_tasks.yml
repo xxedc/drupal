@@ -1,0 +1,22 @@
+uuid: 02294cfc-9176-4071-8a73-1522fa11b80d
+langcode: zh-hans
+status: true
+dependencies:
+  theme:
+    - default_admin
+_core:
+  default_config_hash: o2qka7Q_RI0cctlckjSI9br-3K_wZjjq59_0Vgq3c8g
+id: default_admin_secondary_local_tasks
+theme: default_admin
+region: pre_content
+weight: 0
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: 次标签
+  label_display: '0'
+  provider: core
+  primary: false
+  secondary: true
+visibility: {  }

@@ -1,0 +1,20 @@
+uuid: f86e1e2e-948b-456a-8af4-13a5e876a3a0
+langcode: zh-hans
+status: true
+dependencies:
+  theme:
+    - radix
+_core:
+  default_config_hash: kS_bn150yD1JkjLZ3KXzxiu_utZAeHo3lBg8JHFLv60
+id: radix_local_actions
+theme: radix
+region: content
+weight: -10
+provider: null
+plugin: local_actions_block
+settings:
+  id: local_actions_block
+  label: 主要管理动作
+  label_display: '0'
+  provider: core
+visibility: {  }

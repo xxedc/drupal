@@ -1,0 +1,8 @@
+uuid: 9c69a645-d2c2-4322-843f-c970289bdfcb
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: content
+label: 评论
+target_entity_type_id: node
+description: ''

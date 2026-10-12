@@ -1,0 +1,13 @@
+uuid: 6b3b47e5-cf1b-4170-9e5b-75f91cc40b7a
+langcode: zh-hans
+status: true
+dependencies:
+  enforced:
+    module:
+      - navigation
+_core:
+  default_config_hash: nqVwm91Uyib_rvFaNPF1MdYqHlmZ38w5rsOVVy4uWDw
+id: content
+label: 内容
+description: 'Content task links'
+locked: true

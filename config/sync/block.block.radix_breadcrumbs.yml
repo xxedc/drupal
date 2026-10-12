@@ -1,0 +1,22 @@
+uuid: cd9f0c31-ab3c-43a9-9e4d-ee343f14deb9
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - radix
+_core:
+  default_config_hash: wYrg3zFzlz7ALa_iUH20Ohj1O7HtwWMOtFHR66dR4J8
+id: radix_breadcrumbs
+theme: radix
+region: navbar_branding
+weight: 0
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: 导航路径
+  label_display: '0'
+  provider: system
+visibility: {  }

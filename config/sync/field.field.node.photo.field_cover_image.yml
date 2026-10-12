@@ -1,0 +1,29 @@
+uuid: 83c2b52f-1712-4443-8e66-27413b82a5f4
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cover_image
+    - media.type.image
+    - node.type.photo
+id: node.photo.field_cover_image
+field_name: field_cover_image
+entity_type: node
+bundle: photo
+label: 图片封面
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

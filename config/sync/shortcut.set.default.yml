@@ -1,0 +1,8 @@
+uuid: 9b5800d7-6004-47c9-bc15-abf9023920c3
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: U5VlGjd_SfV0Qm_EfnaynOfc549cNscFAx48JfYoMRI
+id: default
+label: 默认

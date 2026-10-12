@@ -1,0 +1,22 @@
+uuid: 08717f6c-bae9-4444-9f31-50461043d0c8
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - olivero
+_core:
+  default_config_hash: erQSEZF2XUjNmgTl0uNRBzmg18ZGXwUcw2FhApoeuHk
+id: olivero_content
+theme: olivero
+region: content
+weight: 0
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 主页内容
+  label_display: '0'
+  provider: system
+visibility: {  }

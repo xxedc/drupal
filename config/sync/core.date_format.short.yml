@@ -1,0 +1,10 @@
+uuid: 7b2e2313-4f6d-424f-a81f-b6ec83219c2d
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: SAeixlV7Djy_Ggv_1P95TiqD4KUihA5icvU521tA84Y
+id: short
+label: 默认短日期
+locked: false
+pattern: 'j M Y - H:i'

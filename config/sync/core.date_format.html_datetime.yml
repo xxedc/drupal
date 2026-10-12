@@ -1,0 +1,10 @@
+uuid: 4d4bc49f-67b9-437f-8060-bb8a140d88e3
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: jxfClwZIRXIdcvMrE--WkcZxDGUVoOIE3Sm2NRZlFuE
+id: html_datetime
+label: 'HTML 日期与时间'
+locked: true
+pattern: 'Y-m-d\TH:i:sO'

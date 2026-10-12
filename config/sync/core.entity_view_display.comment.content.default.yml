@@ -1,0 +1,28 @@
+uuid: f35fe8cd-807c-4bfa-a22e-c8a4bd3f4470
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - comment.type.content
+    - field.field.comment.content.comment_body
+  module:
+    - text
+id: comment.content.default
+targetEntityType: comment
+bundle: content
+mode: default
+content:
+  comment_body:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  langcode: true

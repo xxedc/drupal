@@ -1,0 +1,22 @@
+uuid: 4ad5a018-a3fa-47c9-b903-300fb7727d8a
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - comment.type.content
+    - field.storage.comment.comment_body
+  module:
+    - text
+id: comment.content.comment_body
+field_name: comment_body
+entity_type: comment
+bundle: content
+label: Comment
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

@@ -1,0 +1,13 @@
+uuid: 449c6740-ea64-4707-9c65-0e75f3231364
+langcode: zh-hans
+status: false
+dependencies:
+  module:
+    - media
+_core:
+  default_config_hash: dTfAUHooYV0uOVPO3saGpgv-c5PppJXDwxvwRTJOycM
+id: media.full
+label: 全文
+description: ''
+targetEntityType: media
+cache: true

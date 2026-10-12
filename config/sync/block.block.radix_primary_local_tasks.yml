@@ -1,0 +1,22 @@
+uuid: f2151f1d-9f61-4114-8460-ef0f9ae8c41a
+langcode: zh-hans
+status: true
+dependencies:
+  theme:
+    - radix
+_core:
+  default_config_hash: KxeVrufbNdEHyWTX59ecZS4IKqRyAZHDmElZrPbUMmo
+id: radix_primary_local_tasks
+theme: radix
+region: header
+weight: 0
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: 主标签
+  label_display: '0'
+  provider: core
+  primary: true
+  secondary: false
+visibility: {  }

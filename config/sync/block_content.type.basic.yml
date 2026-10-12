@@ -1,0 +1,10 @@
+uuid: bfcb3b1f-de53-4f69-8efb-5c283a9e1ca5
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: pQP5iQy4SdhAMVcjDUncCfkJmTofnHVtXrsMzx4k6Yk
+id: basic
+label: 基本区块
+revision: false
+description: 一个基本区块包含标题和内容。

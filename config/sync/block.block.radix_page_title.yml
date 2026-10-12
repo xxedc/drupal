@@ -1,0 +1,20 @@
+uuid: 3ab3d6ca-7fea-4918-9c23-5ecdd3fc54c6
+langcode: zh-hans
+status: true
+dependencies:
+  theme:
+    - radix
+_core:
+  default_config_hash: CaTkocqIGci5JCxUVHC6mwT3he3MSfhVvucVivgebdI
+id: radix_page_title
+theme: radix
+region: header
+weight: -30
+provider: null
+plugin: page_title_block
+settings:
+  id: page_title_block
+  label: 页面标题
+  label_display: '0'
+  provider: core
+visibility: {  }

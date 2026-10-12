@@ -1,0 +1,13 @@
+uuid: f6353de3-b68a-4460-b51e-0cb0737a3031
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: lDM9mvIGAu8Sw8rt-uCO4Sr7yX5VPrDPxYcawkbKd6k
+id: node_make_unsticky_action
+label: 取消内容置顶
+type: node
+plugin: node_make_unsticky_action
+configuration: {  }

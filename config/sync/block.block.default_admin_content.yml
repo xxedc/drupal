@@ -1,0 +1,22 @@
+uuid: 2cda24b8-ece7-4a55-89e2-978df9252193
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - default_admin
+_core:
+  default_config_hash: A0bSgTfhz7M_3ljjCoyrdKWwh-8s_9VsLVJzb4fzE3c
+id: default_admin_content
+theme: default_admin
+region: content
+weight: 0
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 主页内容
+  label_display: '0'
+  provider: system
+visibility: {  }

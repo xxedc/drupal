@@ -1,0 +1,13 @@
+uuid: d23ee94c-8108-41da-b9fb-08625fcde0d8
+langcode: zh-hans
+status: false
+dependencies:
+  module:
+    - comment
+_core:
+  default_config_hash: N4mUjXpPckUkVRY1PbKw4GGoL1i2ECU7PL3EreiKStk
+id: comment.full
+label: 评论全文
+description: ''
+targetEntityType: comment
+cache: true

@@ -1,0 +1,20 @@
+uuid: d7575b04-6d9d-4306-b735-85783ff6f3e3
+langcode: zh-hans
+status: true
+dependencies:
+  theme:
+    - default_admin
+_core:
+  default_config_hash: CaTkocqIGci5JCxUVHC6mwT3he3MSfhVvucVivgebdI
+id: default_admin_page_title
+theme: default_admin
+region: header
+weight: -30
+provider: null
+plugin: page_title_block
+settings:
+  id: page_title_block
+  label: 页面标题
+  label_display: '0'
+  provider: core
+visibility: {  }

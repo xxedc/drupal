@@ -1,0 +1,29 @@
+uuid: fe88e690-ce7f-4436-afbc-f9486c33fffa
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_categories
+    - node.type.photo
+    - taxonomy.vocabulary.photo_category
+id: node.photo.field_categories
+field_name: field_categories
+entity_type: node
+bundle: photo
+label: 分类栏目
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      photo_category: photo_category
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: ''
+field_type: entity_reference

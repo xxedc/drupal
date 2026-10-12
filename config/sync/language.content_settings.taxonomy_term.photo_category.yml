@@ -1,0 +1,11 @@
+uuid: 645a622b-1ed5-405e-83d2-cdb60e19c049
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.photo_category
+id: taxonomy_term.photo_category
+target_entity_type_id: taxonomy_term
+target_bundle: photo_category
+default_langcode: site_default
+language_alterable: false

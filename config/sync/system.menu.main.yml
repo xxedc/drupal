@@ -1,0 +1,10 @@
+uuid: bfb7f410-18ae-4d4c-b476-4a6c611f7b35
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: Q2Ra3jfoIVk0f3SjxJX61byRQFVBAbpzYDQOiY-kno8
+id: main
+label: 主导航
+description: 网站段落链接
+locked: true

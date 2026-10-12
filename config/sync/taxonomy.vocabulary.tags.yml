@@ -1,0 +1,11 @@
+uuid: 1e238485-be22-4b3f-906c-16e929ed787f
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: PWTsHiwkIfp5TW-iTBc9AhBtvbYY6wrp3MopazQ-95o
+name: 标签
+vid: tags
+description: 'Use tags to group content on similar topics into categories.'
+weight: 0
+new_revision: false

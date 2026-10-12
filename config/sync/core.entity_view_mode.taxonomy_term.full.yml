@@ -1,0 +1,13 @@
+uuid: 181b5463-3534-464f-8745-9a144526bee5
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - taxonomy
+_core:
+  default_config_hash: iukUENpf8CFvjZbGGacKX_Ges0-lU9z6zvsd32P6kbo
+id: taxonomy_term.full
+label: 分类术语页面
+description: ''
+targetEntityType: taxonomy_term
+cache: true

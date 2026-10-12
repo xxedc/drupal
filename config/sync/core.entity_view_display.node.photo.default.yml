@@ -1,0 +1,70 @@
+uuid: ae77519b-1509-44a9-a19e-84b0c687dc14
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - core.entity_view_display.comment.content.default
+    - field.field.node.photo.field_categories
+    - field.field.node.photo.field_comment
+    - field.field.node.photo.field_cover_image
+    - field.field.node.photo.field_images
+    - field.field.node.photo.field_tags
+    - node.type.photo
+  module:
+    - comment
+    - user
+id: node.photo.default
+targetEntityType: node
+bundle: photo
+mode: default
+content:
+  field_categories:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_comment:
+    type: comment_default
+    label: above
+    settings:
+      view_mode: default
+      pager_id: 0
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  field_cover_image:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_images:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  langcode: true

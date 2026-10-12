@@ -1,0 +1,29 @@
+uuid: 420e3827-cbad-4bcd-b879-cd02f4f0614e
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_images
+    - media.type.image
+    - node.type.photo
+id: node.photo.field_images
+field_name: field_images
+entity_type: node
+bundle: photo
+label: 图片集
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

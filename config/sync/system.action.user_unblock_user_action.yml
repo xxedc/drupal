@@ -1,0 +1,13 @@
+uuid: eb6a41f2-ddca-451c-8309-7008e7865924
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - user
+_core:
+  default_config_hash: SPsUXsR3Rc8d1y3gewzaAKWa1ncea_ywXX3f7LTn7k0
+id: user_unblock_user_action
+label: 解除封锁选定的用户
+type: user
+plugin: user_unblock_user_action
+configuration: {  }

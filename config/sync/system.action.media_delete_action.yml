@@ -1,0 +1,13 @@
+uuid: 77c629b5-722a-4dfa-97b1-ab29ac6e9ea5
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - media
+_core:
+  default_config_hash: FrZy1tmuXJcOxhXlBoI1Hsnen5TT-9OCC1iolWH84go
+id: media_delete_action
+label: 删除媒体
+type: media
+plugin: 'entity:delete_action:media'
+configuration: {  }

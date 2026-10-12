@@ -1,0 +1,13 @@
+uuid: 2cc2f682-c74a-44f5-b51a-35376033f411
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - user
+_core:
+  default_config_hash: 1TFiplNN7Wmj_DtVLLLP-NLPYpZJdAswKY-vTrYgFyo
+id: user.register
+label: 注册
+description: null
+targetEntityType: user
+cache: true

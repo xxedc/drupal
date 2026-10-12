@@ -1,0 +1,22 @@
+uuid: 46a5a42b-976a-4977-9069-0b1fa9f6eb4a
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - default_admin
+_core:
+  default_config_hash: wYrg3zFzlz7ALa_iUH20Ohj1O7HtwWMOtFHR66dR4J8
+id: default_admin_breadcrumbs
+theme: default_admin
+region: breadcrumb
+weight: 0
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: 导航路径
+  label_display: '0'
+  provider: system
+visibility: {  }

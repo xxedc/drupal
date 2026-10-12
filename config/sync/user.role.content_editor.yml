@@ -1,0 +1,35 @@
+uuid: 8c4dd550-6276-4f5a-98ac-fe25ed9b7b45
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.tags
+  module:
+    - contextual
+    - file
+    - navigation
+    - node
+    - path
+    - system
+    - taxonomy
+_core:
+  default_config_hash: og55Zu0F-q-X8zG0Ohrls49zws6IrmmosZS-30Es8vw
+id: content_editor
+label: 内容编辑
+weight: 2
+is_admin: false
+permissions:
+  - 'access administration pages'
+  - 'access content overview'
+  - 'access contextual links'
+  - 'access files overview'
+  - 'access navigation'
+  - 'administer url aliases'
+  - 'create terms in tags'
+  - 'create url aliases'
+  - 'delete own files'
+  - 'edit terms in tags'
+  - 'revert all revisions'
+  - 'view all revisions'
+  - 'view own unpublished content'
+  - 'view the administration theme'

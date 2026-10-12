@@ -1,0 +1,22 @@
+uuid: f861072b-2216-4bbd-9320-cb28ce5d4c7c
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - radix
+_core:
+  default_config_hash: '-8PL5mB7TwwrfyG9iaRNdXu5NdHT6M2jsbl4DFI3J0w'
+id: radix_messages
+theme: radix
+region: navbar_branding
+weight: 0
+provider: null
+plugin: system_messages_block
+settings:
+  id: system_messages_block
+  label: 状态消息
+  label_display: '0'
+  provider: system
+visibility: {  }

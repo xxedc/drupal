@@ -1,0 +1,13 @@
+uuid: a17e29d8-eb47-4456-abed-e3e41b9ba844
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: JBptjnfuOMtsdKygklXxoOgeOCTMtQxlkymjnnj-cC0
+id: node_unpromote_action
+label: 从首页移除内容
+type: node
+plugin: node_unpromote_action
+configuration: {  }
