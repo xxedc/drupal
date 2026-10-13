@@ -1,0 +1,22 @@
+uuid: aa830318-3fe7-46d4-98aa-c614267e71b2
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_body
+    - node.type.article
+  module:
+    - text
+id: node.article.field_body
+field_name: field_body
+entity_type: node
+bundle: article
+label: 文章内容正文
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

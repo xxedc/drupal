@@ -1,0 +1,25 @@
+uuid: 3565459b-9a1a-4473-94ab-3add61809504
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - xedc
+_core:
+  default_config_hash: XOAkzheV_tRIiVyjxae_96w9FW6gBUZ7o8f9Q6uZfsw
+id: xedc_branding
+theme: xedc
+region: navbar_branding
+weight: -1
+provider: null
+plugin: system_branding_block
+settings:
+  id: system_branding_block
+  label: 站点品牌
+  label_display: '0'
+  provider: system
+  use_site_logo: true
+  use_site_name: false
+  use_site_slogan: false
+visibility: {  }

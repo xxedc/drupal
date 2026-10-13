@@ -1,0 +1,26 @@
+name: xedc
+description: "xedc theme based on <a href='https://www.drupal.org/project/radix' target='_blank'>Radix 6.x</a> and Bootstrap 5.x"
+screenshot: screenshot.png
+'alt text': 'xedc theme screenshot'
+core_version_requirement: ^11
+engine: twig
+type: theme
+'base theme': radix
+'interface translation project': xedc
+'interface translation server pattern': themes/custom/xedc/translations/%language.po
+regions:
+  navbar_branding: 'Navbar branding'
+  navbar_left: 'Navbar left'
+  navbar_right: 'Navbar right'
+  header: Header
+  content: Content
+  page_bottom: 'Page bottom'
+  footer: Footer
+libraries:
+  - xedc/style
+ckeditor5-stylesheets:
+  - build/css/main.style.css
+version: 6.0.9
+project: radix
+datestamp: 1789652915
+generator: 'radix_starterkit:6.0.9'

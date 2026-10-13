@@ -1,0 +1,19 @@
+uuid: 036a5125-899e-4e71-b8ad-f99d6640fcfd
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - link
+    - node
+id: node.field_video_url
+field_name: field_video_url
+entity_type: node
+type: link
+settings: {  }
+module: link
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

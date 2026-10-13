@@ -1,0 +1,22 @@
+uuid: 7b0d3a28-4bb0-4b96-8f89-97142750ea49
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - xedc
+_core:
+  default_config_hash: 9PAm3w_VyJQuWYAHfCpkAul74cUf013PHW-lUtSu05I
+id: xedc_breadcrumbs
+theme: xedc
+region: header
+weight: -5
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: 导航路径
+  label_display: '0'
+  provider: system
+visibility: {  }

@@ -1,0 +1,16 @@
+uuid: 4f4224fc-f98a-41be-9a8c-050867ac2b0a
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - pathauto
+  enforced:
+    module:
+      - node
+_core:
+  default_config_hash: Cr0CsPUSuio4ClP7bOTqHBefJOLtN5KPyKyYj9E4qvQ
+id: pathauto_update_alias_node
+label: 更新URL别名
+type: node
+plugin: pathauto_update_alias
+configuration: {  }

@@ -1,0 +1,8 @@
+style:
+  css:
+    theme:
+      build/css/main.style.css: {}
+  js:
+    build/js/main.script.js: {}
+  dependencies:
+    - core/drupal

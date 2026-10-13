@@ -5,19 +5,13 @@ dependencies: {  }
 _core:
   default_config_hash: yrvYt4IlFH9AKX1vx-_N6OfeG_6HgylGP7hhB9AMH3k
 name: large
-label: '大 (480×480)'
+label: 壁纸(450x800)
 effects:
-  ddd73aa7-4bd6-4c85-b600-bdf2b1628d1d:
-    uuid: ddd73aa7-4bd6-4c85-b600-bdf2b1628d1d
-    id: image_scale
-    weight: 0
+  11ff3321-fbdb-4436-b36b-ae53373fabe2:
+    uuid: 11ff3321-fbdb-4436-b36b-ae53373fabe2
+    id: image_scale_and_crop
+    weight: 3
     data:
-      width: 480
-      height: 480
-      upscale: false
-  6e8fe467-84c1-4ef0-a73b-7eccf1cc20e8:
-    uuid: 6e8fe467-84c1-4ef0-a73b-7eccf1cc20e8
-    id: image_convert_avif
-    weight: 2
-    data:
-      extension: webp
+      width: 450
+      height: 800
+      anchor: center-center

@@ -1,0 +1,21 @@
+uuid: 6b132d97-672c-491e-824b-72a1ab3f70ec
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_source
+field_name: field_source
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

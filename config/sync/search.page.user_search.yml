@@ -1,0 +1,14 @@
+uuid: 872b2d22-a2ea-49dd-8189-3c8de0ee91b9
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - user
+_core:
+  default_config_hash: k3aUaZXGDuhkek2TZIee0PApOPTvYZLadziekdyHA5A
+id: user_search
+label: 用户
+path: user
+weight: 0
+plugin: user_search
+configuration: {  }

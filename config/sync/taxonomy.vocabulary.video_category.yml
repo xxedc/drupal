@@ -1,0 +1,9 @@
+uuid: 25133610-36f7-4a36-93db-0b4fb6356b25
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: 视频栏目
+vid: video_category
+description: 视频栏目分类字段
+weight: 0
+new_revision: false

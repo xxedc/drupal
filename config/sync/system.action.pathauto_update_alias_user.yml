@@ -1,0 +1,16 @@
+uuid: 5e16337d-bae4-4673-b8a6-af172d6db02f
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - pathauto
+  enforced:
+    module:
+      - user
+_core:
+  default_config_hash: 6eiNWATGTd3lUEKuxNPNyDRDVMsUlM0HS90_R6JJLUI
+id: pathauto_update_alias_user
+label: 更新URL别名
+type: user
+plugin: pathauto_update_alias
+configuration: {  }

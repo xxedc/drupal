@@ -1,0 +1,11 @@
+uuid: 40e5664f-8fb1-483f-9e97-2fafbde680b4
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - media
+id: media.token
+label: Token
+description: null
+targetEntityType: media
+cache: true

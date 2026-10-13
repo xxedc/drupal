@@ -1,0 +1,11 @@
+uuid: ca102a7e-0828-4dd7-96ff-7d741382c3bd
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.video_category
+id: taxonomy_term.video_category
+target_entity_type_id: taxonomy_term
+target_bundle: video_category
+default_langcode: site_default
+language_alterable: false

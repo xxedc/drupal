@@ -1,0 +1,11 @@
+uuid: 9cf920ba-5365-4a86-a812-9749626e0eba
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.article_category
+id: taxonomy_term.article_category
+target_entity_type_id: taxonomy_term
+target_bundle: article_category
+default_langcode: site_default
+language_alterable: false

@@ -1,0 +1,27 @@
+uuid: 2031129b-46e1-482d-b70a-d3c3a5f5cb78
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - system.menu.footer
+  module:
+    - system
+  theme:
+    - xedc
+_core:
+  default_config_hash: xPVyL8l7n1_pzLXBQ_Bkl4gQT8JA7j5S-a9GSLw740k
+id: xedc_footer
+theme: xedc
+region: footer
+weight: -5
+provider: null
+plugin: 'system_menu_block:footer'
+settings:
+  id: 'system_menu_block:footer'
+  label: 页脚菜单
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 0
+  expand_all_items: false
+visibility: {  }

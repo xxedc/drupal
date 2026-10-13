@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.restricted_html
   module:
+    - comment
     - filter
     - media
     - system
@@ -15,6 +16,7 @@ label: 匿名用户
 weight: 0
 is_admin: false
 permissions:
+  - 'access comments'
   - 'access content'
   - 'use text format restricted_html'
   - 'view media'

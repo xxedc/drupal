@@ -1,0 +1,18 @@
+uuid: f0b52bfc-e9e4-4e6b-a9b8-49b5cde1f4d6
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus:
+      - main
+    parent: 'main:'
+name: 视频
+type: video
+description: 视频内容类型
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

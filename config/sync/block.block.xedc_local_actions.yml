@@ -1,0 +1,20 @@
+uuid: 3afea1af-a2a5-4660-a11d-65b9b821e35b
+langcode: zh-hans
+status: true
+dependencies:
+  theme:
+    - xedc
+_core:
+  default_config_hash: idJMamqCLb3mzrEOGOmsY4asFFiqU13jis-lbotVTK8
+id: xedc_local_actions
+theme: xedc
+region: header
+weight: -4
+provider: null
+plugin: local_actions_block
+settings:
+  id: local_actions_block
+  label: 主要管理动作
+  label_display: '0'
+  provider: core
+visibility: {  }

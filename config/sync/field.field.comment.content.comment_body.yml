@@ -5,6 +5,7 @@ dependencies:
   config:
     - comment.type.content
     - field.storage.comment.comment_body
+    - filter.format.basic_html
   module:
     - text
 id: comment.content.comment_body
@@ -18,5 +19,6 @@ translatable: true
 default_value: {  }
 default_value_callback: ''
 settings:
-  allowed_formats: {  }
+  allowed_formats:
+    - basic_html
 field_type: text_long

@@ -1,0 +1,27 @@
+uuid: eec16113-88bc-4a2e-867c-ef982371b37a
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - system.menu.main
+  module:
+    - system
+  theme:
+    - xedc
+_core:
+  default_config_hash: ysPkDDQd3ZJ47nYlyGVhwyT1qML_CfxXPkfxo2AhwxY
+id: xedc_main_menu
+theme: xedc
+region: navbar_left
+weight: -5
+provider: null
+plugin: 'system_menu_block:main'
+settings:
+  id: 'system_menu_block:main'
+  label: 主导航
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 2
+  expand_all_items: false
+visibility: {  }

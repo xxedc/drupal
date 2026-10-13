@@ -8,6 +8,6 @@ dependencies:
 _core:
   default_config_hash: RP5hKQYc151zqBiiWtGfY-3JN7i35Gtxo1f2hhS09hM
 id: navigation-user-links
-label: 'Navigation user links'
-description: 'User links to be used in Navigation'
+label: 导航用户链接
+description: 用于导航的用户链接
 locked: true

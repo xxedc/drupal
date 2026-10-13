@@ -1,0 +1,7 @@
+// Any Drupal specific overrides.
+// -----------------------------------------------------------------------------
+.draggable {
+  div.handle {
+    box-sizing: content-box;
+  }
+}
