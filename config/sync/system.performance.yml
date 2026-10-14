@@ -4,7 +4,7 @@ cache:
   page:
     max_age: 0
 css:
-  preprocess: true
+  preprocess: false
   compress: true
 fast_404:
   enabled: true

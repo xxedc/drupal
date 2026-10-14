@@ -9,6 +9,7 @@ dependencies:
     - file
     - filter
     - media
+    - search
     - system
 _core:
   default_config_hash: wkW7P5A53YhGmsgamrmTbfwpZrqdnPYiJdoAZQtdmJg
@@ -22,6 +23,7 @@ permissions:
   - 'delete own files'
   - 'edit own comments'
   - 'post comments'
+  - 'search content'
   - 'skip comment approval'
   - 'use text format basic_html'
   - 'view media'

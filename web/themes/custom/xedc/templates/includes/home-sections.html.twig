@@ -1,0 +1,37 @@
+{% set url_photo = '/photos' %}
+{% set url_video = '/videos' %}
+{% set url_article = '/articles' %}
+<main class="xedc-container">
+<section class="xedc-section">
+  <div class="xedc-section__head"><h2>最新美图</h2><a href="{{ url_photo }}">查看更多 ›</a></div>
+  <div class="xedc-grid">
+  {% for i in home_photos %}
+    <article class="xedc-card"><a href="{{ i.url }}">
+      {% if i.img %}<img src="{{ i.img }}" alt="{{ i.title }}" loading="lazy">{% endif %}
+      <div class="xedc-card__title">{{ i.title }}</div>
+    </a></article>
+  {% endfor %}
+  </div>
+</section>
+<section class="xedc-section">
+  <div class="xedc-section__head"><h2>热门视频</h2><a href="{{ url_video }}">查看更多 ›</a></div>
+  <div class="xedc-grid xedc-grid--video">
+  {% for i in home_videos %}
+    <article class="xedc-card"><a href="{{ i.url }}">
+      {% if i.img %}<img src="{{ i.img }}" alt="{{ i.title }}" loading="lazy">{% endif %}
+      <span class="xedc-play">▶</span>
+      <div class="xedc-card__title">{{ i.title }}</div>
+    </a></article>
+  {% endfor %}
+  </div>
+</section>
+<section class="xedc-section">
+  <div class="xedc-section__head"><h2>最新文章</h2><a href="{{ url_article }}">查看更多 ›</a></div>
+  {% for i in home_articles %}
+    <a class="xedc-article" href="{{ i.url }}">
+      {% if i.img %}<img src="{{ i.img }}" alt="" loading="lazy">{% endif %}
+      <div><div class="xedc-card__title" style="padding:0">{{ i.title }}</div><div class="xedc-meta">{{ i.date }}</div></div>
+    </a>
+  {% endfor %}
+</section>
+</main>

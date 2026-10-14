@@ -1,0 +1,12 @@
+uuid: c4eb5349-cd62-47f1-9211-fe5ee754e1dc
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - node
+id: nei_rong
+label: 内容
+path: 'n'
+weight: 0
+plugin: node_search
+configuration: {  }
