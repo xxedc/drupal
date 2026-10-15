@@ -921,3 +921,4 @@ $settings['trusted_host_patterns'] = [
   '^gitxx\.xyz$',
   '^www\.gitxx\.xyz$',
 ];
+$config['system.logging']['error_level'] = 'hide';

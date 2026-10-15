@@ -3,9 +3,8 @@ langcode: zh-hans
 status: true
 dependencies:
   config:
-    - core.entity_view_mode.node.rss
     - field.storage.node.field_cover_image
-    - image.style.large
+    - image.style.images_450x800
   module:
     - file
     - media
@@ -82,7 +81,7 @@ display:
           type: media_thumbnail
           settings:
             image_link: content
-            image_style: large
+            image_style: images_450x800
             image_loading:
               attribute: lazy
           group_column: target_id

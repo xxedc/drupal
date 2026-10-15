@@ -1,0 +1,23 @@
+uuid: 6bc81624-0a3d-4965-9645-c9838507f90c
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - node.type.photo
+  module:
+    - node
+id: image_content
+label: 图片内容
+type: 'canonical_entities:node'
+pattern: '/image/[node:nid]'
+selection_criteria:
+  edd40c60-0445-405a-833d-361ec795fd0a:
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: node
+    bundles:
+      photo: photo
+selection_logic: and
+weight: -5
+relationships: {  }

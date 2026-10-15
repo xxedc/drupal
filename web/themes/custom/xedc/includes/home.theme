@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Homepage item builder (with article summary).
+ */
+
+function _xedc_home_summary($n) {
+  if (!$n->hasField('body') || $n->get('body')->isEmpty()) {
+    return '';
+  }
+  $b = $n->get('body')->first();
+  $text = trim($b->summary ?: $b->value);
+  $text = trim(preg_replace('/\s+/u', ' ', strip_tags($text)));
+  return mb_strimwidth($text, 0, 120, '…', 'UTF-8');
+}
+
+function _xedc_home_items($type, $field, $limit) {
+  $nids = \Drupal::entityQuery('node')->accessCheck(TRUE)
+    ->condition('type', $type)->condition('status', 1)
+    ->sort('created', 'DESC')->range(0, $limit)->execute();
+  $items = [];
+  foreach (\Drupal\node\Entity\Node::loadMultiple($nids) as $n) {
+    $url = '';
+    if ($n->hasField($field) && !$n->get($field)->isEmpty()) {
+      $e = $n->get($field)->entity;
+      if ($e instanceof \Drupal\media\MediaInterface) {
+        $e = $e->get('thumbnail')->entity;
+      }
+      if ($e instanceof \Drupal\file\FileInterface) {
+        $s = \Drupal\image\Entity\ImageStyle::load($type === 'photo' ? 'images_450x800' : 'large');
+        $url = $s ? $s->buildUrl($e->getFileUri()) : \Drupal::service('file_url_generator')->generateString($e->getFileUri());
+      }
+    }
+    $items[] = [
+      'title' => $n->label(),
+      'url' => $n->toUrl()->toString(),
+      'img' => $url,
+      'summary' => $type === 'article' ? _xedc_home_summary($n) : '',
+      'date' => \Drupal::service('date.formatter')->format($n->getCreatedTime(), 'custom', 'm-d'),
+    ];
+  }
+  return $items;
+}

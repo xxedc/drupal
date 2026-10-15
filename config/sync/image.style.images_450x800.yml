@@ -4,8 +4,8 @@ status: true
 dependencies: {  }
 _core:
   default_config_hash: yrvYt4IlFH9AKX1vx-_N6OfeG_6HgylGP7hhB9AMH3k
-name: large
-label: 壁纸(450x800)
+name: images_450x800
+label: 图片手机壁纸(450x800)
 effects:
   11ff3321-fbdb-4436-b36b-ae53373fabe2:
     uuid: 11ff3321-fbdb-4436-b36b-ae53373fabe2
@@ -15,3 +15,9 @@ effects:
       width: 450
       height: 800
       anchor: center-center
+  f069267e-2791-490d-a8ff-11698f31548a:
+    uuid: f069267e-2791-490d-a8ff-11698f31548a
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp

@@ -1,4 +1,5530 @@
-(()=>{var Zi=Object.create;var li=Object.defineProperty;var tn=Object.getOwnPropertyDescriptor;var en=Object.getOwnPropertyNames;var nn=Object.getPrototypeOf,sn=Object.prototype.hasOwnProperty;var K=(t,e)=>()=>{try{return e||t((e={exports:{}}).exports,e),e.exports}catch(i){throw e=0,i}};var rn=(t,e,i,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of en(e))!sn.call(t,n)&&n!==i&&li(t,n,{get:()=>e[n],enumerable:!(s=tn(e,n))||s.enumerable});return t};var rt=(t,e,i)=>(i=t!=null?Zi(nn(t)):{},rn(e||!t||!t.__esModule?li(i,"default",{value:t,enumerable:!0}):i,t));var ui=K((jt,Ut)=>{(function(t,e){typeof jt=="object"&&typeof Ut<"u"?Ut.exports=e():typeof define=="function"&&define.amd?define(e):(t=typeof globalThis<"u"?globalThis:t||self,t.Data=e())})(jt,(function(){"use strict";let t=new Map;return{set(i,s,n){t.has(i)||t.set(i,new Map);let r=t.get(i);if(!r.has(s)&&r.size!==0){console.error(`Bootstrap doesn't allow more than one instance per element. Bound instance: ${Array.from(r.keys())[0]}.`);return}r.set(s,n)},get(i,s){return t.has(i)&&t.get(i).get(s)||null},remove(i,s){if(!t.has(i))return;let n=t.get(i);n.delete(s),n.size===0&&t.delete(i)}}}))});var H=K((xt,fi)=>{(function(t,e){typeof xt=="object"&&typeof fi<"u"?e(xt):typeof define=="function"&&define.amd?define(["exports"],e):(t=typeof globalThis<"u"?globalThis:t||self,e(t.Index={}))})(xt,(function(t){"use strict";let s="transitionend",n=l=>(l&&window.CSS&&window.CSS.escape&&(l=l.replace(/#([^\s"#']+)/g,(T,f)=>`#${CSS.escape(f)}`)),l),r=l=>l==null?`${l}`:Object.prototype.toString.call(l).match(/\s([a-z]+)/i)[1].toLowerCase(),c=l=>{do l+=Math.floor(Math.random()*1e6);while(document.getElementById(l));return l},a=l=>{if(!l)return 0;let{transitionDuration:T,transitionDelay:f}=window.getComputedStyle(l),g=Number.parseFloat(T),D=Number.parseFloat(f);return!g&&!D?0:(T=T.split(",")[0],f=f.split(",")[0],(Number.parseFloat(T)+Number.parseFloat(f))*1e3)},u=l=>{l.dispatchEvent(new Event(s))},p=l=>!l||typeof l!="object"?!1:(typeof l.jquery<"u"&&(l=l[0]),typeof l.nodeType<"u"),o=l=>p(l)?l.jquery?l[0]:l:typeof l=="string"&&l.length>0?document.querySelector(n(l)):null,m=l=>{if(!p(l)||l.getClientRects().length===0)return!1;let T=getComputedStyle(l).getPropertyValue("visibility")==="visible",f=l.closest("details:not([open])");if(!f)return T;if(f!==l){let g=l.closest("summary");if(g&&g.parentNode!==f||g===null)return!1}return T},C=l=>!l||l.nodeType!==Node.ELEMENT_NODE||l.classList.contains("disabled")?!0:typeof l.disabled<"u"?l.disabled:l.hasAttribute("disabled")&&l.getAttribute("disabled")!=="false",E=l=>{if(!document.documentElement.attachShadow)return null;if(typeof l.getRootNode=="function"){let T=l.getRootNode();return T instanceof ShadowRoot?T:null}return l instanceof ShadowRoot?l:l.parentNode?E(l.parentNode):null},S=()=>{},A=l=>{l.offsetHeight},L=()=>window.jQuery&&!document.body.hasAttribute("data-bs-no-jquery")?window.jQuery:null,M=[],w=l=>{document.readyState==="loading"?(M.length||document.addEventListener("DOMContentLoaded",()=>{for(let T of M)T()}),M.push(l)):l()},$=()=>document.documentElement.dir==="rtl",_=l=>{w(()=>{let T=L();if(T){let f=l.NAME,g=T.fn[f];T.fn[f]=l.jQueryInterface,T.fn[f].Constructor=l,T.fn[f].noConflict=()=>(T.fn[f]=g,l.jQueryInterface)}})},v=(l,T=[],f=l)=>typeof l=="function"?l.call(...T):f,y=(l,T,f=!0)=>{if(!f){v(l);return}let D=a(T)+5,I=!1,x=({target:V})=>{V===T&&(I=!0,T.removeEventListener(s,x),v(l))};T.addEventListener(s,x),setTimeout(()=>{I||u(T)},D)},b=(l,T,f,g)=>{let D=l.length,I=l.indexOf(T);return I===-1?!f&&g?l[D-1]:l[0]:(I+=f?1:-1,g&&(I=(I+D)%D),l[Math.max(0,Math.min(I,D-1))])};t.defineJQueryPlugin=_,t.execute=v,t.executeAfterTransition=y,t.findShadowRoot=E,t.getElement=o,t.getNextActiveElement=b,t.getTransitionDurationFromElement=a,t.getUID=c,t.getjQuery=L,t.isDisabled=C,t.isElement=p,t.isRTL=$,t.isVisible=m,t.noop=S,t.onDOMContentLoaded=w,t.parseSelector=n,t.reflow=A,t.toType=r,t.triggerTransitionEnd=u,Object.defineProperty(t,Symbol.toStringTag,{value:"Module"})}))});var J=K((Ht,zt)=>{(function(t,e){typeof Ht=="object"&&typeof zt<"u"?zt.exports=e(H()):typeof define=="function"&&define.amd?define(["../util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.EventHandler=e(t.Index))})(Ht,(function(t){"use strict";let e=/[^.]*(?=\..*)\.|.*/,i=/\..*/,s=/::\d+$/,n={},r=1,c={mouseenter:"mouseover",mouseleave:"mouseout"},a=new Set(["click","dblclick","mouseup","mousedown","contextmenu","mousewheel","DOMMouseScroll","mouseover","mouseout","mousemove","selectstart","selectend","keydown","keypress","keyup","orientationchange","touchstart","touchmove","touchend","touchcancel","pointerdown","pointermove","pointerup","pointerleave","pointercancel","gesturestart","gesturechange","gestureend","focus","blur","change","reset","select","submit","focusin","focusout","load","unload","beforeunload","resize","move","DOMContentLoaded","readystatechange","error","abort","scroll"]);function u(_,v){return v&&`${v}::${r++}`||_.uidEvent||r++}function p(_){let v=u(_);return _.uidEvent=v,n[v]=n[v]||{},n[v]}function o(_,v){return function y(b){return $(b,{delegateTarget:_}),y.oneOff&&w.off(_,b.type,v),v.apply(_,[b])}}function m(_,v,y){return function b(l){let T=_.querySelectorAll(v);for(let{target:f}=l;f&&f!==this;f=f.parentNode)for(let g of T)if(g===f)return $(l,{delegateTarget:f}),b.oneOff&&w.off(_,l.type,v,y),y.apply(f,[l])}}function C(_,v,y=null){return Object.values(_).find(b=>b.callable===v&&b.delegationSelector===y)}function E(_,v,y){let b=typeof v=="string",l=b?y:v||y,T=M(_);return a.has(T)||(T=_),[b,l,T]}function S(_,v,y,b,l){if(typeof v!="string"||!_)return;let[T,f,g]=E(v,y,b);v in c&&(f=(Y=>function(h){if(!h.relatedTarget||h.relatedTarget!==h.delegateTarget&&!h.delegateTarget.contains(h.relatedTarget))return Y.call(this,h)})(f));let D=p(_),I=D[g]||(D[g]={}),x=C(I,f,T?y:null);if(x){x.oneOff=x.oneOff&&l;return}let V=u(f,v.replace(e,"")),P=T?m(_,y,f):o(_,f);P.delegationSelector=T?y:null,P.callable=f,P.oneOff=l,P.uidEvent=V,I[V]=P,_.addEventListener(g,P,T)}function A(_,v,y,b,l){let T=C(v[y],b,l);T&&(_.removeEventListener(y,T,!!l),delete v[y][T.uidEvent])}function L(_,v,y,b){let l=v[y]||{};for(let[T,f]of Object.entries(l))T.includes(b)&&A(_,v,y,f.callable,f.delegationSelector)}function M(_){return _=_.replace(i,""),c[_]||_}let w={on(_,v,y,b){S(_,v,y,b,!1)},one(_,v,y,b){S(_,v,y,b,!0)},off(_,v,y,b){if(typeof v!="string"||!_)return;let[l,T,f]=E(v,y,b),g=f!==v,D=p(_),I=D[f]||{},x=v.startsWith(".");if(typeof T<"u"){if(!Object.keys(I).length)return;A(_,D,f,T,l?y:null);return}if(x)for(let V of Object.keys(D))L(_,D,V,v.slice(1));for(let[V,P]of Object.entries(I)){let k=V.replace(s,"");(!g||v.includes(k))&&A(_,D,f,P.callable,P.delegationSelector)}},trigger(_,v,y){if(typeof v!="string"||!_)return null;let b=t.getjQuery(),l=M(v),T=v!==l,f=null,g=!0,D=!0,I=!1;T&&b&&(f=b.Event(v,y),b(_).trigger(f),g=!f.isPropagationStopped(),D=!f.isImmediatePropagationStopped(),I=f.isDefaultPrevented());let x=$(new Event(v,{bubbles:g,cancelable:!0}),y);return I&&x.preventDefault(),D&&_.dispatchEvent(x),x.defaultPrevented&&f&&f.preventDefault(),x}};function $(_,v={}){for(let[y,b]of Object.entries(v))try{_[y]=b}catch{Object.defineProperty(_,y,{configurable:!0,get(){return b}})}return _}return w}))});var bt=K((Gt,Qt)=>{(function(t,e){typeof Gt=="object"&&typeof Qt<"u"?Qt.exports=e():typeof define=="function"&&define.amd?define(e):(t=typeof globalThis<"u"?globalThis:t||self,t.Manipulator=e())})(Gt,(function(){"use strict";function t(s){if(s==="true")return!0;if(s==="false")return!1;if(s===Number(s).toString())return Number(s);if(s===""||s==="null")return null;if(typeof s!="string")return s;try{return JSON.parse(decodeURIComponent(s))}catch{return s}}function e(s){return s.replace(/[A-Z]/g,n=>`-${n.toLowerCase()}`)}return{setDataAttribute(s,n,r){s.setAttribute(`data-bs-${e(n)}`,r)},removeDataAttribute(s,n){s.removeAttribute(`data-bs-${e(n)}`)},getDataAttributes(s){if(!s)return{};let n={},r=Object.keys(s.dataset).filter(c=>c.startsWith("bs")&&!c.startsWith("bsConfig"));for(let c of r){let a=c.replace(/^bs/,"");a=a.charAt(0).toLowerCase()+a.slice(1),n[a]=t(s.dataset[c])}return n},getDataAttribute(s,n){return t(s.getAttribute(`data-bs-${e(n)}`))}}}))});var At=K((Xt,Jt)=>{(function(t,e){typeof Xt=="object"&&typeof Jt<"u"?Jt.exports=e(bt(),H()):typeof define=="function"&&define.amd?define(["../dom/manipulator","./index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Config=e(t.Manipulator,t.Index))})(Xt,(function(t,e){"use strict";class i{static get Default(){return{}}static get DefaultType(){return{}}static get NAME(){throw new Error('You have to implement the static method "NAME", for each component!')}_getConfig(n){return n=this._mergeConfigObj(n),n=this._configAfterMerge(n),this._typeCheckConfig(n),n}_configAfterMerge(n){return n}_mergeConfigObj(n,r){let c=e.isElement(r)?t.getDataAttribute(r,"config"):{};return{...this.constructor.Default,...typeof c=="object"?c:{},...e.isElement(r)?t.getDataAttributes(r):{},...typeof n=="object"?n:{}}}_typeCheckConfig(n,r=this.constructor.DefaultType){for(let[c,a]of Object.entries(r)){let u=n[c],p=e.isElement(u)?"element":e.toType(u);if(!new RegExp(a).test(p))throw new TypeError(`${this.constructor.NAME.toUpperCase()}: Option "${c}" provided type "${p}" but expected type "${a}".`)}}}return i}))});var ot=K((Zt,te)=>{(function(t,e){typeof Zt=="object"&&typeof te<"u"?te.exports=e(ui(),J(),At(),H()):typeof define=="function"&&define.amd?define(["./dom/data","./dom/event-handler","./util/config","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.BaseComponent=e(t.Data,t.EventHandler,t.Config,t.Index))})(Zt,(function(t,e,i,s){"use strict";let n="5.3.8";class r extends i{constructor(a,u){super(),a=s.getElement(a),a&&(this._element=a,this._config=this._getConfig(u),t.set(this._element,this.constructor.DATA_KEY,this))}dispose(){t.remove(this._element,this.constructor.DATA_KEY),e.off(this._element,this.constructor.EVENT_KEY);for(let a of Object.getOwnPropertyNames(this))this[a]=null}_queueCallback(a,u,p=!0){s.executeAfterTransition(a,u,p)}_getConfig(a){return a=this._mergeConfigObj(a,this._element),a=this._configAfterMerge(a),this._typeCheckConfig(a),a}static getInstance(a){return t.get(s.getElement(a),this.DATA_KEY)}static getOrCreateInstance(a,u={}){return this.getInstance(a)||new this(a,typeof u=="object"?u:null)}static get VERSION(){return n}static get DATA_KEY(){return`bs.${this.NAME}`}static get EVENT_KEY(){return`.${this.DATA_KEY}`}static eventName(a){return`${a}${this.EVENT_KEY}`}}return r}))});var at=K((ee,ie)=>{(function(t,e){typeof ee=="object"&&typeof ie<"u"?ie.exports=e(H()):typeof define=="function"&&define.amd?define(["../util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.SelectorEngine=e(t.Index))})(ee,(function(t){"use strict";let e=s=>{let n=s.getAttribute("data-bs-target");if(!n||n==="#"){let r=s.getAttribute("href");if(!r||!r.includes("#")&&!r.startsWith("."))return null;r.includes("#")&&!r.startsWith("#")&&(r=`#${r.split("#")[1]}`),n=r&&r!=="#"?r.trim():null}return n?n.split(",").map(r=>t.parseSelector(r)).join(","):null},i={find(s,n=document.documentElement){return[].concat(...Element.prototype.querySelectorAll.call(n,s))},findOne(s,n=document.documentElement){return Element.prototype.querySelector.call(n,s)},children(s,n){return[].concat(...s.children).filter(r=>r.matches(n))},parents(s,n){let r=[],c=s.parentNode.closest(n);for(;c;)r.push(c),c=c.parentNode.closest(n);return r},prev(s,n){let r=s.previousElementSibling;for(;r;){if(r.matches(n))return[r];r=r.previousElementSibling}return[]},next(s,n){let r=s.nextElementSibling;for(;r;){if(r.matches(n))return[r];r=r.nextElementSibling}return[]},focusableChildren(s){let n=["a","button","input","textarea","select","details","[tabindex]",'[contenteditable="true"]'].map(r=>`${r}:not([tabindex^="-"])`).join(",");return this.find(n,s).filter(r=>!t.isDisabled(r)&&t.isVisible(r))},getSelectorFromElement(s){let n=e(s);return n&&i.findOne(n)?n:null},getElementFromSelector(s){let n=e(s);return n?i.findOne(n):null},getMultipleElementsFromSelector(s){let n=e(s);return n?i.find(n):[]}};return i}))});var St=K(($t,di)=>{(function(t,e){typeof $t=="object"&&typeof di<"u"?e($t,J(),at(),H()):typeof define=="function"&&define.amd?define(["exports","../dom/event-handler","../dom/selector-engine","./index"],e):(t=typeof globalThis<"u"?globalThis:t||self,e(t.ComponentFunctions={},t.EventHandler,t.SelectorEngine,t.Index))})($t,(function(t,e,i,s){"use strict";let n=(r,c="hide")=>{let a=`click.dismiss${r.EVENT_KEY}`,u=r.NAME;e.on(document,a,`[data-bs-dismiss="${u}"]`,function(p){if(["A","AREA"].includes(this.tagName)&&p.preventDefault(),s.isDisabled(this))return;let o=i.getElementFromSelector(this)||this.closest(`.${u}`);r.getOrCreateInstance(o)[c]()})};t.enableDismissTrigger=n,Object.defineProperty(t,Symbol.toStringTag,{value:"Module"})}))});var hi=K((ne,se)=>{(function(t,e){typeof ne=="object"&&typeof se<"u"?se.exports=e(ot(),J(),St(),H()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./util/component-functions","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Alert=e(t.BaseComponent,t.EventHandler,t.ComponentFunctions,t.Index))})(ne,(function(t,e,i,s){"use strict";let n="alert",c=".bs.alert",a=`close${c}`,u=`closed${c}`,p="fade",o="show";class m extends t{static get NAME(){return n}close(){if(e.trigger(this._element,a).defaultPrevented)return;this._element.classList.remove(o);let S=this._element.classList.contains(p);this._queueCallback(()=>this._destroyElement(),this._element,S)}_destroyElement(){this._element.remove(),e.trigger(this._element,u),this.dispose()}static jQueryInterface(E){return this.each(function(){let S=m.getOrCreateInstance(this);if(typeof E=="string"){if(S[E]===void 0||E.startsWith("_")||E==="constructor")throw new TypeError(`No method named "${E}"`);S[E](this)}})}}return i.enableDismissTrigger(m,"close"),s.defineJQueryPlugin(m),m}))});var pi=K((re,oe)=>{(function(t,e){typeof re=="object"&&typeof oe<"u"?oe.exports=e(ot(),J(),H()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Button=e(t.BaseComponent,t.EventHandler,t.Index))})(re,(function(t,e,i){"use strict";let s="button",r=".bs.button",c=".data-api",a="active",u='[data-bs-toggle="button"]',p=`click${r}${c}`;class o extends t{static get NAME(){return s}toggle(){this._element.setAttribute("aria-pressed",this._element.classList.toggle(a))}static jQueryInterface(C){return this.each(function(){let E=o.getOrCreateInstance(this);C==="toggle"&&E[C]()})}}return e.on(document,p,u,m=>{m.preventDefault();let C=m.target.closest(u);o.getOrCreateInstance(C).toggle()}),i.defineJQueryPlugin(o),o}))});var mi=K((ae,ce)=>{(function(t,e){typeof ae=="object"&&typeof ce<"u"?ce.exports=e(J(),At(),H()):typeof define=="function"&&define.amd?define(["../dom/event-handler","./config","./index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Swipe=e(t.EventHandler,t.Config,t.Index))})(ae,(function(t,e,i){"use strict";let s="swipe",n=".bs.swipe",r=`touchstart${n}`,c=`touchmove${n}`,a=`touchend${n}`,u=`pointerdown${n}`,p=`pointerup${n}`,o="touch",m="pen",C="pointer-event",E=40,S={endCallback:null,leftCallback:null,rightCallback:null},A={endCallback:"(function|null)",leftCallback:"(function|null)",rightCallback:"(function|null)"};class L extends e{constructor(w,$){super(),this._element=w,!(!w||!L.isSupported())&&(this._config=this._getConfig($),this._deltaX=0,this._supportPointerEvents=!!window.PointerEvent,this._initEvents())}static get Default(){return S}static get DefaultType(){return A}static get NAME(){return s}dispose(){t.off(this._element,n)}_start(w){if(!this._supportPointerEvents){this._deltaX=w.touches[0].clientX;return}this._eventIsPointerPenTouch(w)&&(this._deltaX=w.clientX)}_end(w){this._eventIsPointerPenTouch(w)&&(this._deltaX=w.clientX-this._deltaX),this._handleSwipe(),i.execute(this._config.endCallback)}_move(w){this._deltaX=w.touches&&w.touches.length>1?0:w.touches[0].clientX-this._deltaX}_handleSwipe(){let w=Math.abs(this._deltaX);if(w<=E)return;let $=w/this._deltaX;this._deltaX=0,$&&i.execute($>0?this._config.rightCallback:this._config.leftCallback)}_initEvents(){this._supportPointerEvents?(t.on(this._element,u,w=>this._start(w)),t.on(this._element,p,w=>this._end(w)),this._element.classList.add(C)):(t.on(this._element,r,w=>this._start(w)),t.on(this._element,c,w=>this._move(w)),t.on(this._element,a,w=>this._end(w)))}_eventIsPointerPenTouch(w){return this._supportPointerEvents&&(w.pointerType===m||w.pointerType===o)}static isSupported(){return"ontouchstart"in document.documentElement||navigator.maxTouchPoints>0}}return L}))});var _i=K((le,ue)=>{(function(t,e){typeof le=="object"&&typeof ue<"u"?ue.exports=e(ot(),J(),bt(),at(),H(),mi()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./dom/manipulator","./dom/selector-engine","./util/index","./util/swipe"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Carousel=e(t.BaseComponent,t.EventHandler,t.Manipulator,t.SelectorEngine,t.Index,t.Swipe))})(le,(function(t,e,i,s,n,r){"use strict";let c="carousel",u=".bs.carousel",p=".data-api",o="ArrowLeft",m="ArrowRight",C=500,E="next",S="prev",A="left",L="right",M=`slide${u}`,w=`slid${u}`,$=`keydown${u}`,_=`mouseenter${u}`,v=`mouseleave${u}`,y=`dragstart${u}`,b=`load${u}${p}`,l=`click${u}${p}`,T="carousel",f="active",g="slide",D="carousel-item-end",I="carousel-item-start",x="carousel-item-next",V="carousel-item-prev",P=".active",k=".carousel-item",Y=P+k,h=".carousel-item img",d=".carousel-indicators",O="[data-bs-slide], [data-bs-slide-to]",q='[data-bs-ride="carousel"]',j={[o]:L,[m]:A},z={interval:5e3,keyboard:!0,pause:"hover",ride:!1,touch:!0,wrap:!0},U={interval:"(number|boolean)",keyboard:"boolean",pause:"(string|boolean)",ride:"(boolean|string)",touch:"boolean",wrap:"boolean"};class Z extends t{constructor(R,W){super(R,W),this._interval=null,this._activeElement=null,this._isSliding=!1,this.touchTimeout=null,this._swipeHelper=null,this._indicatorsElement=s.findOne(d,this._element),this._addEventListeners(),this._config.ride===T&&this.cycle()}static get Default(){return z}static get DefaultType(){return U}static get NAME(){return c}next(){this._slide(E)}nextWhenVisible(){!document.hidden&&n.isVisible(this._element)&&this.next()}prev(){this._slide(S)}pause(){this._isSliding&&n.triggerTransitionEnd(this._element),this._clearInterval()}cycle(){this._clearInterval(),this._updateInterval(),this._interval=setInterval(()=>this.nextWhenVisible(),this._config.interval)}_maybeEnableCycle(){if(this._config.ride){if(this._isSliding){e.one(this._element,w,()=>this.cycle());return}this.cycle()}}to(R){let W=this._getItems();if(R>W.length-1||R<0)return;if(this._isSliding){e.one(this._element,w,()=>this.to(R));return}let B=this._getItemIndex(this._getActive());if(B===R)return;let Q=R>B?E:S;this._slide(Q,W[R])}dispose(){this._swipeHelper&&this._swipeHelper.dispose(),super.dispose()}_configAfterMerge(R){return R.defaultInterval=R.interval,R}_addEventListeners(){this._config.keyboard&&e.on(this._element,$,R=>this._keydown(R)),this._config.pause==="hover"&&(e.on(this._element,_,()=>this.pause()),e.on(this._element,v,()=>this._maybeEnableCycle())),this._config.touch&&r.isSupported()&&this._addTouchEventListeners()}_addTouchEventListeners(){for(let B of s.find(h,this._element))e.on(B,y,Q=>Q.preventDefault());let W={leftCallback:()=>this._slide(this._directionToOrder(A)),rightCallback:()=>this._slide(this._directionToOrder(L)),endCallback:()=>{this._config.pause==="hover"&&(this.pause(),this.touchTimeout&&clearTimeout(this.touchTimeout),this.touchTimeout=setTimeout(()=>this._maybeEnableCycle(),C+this._config.interval))}};this._swipeHelper=new r(this._element,W)}_keydown(R){if(/input|textarea/i.test(R.target.tagName))return;let W=j[R.key];W&&(R.preventDefault(),this._slide(this._directionToOrder(W)))}_getItemIndex(R){return this._getItems().indexOf(R)}_setActiveIndicatorElement(R){if(!this._indicatorsElement)return;let W=s.findOne(P,this._indicatorsElement);W.classList.remove(f),W.removeAttribute("aria-current");let B=s.findOne(`[data-bs-slide-to="${R}"]`,this._indicatorsElement);B&&(B.classList.add(f),B.setAttribute("aria-current","true"))}_updateInterval(){let R=this._activeElement||this._getActive();if(!R)return;let W=Number.parseInt(R.getAttribute("data-bs-interval"),10);this._config.interval=W||this._config.defaultInterval}_slide(R,W=null){if(this._isSliding)return;let B=this._getActive(),Q=R===E,N=W||n.getNextActiveElement(this._getItems(),B,Q,this._config.wrap);if(N===B)return;let F=this._getItemIndex(N),G=mt=>e.trigger(this._element,mt,{relatedTarget:N,direction:this._orderToDirection(R),from:this._getItemIndex(B),to:F});if(G(M).defaultPrevented||!B||!N)return;let dt=!!this._interval;this.pause(),this._isSliding=!0,this._setActiveIndicatorElement(F),this._activeElement=N;let et=Q?I:D,gt=Q?x:V;N.classList.add(gt),n.reflow(N),B.classList.add(et),N.classList.add(et);let Kt=()=>{N.classList.remove(et,gt),N.classList.add(f),B.classList.remove(f,gt,et),this._isSliding=!1,G(w)};this._queueCallback(Kt,B,this._isAnimated()),dt&&this.cycle()}_isAnimated(){return this._element.classList.contains(g)}_getActive(){return s.findOne(Y,this._element)}_getItems(){return s.find(k,this._element)}_clearInterval(){this._interval&&(clearInterval(this._interval),this._interval=null)}_directionToOrder(R){return n.isRTL()?R===A?S:E:R===A?E:S}_orderToDirection(R){return n.isRTL()?R===S?A:L:R===S?L:A}static jQueryInterface(R){return this.each(function(){let W=Z.getOrCreateInstance(this,R);if(typeof R=="number"){W.to(R);return}if(typeof R=="string"){if(W[R]===void 0||R.startsWith("_")||R==="constructor")throw new TypeError(`No method named "${R}"`);W[R]()}})}}return e.on(document,l,O,function(ft){let R=s.getElementFromSelector(this);if(!R||!R.classList.contains(T))return;ft.preventDefault();let W=Z.getOrCreateInstance(R),B=this.getAttribute("data-bs-slide-to");if(B){W.to(B),W._maybeEnableCycle();return}if(i.getDataAttribute(this,"slide")==="next"){W.next(),W._maybeEnableCycle();return}W.prev(),W._maybeEnableCycle()}),e.on(window,b,()=>{let ft=s.find(q);for(let R of ft)Z.getOrCreateInstance(R)}),n.defineJQueryPlugin(Z),Z}))});var gi=K((fe,de)=>{(function(t,e){typeof fe=="object"&&typeof de<"u"?de.exports=e(ot(),J(),at(),H()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./dom/selector-engine","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Collapse=e(t.BaseComponent,t.EventHandler,t.SelectorEngine,t.Index))})(fe,(function(t,e,i,s){"use strict";let n="collapse",c=".bs.collapse",a=".data-api",u=`show${c}`,p=`shown${c}`,o=`hide${c}`,m=`hidden${c}`,C=`click${c}${a}`,E="show",S="collapse",A="collapsing",L="collapsed",M=`:scope .${S} .${S}`,w="collapse-horizontal",$="width",_="height",v=".collapse.show, .collapse.collapsing",y='[data-bs-toggle="collapse"]',b={parent:null,toggle:!0},l={parent:"(null|element)",toggle:"boolean"};class T extends t{constructor(g,D){super(g,D),this._isTransitioning=!1,this._triggerArray=[];let I=i.find(y);for(let x of I){let V=i.getSelectorFromElement(x),P=i.find(V).filter(k=>k===this._element);V!==null&&P.length&&this._triggerArray.push(x)}this._initializeChildren(),this._config.parent||this._addAriaAndCollapsedClass(this._triggerArray,this._isShown()),this._config.toggle&&this.toggle()}static get Default(){return b}static get DefaultType(){return l}static get NAME(){return n}toggle(){this._isShown()?this.hide():this.show()}show(){if(this._isTransitioning||this._isShown())return;let g=[];if(this._config.parent&&(g=this._getFirstLevelChildren(v).filter(k=>k!==this._element).map(k=>T.getOrCreateInstance(k,{toggle:!1}))),g.length&&g[0]._isTransitioning||e.trigger(this._element,u).defaultPrevented)return;for(let k of g)k.hide();let I=this._getDimension();this._element.classList.remove(S),this._element.classList.add(A),this._element.style[I]=0,this._addAriaAndCollapsedClass(this._triggerArray,!0),this._isTransitioning=!0;let x=()=>{this._isTransitioning=!1,this._element.classList.remove(A),this._element.classList.add(S,E),this._element.style[I]="",e.trigger(this._element,p)},P=`scroll${I[0].toUpperCase()+I.slice(1)}`;this._queueCallback(x,this._element,!0),this._element.style[I]=`${this._element[P]}px`}hide(){if(this._isTransitioning||!this._isShown()||e.trigger(this._element,o).defaultPrevented)return;let D=this._getDimension();this._element.style[D]=`${this._element.getBoundingClientRect()[D]}px`,s.reflow(this._element),this._element.classList.add(A),this._element.classList.remove(S,E);for(let x of this._triggerArray){let V=i.getElementFromSelector(x);V&&!this._isShown(V)&&this._addAriaAndCollapsedClass([x],!1)}this._isTransitioning=!0;let I=()=>{this._isTransitioning=!1,this._element.classList.remove(A),this._element.classList.add(S),e.trigger(this._element,m)};this._element.style[D]="",this._queueCallback(I,this._element,!0)}_isShown(g=this._element){return g.classList.contains(E)}_configAfterMerge(g){return g.toggle=!!g.toggle,g.parent=s.getElement(g.parent),g}_getDimension(){return this._element.classList.contains(w)?$:_}_initializeChildren(){if(!this._config.parent)return;let g=this._getFirstLevelChildren(y);for(let D of g){let I=i.getElementFromSelector(D);I&&this._addAriaAndCollapsedClass([D],this._isShown(I))}}_getFirstLevelChildren(g){let D=i.find(M,this._config.parent);return i.find(g,this._config.parent).filter(I=>!D.includes(I))}_addAriaAndCollapsedClass(g,D){if(g.length)for(let I of g)I.classList.toggle(L,!D),I.setAttribute("aria-expanded",D)}static jQueryInterface(g){let D={};return typeof g=="string"&&/show|hide/.test(g)&&(D.toggle=!1),this.each(function(){let I=T.getOrCreateInstance(this,D);if(typeof g=="string"){if(typeof I[g]>"u")throw new TypeError(`No method named "${g}"`);I[g]()}})}}return e.on(document,C,y,function(f){(f.target.tagName==="A"||f.delegateTarget&&f.delegateTarget.tagName==="A")&&f.preventDefault();for(let g of i.getMultipleElementsFromSelector(this))T.getOrCreateInstance(g,{toggle:!1}).toggle()}),s.defineJQueryPlugin(T),T}))});var Ne=K(tt=>{"use strict";Object.defineProperty(tt,"__esModule",{value:!0});function st(t){if(t==null)return window;if(t.toString()!=="[object Window]"){var e=t.ownerDocument;return e&&e.defaultView||window}return t}function Tt(t){var e=st(t).Element;return t instanceof e||t instanceof Element}function ct(t){var e=st(t).HTMLElement;return t instanceof e||t instanceof HTMLElement}function me(t){if(typeof ShadowRoot>"u")return!1;var e=st(t).ShadowRoot;return t instanceof e||t instanceof ShadowRoot}var vt=Math.max,Wt=Math.min,yt=Math.round;function he(){var t=navigator.userAgentData;return t!=null&&t.brands&&Array.isArray(t.brands)?t.brands.map(function(e){return e.brand+"/"+e.version}).join(" "):navigator.userAgent}function Ni(){return!/^((?!chrome|android).)*safari/i.test(he())}function wt(t,e,i){e===void 0&&(e=!1),i===void 0&&(i=!1);var s=t.getBoundingClientRect(),n=1,r=1;e&&ct(t)&&(n=t.offsetWidth>0&&yt(s.width)/t.offsetWidth||1,r=t.offsetHeight>0&&yt(s.height)/t.offsetHeight||1);var c=Tt(t)?st(t):window,a=c.visualViewport,u=!Ni()&&i,p=(s.left+(u&&a?a.offsetLeft:0))/n,o=(s.top+(u&&a?a.offsetTop:0))/r,m=s.width/n,C=s.height/r;return{width:m,height:C,top:o,right:p+m,bottom:o+C,left:p,x:p,y:o}}function _e(t){var e=st(t),i=e.pageXOffset,s=e.pageYOffset;return{scrollLeft:i,scrollTop:s}}function on(t){return{scrollLeft:t.scrollLeft,scrollTop:t.scrollTop}}function an(t){return t===st(t)||!ct(t)?_e(t):on(t)}function pt(t){return t?(t.nodeName||"").toLowerCase():null}function Et(t){return((Tt(t)?t.ownerDocument:t.document)||window.document).documentElement}function ge(t){return wt(Et(t)).left+_e(t).scrollLeft}function _t(t){return st(t).getComputedStyle(t)}function Ee(t){var e=_t(t),i=e.overflow,s=e.overflowX,n=e.overflowY;return/auto|scroll|overlay|hidden/.test(i+n+s)}function cn(t){var e=t.getBoundingClientRect(),i=yt(e.width)/t.offsetWidth||1,s=yt(e.height)/t.offsetHeight||1;return i!==1||s!==1}function ln(t,e,i){i===void 0&&(i=!1);var s=ct(e),n=ct(e)&&cn(e),r=Et(e),c=wt(t,n,i),a={scrollLeft:0,scrollTop:0},u={x:0,y:0};return(s||!s&&!i)&&((pt(e)!=="body"||Ee(r))&&(a=an(e)),ct(e)?(u=wt(e,!0),u.x+=e.clientLeft,u.y+=e.clientTop):r&&(u.x=ge(r))),{x:c.left+a.scrollLeft-u.x,y:c.top+a.scrollTop-u.y,width:c.width,height:c.height}}function ve(t){var e=wt(t),i=t.offsetWidth,s=t.offsetHeight;return Math.abs(e.width-i)<=1&&(i=e.width),Math.abs(e.height-s)<=1&&(s=e.height),{x:t.offsetLeft,y:t.offsetTop,width:i,height:s}}function Bt(t){return pt(t)==="html"?t:t.assignedSlot||t.parentNode||(me(t)?t.host:null)||Et(t)}function Si(t){return["html","body","#document"].indexOf(pt(t))>=0?t.ownerDocument.body:ct(t)&&Ee(t)?t:Si(Bt(t))}function Lt(t,e){var i;e===void 0&&(e=[]);var s=Si(t),n=s===((i=t.ownerDocument)==null?void 0:i.body),r=st(s),c=n?[r].concat(r.visualViewport||[],Ee(s)?s:[]):s,a=e.concat(c);return n?a:a.concat(Lt(Bt(c)))}function un(t){return["table","td","th"].indexOf(pt(t))>=0}function Ei(t){return!ct(t)||_t(t).position==="fixed"?null:t.offsetParent}function fn(t){var e=/firefox/i.test(he()),i=/Trident/i.test(he());if(i&&ct(t)){var s=_t(t);if(s.position==="fixed")return null}var n=Bt(t);for(me(n)&&(n=n.host);ct(n)&&["html","body"].indexOf(pt(n))<0;){var r=_t(n);if(r.transform!=="none"||r.perspective!=="none"||r.contain==="paint"||["transform","perspective"].indexOf(r.willChange)!==-1||e&&r.willChange==="filter"||e&&r.filter&&r.filter!=="none")return n;n=n.parentNode}return null}function Mt(t){for(var e=st(t),i=Ei(t);i&&un(i)&&_t(i).position==="static";)i=Ei(i);return i&&(pt(i)==="html"||pt(i)==="body"&&_t(i).position==="static")?e:i||fn(t)||e}var it="top",lt="bottom",ut="right",nt="left",Te="auto",Rt=[it,lt,ut,nt],Ot="start",Pt="end",dn="clippingParents",Di="viewport",Dt="popper",hn="reference",vi=Rt.reduce(function(t,e){return t.concat([e+"-"+Ot,e+"-"+Pt])},[]),Li=[].concat(Rt,[Te]).reduce(function(t,e){return t.concat([e,e+"-"+Ot,e+"-"+Pt])},[]),pn="beforeRead",mn="read",_n="afterRead",gn="beforeMain",En="main",vn="afterMain",Tn="beforeWrite",bn="write",An="afterWrite",yn=[pn,mn,_n,gn,En,vn,Tn,bn,An];function wn(t){var e=new Map,i=new Set,s=[];t.forEach(function(r){e.set(r.name,r)});function n(r){i.add(r.name);var c=[].concat(r.requires||[],r.requiresIfExists||[]);c.forEach(function(a){if(!i.has(a)){var u=e.get(a);u&&n(u)}}),s.push(r)}return t.forEach(function(r){i.has(r.name)||n(r)}),s}function On(t){var e=wn(t);return yn.reduce(function(i,s){return i.concat(e.filter(function(n){return n.phase===s}))},[])}function Cn(t){var e;return function(){return e||(e=new Promise(function(i){Promise.resolve().then(function(){e=void 0,i(t())})})),e}}function Nn(t){var e=t.reduce(function(i,s){var n=i[s.name];return i[s.name]=n?Object.assign({},n,s,{options:Object.assign({},n.options,s.options),data:Object.assign({},n.data,s.data)}):s,i},{});return Object.keys(e).map(function(i){return e[i]})}function Sn(t,e){var i=st(t),s=Et(t),n=i.visualViewport,r=s.clientWidth,c=s.clientHeight,a=0,u=0;if(n){r=n.width,c=n.height;var p=Ni();(p||!p&&e==="fixed")&&(a=n.offsetLeft,u=n.offsetTop)}return{width:r,height:c,x:a+ge(t),y:u}}function Dn(t){var e,i=Et(t),s=_e(t),n=(e=t.ownerDocument)==null?void 0:e.body,r=vt(i.scrollWidth,i.clientWidth,n?n.scrollWidth:0,n?n.clientWidth:0),c=vt(i.scrollHeight,i.clientHeight,n?n.scrollHeight:0,n?n.clientHeight:0),a=-s.scrollLeft+ge(t),u=-s.scrollTop;return _t(n||i).direction==="rtl"&&(a+=vt(i.clientWidth,n?n.clientWidth:0)-r),{width:r,height:c,x:a,y:u}}function Ii(t,e){var i=e.getRootNode&&e.getRootNode();if(t.contains(e))return!0;if(i&&me(i)){var s=e;do{if(s&&t.isSameNode(s))return!0;s=s.parentNode||s.host}while(s)}return!1}function pe(t){return Object.assign({},t,{left:t.x,top:t.y,right:t.x+t.width,bottom:t.y+t.height})}function Ln(t,e){var i=wt(t,!1,e==="fixed");return i.top=i.top+t.clientTop,i.left=i.left+t.clientLeft,i.bottom=i.top+t.clientHeight,i.right=i.left+t.clientWidth,i.width=t.clientWidth,i.height=t.clientHeight,i.x=i.left,i.y=i.top,i}function Ti(t,e,i){return e===Di?pe(Sn(t,i)):Tt(e)?Ln(e,i):pe(Dn(Et(t)))}function In(t){var e=Lt(Bt(t)),i=["absolute","fixed"].indexOf(_t(t).position)>=0,s=i&&ct(t)?Mt(t):t;return Tt(s)?e.filter(function(n){return Tt(n)&&Ii(n,s)&&pt(n)!=="body"}):[]}function Pn(t,e,i,s){var n=e==="clippingParents"?In(t):[].concat(e),r=[].concat(n,[i]),c=r[0],a=r.reduce(function(u,p){var o=Ti(t,p,s);return u.top=vt(o.top,u.top),u.right=Wt(o.right,u.right),u.bottom=Wt(o.bottom,u.bottom),u.left=vt(o.left,u.left),u},Ti(t,c,s));return a.width=a.right-a.left,a.height=a.bottom-a.top,a.x=a.left,a.y=a.top,a}function ht(t){return t.split("-")[0]}function Ct(t){return t.split("-")[1]}function be(t){return["top","bottom"].indexOf(t)>=0?"x":"y"}function Pi(t){var e=t.reference,i=t.element,s=t.placement,n=s?ht(s):null,r=s?Ct(s):null,c=e.x+e.width/2-i.width/2,a=e.y+e.height/2-i.height/2,u;switch(n){case it:u={x:c,y:e.y-i.height};break;case lt:u={x:c,y:e.y+e.height};break;case ut:u={x:e.x+e.width,y:a};break;case nt:u={x:e.x-i.width,y:a};break;default:u={x:e.x,y:e.y}}var p=n?be(n):null;if(p!=null){var o=p==="y"?"height":"width";switch(r){case Ot:u[p]=u[p]-(e[o]/2-i[o]/2);break;case Pt:u[p]=u[p]+(e[o]/2-i[o]/2);break}}return u}function Mi(){return{top:0,right:0,bottom:0,left:0}}function Ri(t){return Object.assign({},Mi(),t)}function ki(t,e){return e.reduce(function(i,s){return i[s]=t,i},{})}function Nt(t,e){e===void 0&&(e={});var i=e,s=i.placement,n=s===void 0?t.placement:s,r=i.strategy,c=r===void 0?t.strategy:r,a=i.boundary,u=a===void 0?dn:a,p=i.rootBoundary,o=p===void 0?Di:p,m=i.elementContext,C=m===void 0?Dt:m,E=i.altBoundary,S=E===void 0?!1:E,A=i.padding,L=A===void 0?0:A,M=Ri(typeof L!="number"?L:ki(L,Rt)),w=C===Dt?hn:Dt,$=t.rects.popper,_=t.elements[S?w:C],v=Pn(Tt(_)?_:_.contextElement||Et(t.elements.popper),u,o,c),y=wt(t.elements.reference),b=Pi({reference:y,element:$,strategy:"absolute",placement:n}),l=pe(Object.assign({},$,b)),T=C===Dt?l:y,f={top:v.top-T.top+M.top,bottom:T.bottom-v.bottom+M.bottom,left:v.left-T.left+M.left,right:T.right-v.right+M.right},g=t.modifiersData.offset;if(C===Dt&&g){var D=g[n];Object.keys(f).forEach(function(I){var x=[ut,lt].indexOf(I)>=0?1:-1,V=[it,lt].indexOf(I)>=0?"y":"x";f[I]+=D[V]*x})}return f}var bi={placement:"bottom",modifiers:[],strategy:"absolute"};function Ai(){for(var t=arguments.length,e=new Array(t),i=0;i<t;i++)e[i]=arguments[i];return!e.some(function(s){return!(s&&typeof s.getBoundingClientRect=="function")})}function Ae(t){t===void 0&&(t={});var e=t,i=e.defaultModifiers,s=i===void 0?[]:i,n=e.defaultOptions,r=n===void 0?bi:n;return function(a,u,p){p===void 0&&(p=r);var o={placement:"bottom",orderedModifiers:[],options:Object.assign({},bi,r),modifiersData:{},elements:{reference:a,popper:u},attributes:{},styles:{}},m=[],C=!1,E={state:o,setOptions:function(M){var w=typeof M=="function"?M(o.options):M;A(),o.options=Object.assign({},r,o.options,w),o.scrollParents={reference:Tt(a)?Lt(a):a.contextElement?Lt(a.contextElement):[],popper:Lt(u)};var $=On(Nn([].concat(s,o.options.modifiers)));return o.orderedModifiers=$.filter(function(_){return _.enabled}),S(),E.update()},forceUpdate:function(){if(!C){var M=o.elements,w=M.reference,$=M.popper;if(Ai(w,$)){o.rects={reference:ln(w,Mt($),o.options.strategy==="fixed"),popper:ve($)},o.reset=!1,o.placement=o.options.placement,o.orderedModifiers.forEach(function(f){return o.modifiersData[f.name]=Object.assign({},f.data)});for(var _=0;_<o.orderedModifiers.length;_++){if(o.reset===!0){o.reset=!1,_=-1;continue}var v=o.orderedModifiers[_],y=v.fn,b=v.options,l=b===void 0?{}:b,T=v.name;typeof y=="function"&&(o=y({state:o,options:l,name:T,instance:E})||o)}}}},update:Cn(function(){return new Promise(function(L){E.forceUpdate(),L(o)})}),destroy:function(){A(),C=!0}};if(!Ai(a,u))return E;E.setOptions(p).then(function(L){!C&&p.onFirstUpdate&&p.onFirstUpdate(L)});function S(){o.orderedModifiers.forEach(function(L){var M=L.name,w=L.options,$=w===void 0?{}:w,_=L.effect;if(typeof _=="function"){var v=_({state:o,name:M,instance:E,options:$}),y=function(){};m.push(v||y)}})}function A(){m.forEach(function(L){return L()}),m=[]}return E}}var Vt={passive:!0};function Mn(t){var e=t.state,i=t.instance,s=t.options,n=s.scroll,r=n===void 0?!0:n,c=s.resize,a=c===void 0?!0:c,u=st(e.elements.popper),p=[].concat(e.scrollParents.reference,e.scrollParents.popper);return r&&p.forEach(function(o){o.addEventListener("scroll",i.update,Vt)}),a&&u.addEventListener("resize",i.update,Vt),function(){r&&p.forEach(function(o){o.removeEventListener("scroll",i.update,Vt)}),a&&u.removeEventListener("resize",i.update,Vt)}}var ye={name:"eventListeners",enabled:!0,phase:"write",fn:function(){},effect:Mn,data:{}};function Rn(t){var e=t.state,i=t.name;e.modifiersData[i]=Pi({reference:e.rects.reference,element:e.rects.popper,strategy:"absolute",placement:e.placement})}var we={name:"popperOffsets",enabled:!0,phase:"read",fn:Rn,data:{}},kn={top:"auto",right:"auto",bottom:"auto",left:"auto"};function xn(t,e){var i=t.x,s=t.y,n=e.devicePixelRatio||1;return{x:yt(i*n)/n||0,y:yt(s*n)/n||0}}function yi(t){var e,i=t.popper,s=t.popperRect,n=t.placement,r=t.variation,c=t.offsets,a=t.position,u=t.gpuAcceleration,p=t.adaptive,o=t.roundOffsets,m=t.isFixed,C=c.x,E=C===void 0?0:C,S=c.y,A=S===void 0?0:S,L=typeof o=="function"?o({x:E,y:A}):{x:E,y:A};E=L.x,A=L.y;var M=c.hasOwnProperty("x"),w=c.hasOwnProperty("y"),$=nt,_=it,v=window;if(p){var y=Mt(i),b="clientHeight",l="clientWidth";if(y===st(i)&&(y=Et(i),_t(y).position!=="static"&&a==="absolute"&&(b="scrollHeight",l="scrollWidth")),y=y,n===it||(n===nt||n===ut)&&r===Pt){_=lt;var T=m&&y===v&&v.visualViewport?v.visualViewport.height:y[b];A-=T-s.height,A*=u?1:-1}if(n===nt||(n===it||n===lt)&&r===Pt){$=ut;var f=m&&y===v&&v.visualViewport?v.visualViewport.width:y[l];E-=f-s.width,E*=u?1:-1}}var g=Object.assign({position:a},p&&kn),D=o===!0?xn({x:E,y:A},st(i)):{x:E,y:A};if(E=D.x,A=D.y,u){var I;return Object.assign({},g,(I={},I[_]=w?"0":"",I[$]=M?"0":"",I.transform=(v.devicePixelRatio||1)<=1?"translate("+E+"px, "+A+"px)":"translate3d("+E+"px, "+A+"px, 0)",I))}return Object.assign({},g,(e={},e[_]=w?A+"px":"",e[$]=M?E+"px":"",e.transform="",e))}function $n(t){var e=t.state,i=t.options,s=i.gpuAcceleration,n=s===void 0?!0:s,r=i.adaptive,c=r===void 0?!0:r,a=i.roundOffsets,u=a===void 0?!0:a,p={placement:ht(e.placement),variation:Ct(e.placement),popper:e.elements.popper,popperRect:e.rects.popper,gpuAcceleration:n,isFixed:e.options.strategy==="fixed"};e.modifiersData.popperOffsets!=null&&(e.styles.popper=Object.assign({},e.styles.popper,yi(Object.assign({},p,{offsets:e.modifiersData.popperOffsets,position:e.options.strategy,adaptive:c,roundOffsets:u})))),e.modifiersData.arrow!=null&&(e.styles.arrow=Object.assign({},e.styles.arrow,yi(Object.assign({},p,{offsets:e.modifiersData.arrow,position:"absolute",adaptive:!1,roundOffsets:u})))),e.attributes.popper=Object.assign({},e.attributes.popper,{"data-popper-placement":e.placement})}var Oe={name:"computeStyles",enabled:!0,phase:"beforeWrite",fn:$n,data:{}};function Vn(t){var e=t.state;Object.keys(e.elements).forEach(function(i){var s=e.styles[i]||{},n=e.attributes[i]||{},r=e.elements[i];!ct(r)||!pt(r)||(Object.assign(r.style,s),Object.keys(n).forEach(function(c){var a=n[c];a===!1?r.removeAttribute(c):r.setAttribute(c,a===!0?"":a)}))})}function qn(t){var e=t.state,i={popper:{position:e.options.strategy,left:"0",top:"0",margin:"0"},arrow:{position:"absolute"},reference:{}};return Object.assign(e.elements.popper.style,i.popper),e.styles=i,e.elements.arrow&&Object.assign(e.elements.arrow.style,i.arrow),function(){Object.keys(e.elements).forEach(function(s){var n=e.elements[s],r=e.attributes[s]||{},c=Object.keys(e.styles.hasOwnProperty(s)?e.styles[s]:i[s]),a=c.reduce(function(u,p){return u[p]="",u},{});!ct(n)||!pt(n)||(Object.assign(n.style,a),Object.keys(r).forEach(function(u){n.removeAttribute(u)}))})}}var Ce={name:"applyStyles",enabled:!0,phase:"write",fn:Vn,effect:qn,requires:["computeStyles"]};function Wn(t,e,i){var s=ht(t),n=[nt,it].indexOf(s)>=0?-1:1,r=typeof i=="function"?i(Object.assign({},e,{placement:t})):i,c=r[0],a=r[1];return c=c||0,a=(a||0)*n,[nt,ut].indexOf(s)>=0?{x:a,y:c}:{x:c,y:a}}function Bn(t){var e=t.state,i=t.options,s=t.name,n=i.offset,r=n===void 0?[0,0]:n,c=Li.reduce(function(o,m){return o[m]=Wn(m,e.rects,r),o},{}),a=c[e.placement],u=a.x,p=a.y;e.modifiersData.popperOffsets!=null&&(e.modifiersData.popperOffsets.x+=u,e.modifiersData.popperOffsets.y+=p),e.modifiersData[s]=c}var xi={name:"offset",enabled:!0,phase:"main",requires:["popperOffsets"],fn:Bn},Fn={left:"right",right:"left",bottom:"top",top:"bottom"};function qt(t){return t.replace(/left|right|bottom|top/g,function(e){return Fn[e]})}var Kn={start:"end",end:"start"};function wi(t){return t.replace(/start|end/g,function(e){return Kn[e]})}function Yn(t,e){e===void 0&&(e={});var i=e,s=i.placement,n=i.boundary,r=i.rootBoundary,c=i.padding,a=i.flipVariations,u=i.allowedAutoPlacements,p=u===void 0?Li:u,o=Ct(s),m=o?a?vi:vi.filter(function(S){return Ct(S)===o}):Rt,C=m.filter(function(S){return p.indexOf(S)>=0});C.length===0&&(C=m);var E=C.reduce(function(S,A){return S[A]=Nt(t,{placement:A,boundary:n,rootBoundary:r,padding:c})[ht(A)],S},{});return Object.keys(E).sort(function(S,A){return E[S]-E[A]})}function jn(t){if(ht(t)===Te)return[];var e=qt(t);return[wi(t),e,wi(e)]}function Un(t){var e=t.state,i=t.options,s=t.name;if(!e.modifiersData[s]._skip){for(var n=i.mainAxis,r=n===void 0?!0:n,c=i.altAxis,a=c===void 0?!0:c,u=i.fallbackPlacements,p=i.padding,o=i.boundary,m=i.rootBoundary,C=i.altBoundary,E=i.flipVariations,S=E===void 0?!0:E,A=i.allowedAutoPlacements,L=e.options.placement,M=ht(L),w=M===L,$=u||(w||!S?[qt(L)]:jn(L)),_=[L].concat($).reduce(function(z,U){return z.concat(ht(U)===Te?Yn(e,{placement:U,boundary:o,rootBoundary:m,padding:p,flipVariations:S,allowedAutoPlacements:A}):U)},[]),v=e.rects.reference,y=e.rects.popper,b=new Map,l=!0,T=_[0],f=0;f<_.length;f++){var g=_[f],D=ht(g),I=Ct(g)===Ot,x=[it,lt].indexOf(D)>=0,V=x?"width":"height",P=Nt(e,{placement:g,boundary:o,rootBoundary:m,altBoundary:C,padding:p}),k=x?I?ut:nt:I?lt:it;v[V]>y[V]&&(k=qt(k));var Y=qt(k),h=[];if(r&&h.push(P[D]<=0),a&&h.push(P[k]<=0,P[Y]<=0),h.every(function(z){return z})){T=g,l=!1;break}b.set(g,h)}if(l)for(var d=S?3:1,O=function(U){var Z=_.find(function(ft){var R=b.get(ft);if(R)return R.slice(0,U).every(function(W){return W})});if(Z)return T=Z,"break"},q=d;q>0;q--){var j=O(q);if(j==="break")break}e.placement!==T&&(e.modifiersData[s]._skip=!0,e.placement=T,e.reset=!0)}}var $i={name:"flip",enabled:!0,phase:"main",fn:Un,requiresIfExists:["offset"],data:{_skip:!1}};function Hn(t){return t==="x"?"y":"x"}function It(t,e,i){return vt(t,Wt(e,i))}function zn(t,e,i){var s=It(t,e,i);return s>i?i:s}function Gn(t){var e=t.state,i=t.options,s=t.name,n=i.mainAxis,r=n===void 0?!0:n,c=i.altAxis,a=c===void 0?!1:c,u=i.boundary,p=i.rootBoundary,o=i.altBoundary,m=i.padding,C=i.tether,E=C===void 0?!0:C,S=i.tetherOffset,A=S===void 0?0:S,L=Nt(e,{boundary:u,rootBoundary:p,padding:m,altBoundary:o}),M=ht(e.placement),w=Ct(e.placement),$=!w,_=be(M),v=Hn(_),y=e.modifiersData.popperOffsets,b=e.rects.reference,l=e.rects.popper,T=typeof A=="function"?A(Object.assign({},e.rects,{placement:e.placement})):A,f=typeof T=="number"?{mainAxis:T,altAxis:T}:Object.assign({mainAxis:0,altAxis:0},T),g=e.modifiersData.offset?e.modifiersData.offset[e.placement]:null,D={x:0,y:0};if(y){if(r){var I,x=_==="y"?it:nt,V=_==="y"?lt:ut,P=_==="y"?"height":"width",k=y[_],Y=k+L[x],h=k-L[V],d=E?-l[P]/2:0,O=w===Ot?b[P]:l[P],q=w===Ot?-l[P]:-b[P],j=e.elements.arrow,z=E&&j?ve(j):{width:0,height:0},U=e.modifiersData["arrow#persistent"]?e.modifiersData["arrow#persistent"].padding:Mi(),Z=U[x],ft=U[V],R=It(0,b[P],z[P]),W=$?b[P]/2-d-R-Z-f.mainAxis:O-R-Z-f.mainAxis,B=$?-b[P]/2+d+R+ft+f.mainAxis:q+R+ft+f.mainAxis,Q=e.elements.arrow&&Mt(e.elements.arrow),N=Q?_==="y"?Q.clientTop||0:Q.clientLeft||0:0,F=(I=g?.[_])!=null?I:0,G=k+W-F-N,X=k+B-F,dt=It(E?Wt(Y,G):Y,k,E?vt(h,X):h);y[_]=dt,D[_]=dt-k}if(a){var et,gt=_==="x"?it:nt,Kt=_==="x"?lt:ut,mt=y[v],kt=v==="y"?"height":"width",ni=mt+L[gt],si=mt-L[Kt],Yt=[it,nt].indexOf(M)!==-1,ri=(et=g?.[v])!=null?et:0,oi=Yt?ni:mt-b[kt]-l[kt]-ri+f.altAxis,ai=Yt?mt+b[kt]+l[kt]-ri-f.altAxis:si,ci=E&&Yt?zn(oi,mt,ai):It(E?oi:ni,mt,E?ai:si);y[v]=ci,D[v]=ci-mt}e.modifiersData[s]=D}}var Vi={name:"preventOverflow",enabled:!0,phase:"main",fn:Gn,requiresIfExists:["offset"]},Qn=function(e,i){return e=typeof e=="function"?e(Object.assign({},i.rects,{placement:i.placement})):e,Ri(typeof e!="number"?e:ki(e,Rt))};function Xn(t){var e,i=t.state,s=t.name,n=t.options,r=i.elements.arrow,c=i.modifiersData.popperOffsets,a=ht(i.placement),u=be(a),p=[nt,ut].indexOf(a)>=0,o=p?"height":"width";if(!(!r||!c)){var m=Qn(n.padding,i),C=ve(r),E=u==="y"?it:nt,S=u==="y"?lt:ut,A=i.rects.reference[o]+i.rects.reference[u]-c[u]-i.rects.popper[o],L=c[u]-i.rects.reference[u],M=Mt(r),w=M?u==="y"?M.clientHeight||0:M.clientWidth||0:0,$=A/2-L/2,_=m[E],v=w-C[o]-m[S],y=w/2-C[o]/2+$,b=It(_,y,v),l=u;i.modifiersData[s]=(e={},e[l]=b,e.centerOffset=b-y,e)}}function Jn(t){var e=t.state,i=t.options,s=i.element,n=s===void 0?"[data-popper-arrow]":s;n!=null&&(typeof n=="string"&&(n=e.elements.popper.querySelector(n),!n)||Ii(e.elements.popper,n)&&(e.elements.arrow=n))}var qi={name:"arrow",enabled:!0,phase:"main",fn:Xn,effect:Jn,requires:["popperOffsets"],requiresIfExists:["preventOverflow"]};function Oi(t,e,i){return i===void 0&&(i={x:0,y:0}),{top:t.top-e.height-i.y,right:t.right-e.width+i.x,bottom:t.bottom-e.height+i.y,left:t.left-e.width-i.x}}function Ci(t){return[it,ut,lt,nt].some(function(e){return t[e]>=0})}function Zn(t){var e=t.state,i=t.name,s=e.rects.reference,n=e.rects.popper,r=e.modifiersData.preventOverflow,c=Nt(e,{elementContext:"reference"}),a=Nt(e,{altBoundary:!0}),u=Oi(c,s),p=Oi(a,n,r),o=Ci(u),m=Ci(p);e.modifiersData[i]={referenceClippingOffsets:u,popperEscapeOffsets:p,isReferenceHidden:o,hasPopperEscaped:m},e.attributes.popper=Object.assign({},e.attributes.popper,{"data-popper-reference-hidden":o,"data-popper-escaped":m})}var Wi={name:"hide",enabled:!0,phase:"main",requiresIfExists:["preventOverflow"],fn:Zn},ts=[ye,we,Oe,Ce],es=Ae({defaultModifiers:ts}),Bi=[ye,we,Oe,Ce,xi,$i,Vi,qi,Wi],is=Ae({defaultModifiers:Bi});tt.applyStyles=Ce;tt.arrow=qi;tt.computeStyles=Oe;tt.createPopper=is;tt.createPopperLite=es;tt.defaultModifiers=Bi;tt.detectOverflow=Nt;tt.eventListeners=ye;tt.flip=$i;tt.hide=Wi;tt.offset=xi;tt.popperGenerator=Ae;tt.popperOffsets=we;tt.preventOverflow=Vi});var Fi=K((Se,De)=>{(function(t,e){typeof Se=="object"&&typeof De<"u"?De.exports=e(Ne(),ot(),J(),bt(),at(),H()):typeof define=="function"&&define.amd?define(["@popperjs/core","./base-component","./dom/event-handler","./dom/manipulator","./dom/selector-engine","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Dropdown=e(t["@popperjs/core"],t.BaseComponent,t.EventHandler,t.Manipulator,t.SelectorEngine,t.Index))})(Se,(function(t,e,i,s,n,r){"use strict";function c(Q){let N=Object.create(null,{[Symbol.toStringTag]:{value:"Module"}});if(Q){for(let F in Q)if(F!=="default"){let G=Object.getOwnPropertyDescriptor(Q,F);Object.defineProperty(N,F,G.get?G:{enumerable:!0,get:()=>Q[F]})}}return N.default=Q,Object.freeze(N)}let a=c(t),u="dropdown",o=".bs.dropdown",m=".data-api",C="Escape",E="Tab",S="ArrowUp",A="ArrowDown",L=2,M=`hide${o}`,w=`hidden${o}`,$=`show${o}`,_=`shown${o}`,v=`click${o}${m}`,y=`keydown${o}${m}`,b=`keyup${o}${m}`,l="show",T="dropup",f="dropend",g="dropstart",D="dropup-center",I="dropdown-center",x='[data-bs-toggle="dropdown"]:not(.disabled):not(:disabled)',V=`${x}.${l}`,P=".dropdown-menu",k=".navbar",Y=".navbar-nav",h=".dropdown-menu .dropdown-item:not(.disabled):not(:disabled)",d=r.isRTL()?"top-end":"top-start",O=r.isRTL()?"top-start":"top-end",q=r.isRTL()?"bottom-end":"bottom-start",j=r.isRTL()?"bottom-start":"bottom-end",z=r.isRTL()?"left-start":"right-start",U=r.isRTL()?"right-start":"left-start",Z="top",ft="bottom",R={autoClose:!0,boundary:"clippingParents",display:"dynamic",offset:[0,2],popperConfig:null,reference:"toggle"},W={autoClose:"(boolean|string)",boundary:"(string|element)",display:"string",offset:"(array|string|function)",popperConfig:"(null|object|function)",reference:"(string|element|object)"};class B extends e{constructor(N,F){super(N,F),this._popper=null,this._parent=this._element.parentNode,this._menu=n.next(this._element,P)[0]||n.prev(this._element,P)[0]||n.findOne(P,this._parent),this._inNavbar=this._detectNavbar()}static get Default(){return R}static get DefaultType(){return W}static get NAME(){return u}toggle(){return this._isShown()?this.hide():this.show()}show(){if(r.isDisabled(this._element)||this._isShown())return;let N={relatedTarget:this._element};if(!i.trigger(this._element,$,N).defaultPrevented){if(this._createPopper(),"ontouchstart"in document.documentElement&&!this._parent.closest(Y))for(let G of[].concat(...document.body.children))i.on(G,"mouseover",r.noop);this._element.focus(),this._element.setAttribute("aria-expanded",!0),this._menu.classList.add(l),this._element.classList.add(l),i.trigger(this._element,_,N)}}hide(){if(r.isDisabled(this._element)||!this._isShown())return;let N={relatedTarget:this._element};this._completeHide(N)}dispose(){this._popper&&this._popper.destroy(),super.dispose()}update(){this._inNavbar=this._detectNavbar(),this._popper&&this._popper.update()}_completeHide(N){if(!i.trigger(this._element,M,N).defaultPrevented){if("ontouchstart"in document.documentElement)for(let G of[].concat(...document.body.children))i.off(G,"mouseover",r.noop);this._popper&&this._popper.destroy(),this._menu.classList.remove(l),this._element.classList.remove(l),this._element.setAttribute("aria-expanded","false"),s.removeDataAttribute(this._menu,"popper"),i.trigger(this._element,w,N)}}_getConfig(N){if(N=super._getConfig(N),typeof N.reference=="object"&&!r.isElement(N.reference)&&typeof N.reference.getBoundingClientRect!="function")throw new TypeError(`${u.toUpperCase()}: Option "reference" provided type "object" without a required "getBoundingClientRect" method.`);return N}_createPopper(){if(typeof a>"u")throw new TypeError("Bootstrap's dropdowns require Popper (https://popper.js.org/docs/v2/)");let N=this._element;this._config.reference==="parent"?N=this._parent:r.isElement(this._config.reference)?N=r.getElement(this._config.reference):typeof this._config.reference=="object"&&(N=this._config.reference);let F=this._getPopperConfig();this._popper=a.createPopper(N,this._menu,F)}_isShown(){return this._menu.classList.contains(l)}_getPlacement(){let N=this._parent;if(N.classList.contains(f))return z;if(N.classList.contains(g))return U;if(N.classList.contains(D))return Z;if(N.classList.contains(I))return ft;let F=getComputedStyle(this._menu).getPropertyValue("--bs-position").trim()==="end";return N.classList.contains(T)?F?O:d:F?j:q}_detectNavbar(){return this._element.closest(k)!==null}_getOffset(){let{offset:N}=this._config;return typeof N=="string"?N.split(",").map(F=>Number.parseInt(F,10)):typeof N=="function"?F=>N(F,this._element):N}_getPopperConfig(){let N={placement:this._getPlacement(),modifiers:[{name:"preventOverflow",options:{boundary:this._config.boundary}},{name:"offset",options:{offset:this._getOffset()}}]};return(this._inNavbar||this._config.display==="static")&&(s.setDataAttribute(this._menu,"popper","static"),N.modifiers=[{name:"applyStyles",enabled:!1}]),{...N,...r.execute(this._config.popperConfig,[void 0,N])}}_selectMenuItem({key:N,target:F}){let G=n.find(h,this._menu).filter(X=>r.isVisible(X));G.length&&r.getNextActiveElement(G,F,N===A,!G.includes(F)).focus()}static jQueryInterface(N){return this.each(function(){let F=B.getOrCreateInstance(this,N);if(typeof N=="string"){if(typeof F[N]>"u")throw new TypeError(`No method named "${N}"`);F[N]()}})}static clearMenus(N){if(N.button===L||N.type==="keyup"&&N.key!==E)return;let F=n.find(V);for(let G of F){let X=B.getInstance(G);if(!X||X._config.autoClose===!1)continue;let dt=N.composedPath(),et=dt.includes(X._menu);if(dt.includes(X._element)||X._config.autoClose==="inside"&&!et||X._config.autoClose==="outside"&&et||X._menu.contains(N.target)&&(N.type==="keyup"&&N.key===E||/input|select|option|textarea|form/i.test(N.target.tagName)))continue;let gt={relatedTarget:X._element};N.type==="click"&&(gt.clickEvent=N),X._completeHide(gt)}}static dataApiKeydownHandler(N){let F=/input|textarea/i.test(N.target.tagName),G=N.key===C,X=[S,A].includes(N.key);if(!X&&!G||F&&!G)return;N.preventDefault();let dt=this.matches(x)?this:n.prev(this,x)[0]||n.next(this,x)[0]||n.findOne(x,N.delegateTarget.parentNode),et=B.getOrCreateInstance(dt);if(X){N.stopPropagation(),et.show(),et._selectMenuItem(N);return}et._isShown()&&(N.stopPropagation(),et.hide(),dt.focus())}}return i.on(document,y,x,B.dataApiKeydownHandler),i.on(document,y,P,B.dataApiKeydownHandler),i.on(document,v,B.clearMenus),i.on(document,b,B.clearMenus),i.on(document,v,x,function(Q){Q.preventDefault(),B.getOrCreateInstance(this).toggle()}),r.defineJQueryPlugin(B),B}))});var Pe=K((Le,Ie)=>{(function(t,e){typeof Le=="object"&&typeof Ie<"u"?Ie.exports=e(J(),At(),H()):typeof define=="function"&&define.amd?define(["../dom/event-handler","./config","./index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Backdrop=e(t.EventHandler,t.Config,t.Index))})(Le,(function(t,e,i){"use strict";let s="backdrop",n="fade",r="show",c=`mousedown.bs.${s}`,a={className:"modal-backdrop",clickCallback:null,isAnimated:!1,isVisible:!0,rootElement:"body"},u={className:"string",clickCallback:"(function|null)",isAnimated:"boolean",isVisible:"boolean",rootElement:"(element|string)"};class p extends e{constructor(m){super(),this._config=this._getConfig(m),this._isAppended=!1,this._element=null}static get Default(){return a}static get DefaultType(){return u}static get NAME(){return s}show(m){if(!this._config.isVisible){i.execute(m);return}this._append();let C=this._getElement();this._config.isAnimated&&i.reflow(C),C.classList.add(r),this._emulateAnimation(()=>{i.execute(m)})}hide(m){if(!this._config.isVisible){i.execute(m);return}this._getElement().classList.remove(r),this._emulateAnimation(()=>{this.dispose(),i.execute(m)})}dispose(){this._isAppended&&(t.off(this._element,c),this._element.remove(),this._isAppended=!1)}_getElement(){if(!this._element){let m=document.createElement("div");m.className=this._config.className,this._config.isAnimated&&m.classList.add(n),this._element=m}return this._element}_configAfterMerge(m){return m.rootElement=i.getElement(m.rootElement),m}_append(){if(this._isAppended)return;let m=this._getElement();this._config.rootElement.append(m),t.on(m,c,()=>{i.execute(this._config.clickCallback)}),this._isAppended=!0}_emulateAnimation(m){i.executeAfterTransition(m,this._getElement(),this._config.isAnimated)}}return p}))});var ke=K((Me,Re)=>{(function(t,e){typeof Me=="object"&&typeof Re<"u"?Re.exports=e(J(),at(),At()):typeof define=="function"&&define.amd?define(["../dom/event-handler","../dom/selector-engine","./config"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Focustrap=e(t.EventHandler,t.SelectorEngine,t.Config))})(Me,(function(t,e,i){"use strict";let s="focustrap",r=".bs.focustrap",c=`focusin${r}`,a=`keydown.tab${r}`,u="Tab",p="forward",o="backward",m={autofocus:!0,trapElement:null},C={autofocus:"boolean",trapElement:"element"};class E extends i{constructor(A){super(),this._config=this._getConfig(A),this._isActive=!1,this._lastTabNavDirection=null}static get Default(){return m}static get DefaultType(){return C}static get NAME(){return s}activate(){this._isActive||(this._config.autofocus&&this._config.trapElement.focus(),t.off(document,r),t.on(document,c,A=>this._handleFocusin(A)),t.on(document,a,A=>this._handleKeydown(A)),this._isActive=!0)}deactivate(){this._isActive&&(this._isActive=!1,t.off(document,r))}_handleFocusin(A){let{trapElement:L}=this._config;if(A.target===document||A.target===L||L.contains(A.target))return;let M=e.focusableChildren(L);M.length===0?L.focus():this._lastTabNavDirection===o?M[M.length-1].focus():M[0].focus()}_handleKeydown(A){A.key===u&&(this._lastTabNavDirection=A.shiftKey?o:p)}}return E}))});var Ve=K((xe,$e)=>{(function(t,e){typeof xe=="object"&&typeof $e<"u"?$e.exports=e(bt(),at(),H()):typeof define=="function"&&define.amd?define(["../dom/manipulator","../dom/selector-engine","./index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Scrollbar=e(t.Manipulator,t.SelectorEngine,t.Index))})(xe,(function(t,e,i){"use strict";let s=".fixed-top, .fixed-bottom, .is-fixed, .sticky-top",n=".sticky-top",r="padding-right",c="margin-right";class a{constructor(){this._element=document.body}getWidth(){let p=document.documentElement.clientWidth;return Math.abs(window.innerWidth-p)}hide(){let p=this.getWidth();this._disableOverFlow(),this._setElementAttributes(this._element,r,o=>o+p),this._setElementAttributes(s,r,o=>o+p),this._setElementAttributes(n,c,o=>o-p)}reset(){this._resetElementAttributes(this._element,"overflow"),this._resetElementAttributes(this._element,r),this._resetElementAttributes(s,r),this._resetElementAttributes(n,c)}isOverflowing(){return this.getWidth()>0}_disableOverFlow(){this._saveInitialAttribute(this._element,"overflow"),this._element.style.overflow="hidden"}_setElementAttributes(p,o,m){let C=this.getWidth(),E=S=>{if(S!==this._element&&window.innerWidth>S.clientWidth+C)return;this._saveInitialAttribute(S,o);let A=window.getComputedStyle(S).getPropertyValue(o);S.style.setProperty(o,`${m(Number.parseFloat(A))}px`)};this._applyManipulationCallback(p,E)}_saveInitialAttribute(p,o){let m=p.style.getPropertyValue(o);m&&t.setDataAttribute(p,o,m)}_resetElementAttributes(p,o){let m=C=>{let E=t.getDataAttribute(C,o);if(E===null){C.style.removeProperty(o);return}t.removeDataAttribute(C,o),C.style.setProperty(o,E)};this._applyManipulationCallback(p,m)}_applyManipulationCallback(p,o){if(i.isElement(p)){o(p);return}for(let m of e.find(p,this._element))o(m)}}return a}))});var Ki=K((qe,We)=>{(function(t,e){typeof qe=="object"&&typeof We<"u"?We.exports=e(ot(),J(),at(),Pe(),St(),ke(),H(),Ve()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./dom/selector-engine","./util/backdrop","./util/component-functions","./util/focustrap","./util/index","./util/scrollbar"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Offcanvas=e(t.BaseComponent,t.EventHandler,t.SelectorEngine,t.Backdrop,t.ComponentFunctions,t.Focustrap,t.Index,t.Scrollbar))})(qe,(function(t,e,i,s,n,r,c,a){"use strict";let u="offcanvas",o=".bs.offcanvas",m=".data-api",C=`load${o}${m}`,E="Escape",S="show",A="showing",L="hiding",M="offcanvas-backdrop",w=".offcanvas.show",$=`show${o}`,_=`shown${o}`,v=`hide${o}`,y=`hidePrevented${o}`,b=`hidden${o}`,l=`resize${o}`,T=`click${o}${m}`,f=`keydown.dismiss${o}`,g='[data-bs-toggle="offcanvas"]',D={backdrop:!0,keyboard:!0,scroll:!1},I={backdrop:"(boolean|string)",keyboard:"boolean",scroll:"boolean"};class x extends t{constructor(P,k){super(P,k),this._isShown=!1,this._backdrop=this._initializeBackDrop(),this._focustrap=this._initializeFocusTrap(),this._addEventListeners()}static get Default(){return D}static get DefaultType(){return I}static get NAME(){return u}toggle(P){return this._isShown?this.hide():this.show(P)}show(P){if(this._isShown||e.trigger(this._element,$,{relatedTarget:P}).defaultPrevented)return;this._isShown=!0,this._backdrop.show(),this._config.scroll||new a().hide(),this._element.setAttribute("aria-modal",!0),this._element.setAttribute("role","dialog"),this._element.classList.add(A);let Y=()=>{(!this._config.scroll||this._config.backdrop)&&this._focustrap.activate(),this._element.classList.add(S),this._element.classList.remove(A),e.trigger(this._element,_,{relatedTarget:P})};this._queueCallback(Y,this._element,!0)}hide(){if(!this._isShown||e.trigger(this._element,v).defaultPrevented)return;this._focustrap.deactivate(),this._element.blur(),this._isShown=!1,this._element.classList.add(L),this._backdrop.hide();let k=()=>{this._element.classList.remove(S,L),this._element.removeAttribute("aria-modal"),this._element.removeAttribute("role"),this._config.scroll||new a().reset(),e.trigger(this._element,b)};this._queueCallback(k,this._element,!0)}dispose(){this._backdrop.dispose(),this._focustrap.deactivate(),super.dispose()}_initializeBackDrop(){let P=()=>{if(this._config.backdrop==="static"){e.trigger(this._element,y);return}this.hide()},k=!!this._config.backdrop;return new s({className:M,isVisible:k,isAnimated:!0,rootElement:this._element.parentNode,clickCallback:k?P:null})}_initializeFocusTrap(){return new r({trapElement:this._element})}_addEventListeners(){e.on(this._element,f,P=>{if(P.key===E){if(this._config.keyboard){this.hide();return}e.trigger(this._element,y)}})}static jQueryInterface(P){return this.each(function(){let k=x.getOrCreateInstance(this,P);if(typeof P=="string"){if(k[P]===void 0||P.startsWith("_")||P==="constructor")throw new TypeError(`No method named "${P}"`);k[P](this)}})}}return e.on(document,T,g,function(V){let P=i.getElementFromSelector(this);if(["A","AREA"].includes(this.tagName)&&V.preventDefault(),c.isDisabled(this))return;e.one(P,b,()=>{c.isVisible(this)&&this.focus()});let k=i.findOne(w);k&&k!==P&&x.getInstance(k).hide(),x.getOrCreateInstance(P).toggle(this)}),e.on(window,C,()=>{for(let V of i.find(w))x.getOrCreateInstance(V).show()}),e.on(window,l,()=>{for(let V of i.find("[aria-modal][class*=show][class*=offcanvas-]"))getComputedStyle(V).position!=="fixed"&&x.getOrCreateInstance(V).hide()}),n.enableDismissTrigger(x),c.defineJQueryPlugin(x),x}))});var Yi=K((Be,Fe)=>{(function(t,e){typeof Be=="object"&&typeof Fe<"u"?Fe.exports=e(ot(),J(),at(),Pe(),St(),ke(),H(),Ve()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./dom/selector-engine","./util/backdrop","./util/component-functions","./util/focustrap","./util/index","./util/scrollbar"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Modal=e(t.BaseComponent,t.EventHandler,t.SelectorEngine,t.Backdrop,t.ComponentFunctions,t.Focustrap,t.Index,t.Scrollbar))})(Be,(function(t,e,i,s,n,r,c,a){"use strict";let u="modal",o=".bs.modal",m=".data-api",C="Escape",E=`hide${o}`,S=`hidePrevented${o}`,A=`hidden${o}`,L=`show${o}`,M=`shown${o}`,w=`resize${o}`,$=`click.dismiss${o}`,_=`mousedown.dismiss${o}`,v=`keydown.dismiss${o}`,y=`click${o}${m}`,b="modal-open",l="fade",T="show",f="modal-static",g=".modal.show",D=".modal-dialog",I=".modal-body",x='[data-bs-toggle="modal"]',V={backdrop:!0,focus:!0,keyboard:!0},P={backdrop:"(boolean|string)",focus:"boolean",keyboard:"boolean"};class k extends t{constructor(h,d){super(h,d),this._dialog=i.findOne(D,this._element),this._backdrop=this._initializeBackDrop(),this._focustrap=this._initializeFocusTrap(),this._isShown=!1,this._isTransitioning=!1,this._scrollBar=new a,this._addEventListeners()}static get Default(){return V}static get DefaultType(){return P}static get NAME(){return u}toggle(h){return this._isShown?this.hide():this.show(h)}show(h){this._isShown||this._isTransitioning||e.trigger(this._element,L,{relatedTarget:h}).defaultPrevented||(this._isShown=!0,this._isTransitioning=!0,this._scrollBar.hide(),document.body.classList.add(b),this._adjustDialog(),this._backdrop.show(()=>this._showElement(h)))}hide(){!this._isShown||this._isTransitioning||e.trigger(this._element,E).defaultPrevented||(this._isShown=!1,this._isTransitioning=!0,this._focustrap.deactivate(),this._element.classList.remove(T),this._queueCallback(()=>this._hideModal(),this._element,this._isAnimated()))}dispose(){e.off(window,o),e.off(this._dialog,o),this._backdrop.dispose(),this._focustrap.deactivate(),super.dispose()}handleUpdate(){this._adjustDialog()}_initializeBackDrop(){return new s({isVisible:!!this._config.backdrop,isAnimated:this._isAnimated()})}_initializeFocusTrap(){return new r({trapElement:this._element})}_showElement(h){document.body.contains(this._element)||document.body.append(this._element),this._element.style.display="block",this._element.removeAttribute("aria-hidden"),this._element.setAttribute("aria-modal",!0),this._element.setAttribute("role","dialog"),this._element.scrollTop=0;let d=i.findOne(I,this._dialog);d&&(d.scrollTop=0),c.reflow(this._element),this._element.classList.add(T);let O=()=>{this._config.focus&&this._focustrap.activate(),this._isTransitioning=!1,e.trigger(this._element,M,{relatedTarget:h})};this._queueCallback(O,this._dialog,this._isAnimated())}_addEventListeners(){e.on(this._element,v,h=>{if(h.key===C){if(this._config.keyboard){this.hide();return}this._triggerBackdropTransition()}}),e.on(window,w,()=>{this._isShown&&!this._isTransitioning&&this._adjustDialog()}),e.on(this._element,_,h=>{e.one(this._element,$,d=>{if(!(this._element!==h.target||this._element!==d.target)){if(this._config.backdrop==="static"){this._triggerBackdropTransition();return}this._config.backdrop&&this.hide()}})})}_hideModal(){this._element.style.display="none",this._element.setAttribute("aria-hidden",!0),this._element.removeAttribute("aria-modal"),this._element.removeAttribute("role"),this._isTransitioning=!1,this._backdrop.hide(()=>{document.body.classList.remove(b),this._resetAdjustments(),this._scrollBar.reset(),e.trigger(this._element,A)})}_isAnimated(){return this._element.classList.contains(l)}_triggerBackdropTransition(){if(e.trigger(this._element,S).defaultPrevented)return;let d=this._element.scrollHeight>document.documentElement.clientHeight,O=this._element.style.overflowY;O==="hidden"||this._element.classList.contains(f)||(d||(this._element.style.overflowY="hidden"),this._element.classList.add(f),this._queueCallback(()=>{this._element.classList.remove(f),this._queueCallback(()=>{this._element.style.overflowY=O},this._dialog)},this._dialog),this._element.focus())}_adjustDialog(){let h=this._element.scrollHeight>document.documentElement.clientHeight,d=this._scrollBar.getWidth(),O=d>0;if(O&&!h){let q=c.isRTL()?"paddingLeft":"paddingRight";this._element.style[q]=`${d}px`}if(!O&&h){let q=c.isRTL()?"paddingRight":"paddingLeft";this._element.style[q]=`${d}px`}}_resetAdjustments(){this._element.style.paddingLeft="",this._element.style.paddingRight=""}static jQueryInterface(h,d){return this.each(function(){let O=k.getOrCreateInstance(this,h);if(typeof h=="string"){if(typeof O[h]>"u")throw new TypeError(`No method named "${h}"`);O[h](d)}})}}return e.on(document,y,x,function(Y){let h=i.getElementFromSelector(this);["A","AREA"].includes(this.tagName)&&Y.preventDefault(),e.one(h,L,q=>{q.defaultPrevented||e.one(h,A,()=>{c.isVisible(this)&&this.focus()})});let d=i.findOne(g);d&&k.getInstance(d).hide(),k.getOrCreateInstance(h).toggle(this)}),n.enableDismissTrigger(k),c.defineJQueryPlugin(k),k}))});var Ke=K((Ft,ji)=>{(function(t,e){typeof Ft=="object"&&typeof ji<"u"?e(Ft):typeof define=="function"&&define.amd?define(["exports"],e):(t=typeof globalThis<"u"?globalThis:t||self,e(t.Sanitizer={}))})(Ft,(function(t){"use strict";let i={"*":["class","dir","id","lang","role",/^aria-[\w-]*$/i],a:["target","href","title","rel"],area:[],b:[],br:[],col:[],code:[],dd:[],div:[],dl:[],dt:[],em:[],hr:[],h1:[],h2:[],h3:[],h4:[],h5:[],h6:[],i:[],img:["src","srcset","alt","title","width","height"],li:[],ol:[],p:[],pre:[],s:[],small:[],span:[],sub:[],sup:[],strong:[],u:[],ul:[]},s=new Set(["background","cite","href","itemtype","longdesc","poster","src","xlink:href"]),n=/^(?!javascript:)(?:[a-z0-9+.-]+:|[^&:/?#]*(?:[/?#]|$))/i,r=(a,u)=>{let p=a.nodeName.toLowerCase();return u.includes(p)?s.has(p)?!!n.test(a.nodeValue):!0:u.filter(o=>o instanceof RegExp).some(o=>o.test(p))};function c(a,u,p){if(!a.length)return a;if(p&&typeof p=="function")return p(a);let m=new window.DOMParser().parseFromString(a,"text/html"),C=[].concat(...m.body.querySelectorAll("*"));for(let E of C){let S=E.nodeName.toLowerCase();if(!Object.keys(u).includes(S)){E.remove();continue}let A=[].concat(...E.attributes),L=[].concat(u["*"]||[],u[S]||[]);for(let M of A)r(M,L)||E.removeAttribute(M.nodeName)}return m.body.innerHTML}t.DefaultAllowlist=i,t.sanitizeHtml=c,Object.defineProperty(t,Symbol.toStringTag,{value:"Module"})}))});var Ui=K((Ye,je)=>{(function(t,e){typeof Ye=="object"&&typeof je<"u"?je.exports=e(at(),At(),Ke(),H()):typeof define=="function"&&define.amd?define(["../dom/selector-engine","./config","./sanitizer","./index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.TemplateFactory=e(t.SelectorEngine,t.Config,t.Sanitizer,t.Index))})(Ye,(function(t,e,i,s){"use strict";let n="TemplateFactory",r={allowList:i.DefaultAllowlist,content:{},extraClass:"",html:!1,sanitize:!0,sanitizeFn:null,template:"<div></div>"},c={allowList:"object",content:"object",extraClass:"(string|function)",html:"boolean",sanitize:"boolean",sanitizeFn:"(null|function)",template:"string"},a={entry:"(string|element|function|null)",selector:"(string|element)"};class u extends e{constructor(o){super(),this._config=this._getConfig(o)}static get Default(){return r}static get DefaultType(){return c}static get NAME(){return n}getContent(){return Object.values(this._config.content).map(o=>this._resolvePossibleFunction(o)).filter(Boolean)}hasContent(){return this.getContent().length>0}changeContent(o){return this._checkContent(o),this._config.content={...this._config.content,...o},this}toHtml(){let o=document.createElement("div");o.innerHTML=this._maybeSanitize(this._config.template);for(let[E,S]of Object.entries(this._config.content))this._setContent(o,S,E);let m=o.children[0],C=this._resolvePossibleFunction(this._config.extraClass);return C&&m.classList.add(...C.split(" ")),m}_typeCheckConfig(o){super._typeCheckConfig(o),this._checkContent(o.content)}_checkContent(o){for(let[m,C]of Object.entries(o))super._typeCheckConfig({selector:m,entry:C},a)}_setContent(o,m,C){let E=t.findOne(C,o);if(E){if(m=this._resolvePossibleFunction(m),!m){E.remove();return}if(s.isElement(m)){this._putElementInTemplate(s.getElement(m),E);return}if(this._config.html){E.innerHTML=this._maybeSanitize(m);return}E.textContent=m}}_maybeSanitize(o){return this._config.sanitize?i.sanitizeHtml(o,this._config.allowList,this._config.sanitizeFn):o}_resolvePossibleFunction(o){return s.execute(o,[void 0,this])}_putElementInTemplate(o,m){if(this._config.html){m.innerHTML="",m.append(o);return}m.textContent=o.textContent}}return u}))});var ze=K((Ue,He)=>{(function(t,e){typeof Ue=="object"&&typeof He<"u"?He.exports=e(Ne(),ot(),J(),bt(),H(),Ke(),Ui()):typeof define=="function"&&define.amd?define(["@popperjs/core","./base-component","./dom/event-handler","./dom/manipulator","./util/index","./util/sanitizer","./util/template-factory"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Tooltip=e(t["@popperjs/core"],t.BaseComponent,t.EventHandler,t.Manipulator,t.Index,t.Sanitizer,t.TemplateFactory))})(Ue,(function(t,e,i,s,n,r,c){"use strict";function a(h){let d=Object.create(null,{[Symbol.toStringTag]:{value:"Module"}});if(h){for(let O in h)if(O!=="default"){let q=Object.getOwnPropertyDescriptor(h,O);Object.defineProperty(d,O,q.get?q:{enumerable:!0,get:()=>h[O]})}}return d.default=h,Object.freeze(d)}let u=a(t),p="tooltip",o=new Set(["sanitize","allowList","sanitizeFn"]),m="fade",C="modal",E="show",S=".tooltip-inner",A=`.${C}`,L="hide.bs.modal",M="hover",w="focus",$="click",_="manual",v="hide",y="hidden",b="show",l="shown",T="inserted",f="click",g="focusin",D="focusout",I="mouseenter",x="mouseleave",V={AUTO:"auto",TOP:"top",RIGHT:n.isRTL()?"left":"right",BOTTOM:"bottom",LEFT:n.isRTL()?"right":"left"},P={allowList:r.DefaultAllowlist,animation:!0,boundary:"clippingParents",container:!1,customClass:"",delay:0,fallbackPlacements:["top","right","bottom","left"],html:!1,offset:[0,6],placement:"top",popperConfig:null,sanitize:!0,sanitizeFn:null,selector:!1,template:'<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',title:"",trigger:"hover focus"},k={allowList:"object",animation:"boolean",boundary:"(string|element)",container:"(string|element|boolean)",customClass:"(string|function)",delay:"(number|object)",fallbackPlacements:"array",html:"boolean",offset:"(array|string|function)",placement:"(string|function)",popperConfig:"(null|object|function)",sanitize:"boolean",sanitizeFn:"(null|function)",selector:"(string|boolean)",template:"string",title:"(string|element|function)",trigger:"string"};class Y extends e{constructor(d,O){if(typeof u>"u")throw new TypeError("Bootstrap's tooltips require Popper (https://popper.js.org/docs/v2/)");super(d,O),this._isEnabled=!0,this._timeout=0,this._isHovered=null,this._activeTrigger={},this._popper=null,this._templateFactory=null,this._newContent=null,this.tip=null,this._setListeners(),this._config.selector||this._fixTitle()}static get Default(){return P}static get DefaultType(){return k}static get NAME(){return p}enable(){this._isEnabled=!0}disable(){this._isEnabled=!1}toggleEnabled(){this._isEnabled=!this._isEnabled}toggle(){if(this._isEnabled){if(this._isShown()){this._leave();return}this._enter()}}dispose(){clearTimeout(this._timeout),i.off(this._element.closest(A),L,this._hideModalHandler),this._element.getAttribute("data-bs-original-title")&&this._element.setAttribute("title",this._element.getAttribute("data-bs-original-title")),this._disposePopper(),super.dispose()}show(){if(this._element.style.display==="none")throw new Error("Please use show on visible elements");if(!(this._isWithContent()&&this._isEnabled))return;let d=i.trigger(this._element,this.constructor.eventName(b)),q=(n.findShadowRoot(this._element)||this._element.ownerDocument.documentElement).contains(this._element);if(d.defaultPrevented||!q)return;this._disposePopper();let j=this._getTipElement();this._element.setAttribute("aria-describedby",j.getAttribute("id"));let{container:z}=this._config;if(this._element.ownerDocument.documentElement.contains(this.tip)||(z.append(j),i.trigger(this._element,this.constructor.eventName(T))),this._popper=this._createPopper(j),j.classList.add(E),"ontouchstart"in document.documentElement)for(let Z of[].concat(...document.body.children))i.on(Z,"mouseover",n.noop);let U=()=>{i.trigger(this._element,this.constructor.eventName(l)),this._isHovered===!1&&this._leave(),this._isHovered=!1};this._queueCallback(U,this.tip,this._isAnimated())}hide(){if(!this._isShown()||i.trigger(this._element,this.constructor.eventName(v)).defaultPrevented)return;if(this._getTipElement().classList.remove(E),"ontouchstart"in document.documentElement)for(let j of[].concat(...document.body.children))i.off(j,"mouseover",n.noop);this._activeTrigger[$]=!1,this._activeTrigger[w]=!1,this._activeTrigger[M]=!1,this._isHovered=null;let q=()=>{this._isWithActiveTrigger()||(this._isHovered||this._disposePopper(),this._element.removeAttribute("aria-describedby"),i.trigger(this._element,this.constructor.eventName(y)))};this._queueCallback(q,this.tip,this._isAnimated())}update(){this._popper&&this._popper.update()}_isWithContent(){return!!this._getTitle()}_getTipElement(){return this.tip||(this.tip=this._createTipElement(this._newContent||this._getContentForTemplate())),this.tip}_createTipElement(d){let O=this._getTemplateFactory(d).toHtml();if(!O)return null;O.classList.remove(m,E),O.classList.add(`bs-${this.constructor.NAME}-auto`);let q=n.getUID(this.constructor.NAME).toString();return O.setAttribute("id",q),this._isAnimated()&&O.classList.add(m),O}setContent(d){this._newContent=d,this._isShown()&&(this._disposePopper(),this.show())}_getTemplateFactory(d){return this._templateFactory?this._templateFactory.changeContent(d):this._templateFactory=new c({...this._config,content:d,extraClass:this._resolvePossibleFunction(this._config.customClass)}),this._templateFactory}_getContentForTemplate(){return{[S]:this._getTitle()}}_getTitle(){return this._resolvePossibleFunction(this._config.title)||this._element.getAttribute("data-bs-original-title")}_initializeOnDelegatedTarget(d){return this.constructor.getOrCreateInstance(d.delegateTarget,this._getDelegateConfig())}_isAnimated(){return this._config.animation||this.tip&&this.tip.classList.contains(m)}_isShown(){return this.tip&&this.tip.classList.contains(E)}_createPopper(d){let O=n.execute(this._config.placement,[this,d,this._element]),q=V[O.toUpperCase()];return u.createPopper(this._element,d,this._getPopperConfig(q))}_getOffset(){let{offset:d}=this._config;return typeof d=="string"?d.split(",").map(O=>Number.parseInt(O,10)):typeof d=="function"?O=>d(O,this._element):d}_resolvePossibleFunction(d){return n.execute(d,[this._element,this._element])}_getPopperConfig(d){let O={placement:d,modifiers:[{name:"flip",options:{fallbackPlacements:this._config.fallbackPlacements}},{name:"offset",options:{offset:this._getOffset()}},{name:"preventOverflow",options:{boundary:this._config.boundary}},{name:"arrow",options:{element:`.${this.constructor.NAME}-arrow`}},{name:"preSetPlacement",enabled:!0,phase:"beforeMain",fn:q=>{this._getTipElement().setAttribute("data-popper-placement",q.state.placement)}}]};return{...O,...n.execute(this._config.popperConfig,[void 0,O])}}_setListeners(){let d=this._config.trigger.split(" ");for(let O of d)if(O==="click")i.on(this._element,this.constructor.eventName(f),this._config.selector,q=>{let j=this._initializeOnDelegatedTarget(q);j._activeTrigger[$]=!(j._isShown()&&j._activeTrigger[$]),j.toggle()});else if(O!==_){let q=O===M?this.constructor.eventName(I):this.constructor.eventName(g),j=O===M?this.constructor.eventName(x):this.constructor.eventName(D);i.on(this._element,q,this._config.selector,z=>{let U=this._initializeOnDelegatedTarget(z);U._activeTrigger[z.type==="focusin"?w:M]=!0,U._enter()}),i.on(this._element,j,this._config.selector,z=>{let U=this._initializeOnDelegatedTarget(z);U._activeTrigger[z.type==="focusout"?w:M]=U._element.contains(z.relatedTarget),U._leave()})}this._hideModalHandler=()=>{this._element&&this.hide()},i.on(this._element.closest(A),L,this._hideModalHandler)}_fixTitle(){let d=this._element.getAttribute("title");d&&(!this._element.getAttribute("aria-label")&&!this._element.textContent.trim()&&this._element.setAttribute("aria-label",d),this._element.setAttribute("data-bs-original-title",d),this._element.removeAttribute("title"))}_enter(){if(this._isShown()||this._isHovered){this._isHovered=!0;return}this._isHovered=!0,this._setTimeout(()=>{this._isHovered&&this.show()},this._config.delay.show)}_leave(){this._isWithActiveTrigger()||(this._isHovered=!1,this._setTimeout(()=>{this._isHovered||this.hide()},this._config.delay.hide))}_setTimeout(d,O){clearTimeout(this._timeout),this._timeout=setTimeout(d,O)}_isWithActiveTrigger(){return Object.values(this._activeTrigger).includes(!0)}_getConfig(d){let O=s.getDataAttributes(this._element);for(let q of Object.keys(O))o.has(q)&&delete O[q];return d={...O,...typeof d=="object"&&d?d:{}},d=this._mergeConfigObj(d),d=this._configAfterMerge(d),this._typeCheckConfig(d),d}_configAfterMerge(d){return d.container=d.container===!1?document.body:n.getElement(d.container),typeof d.delay=="number"&&(d.delay={show:d.delay,hide:d.delay}),typeof d.title=="number"&&(d.title=d.title.toString()),typeof d.content=="number"&&(d.content=d.content.toString()),d}_getDelegateConfig(){let d={};for(let[O,q]of Object.entries(this._config))this.constructor.Default[O]!==q&&(d[O]=q);return d.selector=!1,d.trigger="manual",d}_disposePopper(){this._popper&&(this._popper.destroy(),this._popper=null),this.tip&&(this.tip.remove(),this.tip=null)}static jQueryInterface(d){return this.each(function(){let O=Y.getOrCreateInstance(this,d);if(typeof d=="string"){if(typeof O[d]>"u")throw new TypeError(`No method named "${d}"`);O[d]()}})}}return n.defineJQueryPlugin(Y),Y}))});var Hi=K((Ge,Qe)=>{(function(t,e){typeof Ge=="object"&&typeof Qe<"u"?Qe.exports=e(ze(),H()):typeof define=="function"&&define.amd?define(["./tooltip","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Popover=e(t.Tooltip,t.Index))})(Ge,(function(t,e){"use strict";let i="popover",s=".popover-header",n=".popover-body",r={...t.Default,content:"",offset:[0,8],placement:"right",template:'<div class="popover" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>',trigger:"click"},c={...t.DefaultType,content:"(null|string|element|function)"};class a extends t{static get Default(){return r}static get DefaultType(){return c}static get NAME(){return i}_isWithContent(){return this._getTitle()||this._getContent()}_getContentForTemplate(){return{[s]:this._getTitle(),[n]:this._getContent()}}_getContent(){return this._resolvePossibleFunction(this._config.content)}static jQueryInterface(p){return this.each(function(){let o=a.getOrCreateInstance(this,p);if(typeof p=="string"){if(typeof o[p]>"u")throw new TypeError(`No method named "${p}"`);o[p]()}})}}return e.defineJQueryPlugin(a),a}))});var zi=K((Xe,Je)=>{(function(t,e){typeof Xe=="object"&&typeof Je<"u"?Je.exports=e(ot(),J(),at(),H()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./dom/selector-engine","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Scrollspy=e(t.BaseComponent,t.EventHandler,t.SelectorEngine,t.Index))})(Xe,(function(t,e,i,s){"use strict";let n="scrollspy",c=".bs.scrollspy",a=".data-api",u=`activate${c}`,p=`click${c}`,o=`load${c}${a}`,m="dropdown-item",C="active",E='[data-bs-spy="scroll"]',S="[href]",A=".nav, .list-group",L=".nav-link",$=`${L}, .nav-item > ${L}, .list-group-item`,_=".dropdown",v=".dropdown-toggle",y={offset:null,rootMargin:"0px 0px -25%",smoothScroll:!1,target:null,threshold:[.1,.5,1]},b={offset:"(number|null)",rootMargin:"string",smoothScroll:"boolean",target:"element",threshold:"array"};class l extends t{constructor(f,g){super(f,g),this._targetLinks=new Map,this._observableSections=new Map,this._rootElement=getComputedStyle(this._element).overflowY==="visible"?null:this._element,this._activeTarget=null,this._observer=null,this._previousScrollData={visibleEntryTop:0,parentScrollTop:0},this.refresh()}static get Default(){return y}static get DefaultType(){return b}static get NAME(){return n}refresh(){this._initializeTargetsAndObservables(),this._maybeEnableSmoothScroll(),this._observer?this._observer.disconnect():this._observer=this._getNewObserver();for(let f of this._observableSections.values())this._observer.observe(f)}dispose(){this._observer.disconnect(),super.dispose()}_configAfterMerge(f){return f.target=s.getElement(f.target)||document.body,f.rootMargin=f.offset?`${f.offset}px 0px -30%`:f.rootMargin,typeof f.threshold=="string"&&(f.threshold=f.threshold.split(",").map(g=>Number.parseFloat(g))),f}_maybeEnableSmoothScroll(){this._config.smoothScroll&&(e.off(this._config.target,p),e.on(this._config.target,p,S,f=>{let g=this._observableSections.get(f.target.hash);if(g){f.preventDefault();let D=this._rootElement||window,I=g.offsetTop-this._element.offsetTop;if(D.scrollTo){D.scrollTo({top:I,behavior:"smooth"});return}D.scrollTop=I}}))}_getNewObserver(){let f={root:this._rootElement,threshold:this._config.threshold,rootMargin:this._config.rootMargin};return new IntersectionObserver(g=>this._observerCallback(g),f)}_observerCallback(f){let g=V=>this._targetLinks.get(`#${V.target.id}`),D=V=>{this._previousScrollData.visibleEntryTop=V.target.offsetTop,this._process(g(V))},I=(this._rootElement||document.documentElement).scrollTop,x=I>=this._previousScrollData.parentScrollTop;this._previousScrollData.parentScrollTop=I;for(let V of f){if(!V.isIntersecting){this._activeTarget=null,this._clearActiveClass(g(V));continue}let P=V.target.offsetTop>=this._previousScrollData.visibleEntryTop;if(x&&P){if(D(V),!I)return;continue}!x&&!P&&D(V)}}_initializeTargetsAndObservables(){this._targetLinks=new Map,this._observableSections=new Map;let f=i.find(S,this._config.target);for(let g of f){if(!g.hash||s.isDisabled(g))continue;let D=i.findOne(decodeURI(g.hash),this._element);s.isVisible(D)&&(this._targetLinks.set(decodeURI(g.hash),g),this._observableSections.set(g.hash,D))}}_process(f){this._activeTarget!==f&&(this._clearActiveClass(this._config.target),this._activeTarget=f,f.classList.add(C),this._activateParents(f),e.trigger(this._element,u,{relatedTarget:f}))}_activateParents(f){if(f.classList.contains(m)){i.findOne(v,f.closest(_)).classList.add(C);return}for(let g of i.parents(f,A))for(let D of i.prev(g,$))D.classList.add(C)}_clearActiveClass(f){f.classList.remove(C);let g=i.find(`${S}.${C}`,f);for(let D of g)D.classList.remove(C)}static jQueryInterface(f){return this.each(function(){let g=l.getOrCreateInstance(this,f);if(typeof f=="string"){if(g[f]===void 0||f.startsWith("_")||f==="constructor")throw new TypeError(`No method named "${f}"`);g[f]()}})}}return e.on(window,o,()=>{for(let T of i.find(E))l.getOrCreateInstance(T)}),s.defineJQueryPlugin(l),l}))});var Gi=K((Ze,ti)=>{(function(t,e){typeof Ze=="object"&&typeof ti<"u"?ti.exports=e(ot(),J(),at(),H()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./dom/selector-engine","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Tab=e(t.BaseComponent,t.EventHandler,t.SelectorEngine,t.Index))})(Ze,(function(t,e,i,s){"use strict";let c=".bs.tab",a=`hide${c}`,u=`hidden${c}`,p=`show${c}`,o=`shown${c}`,m=`click${c}`,C=`keydown${c}`,E=`load${c}`,S="ArrowLeft",A="ArrowRight",L="ArrowUp",M="ArrowDown",w="Home",$="End",_="active",v="fade",y="show",b="dropdown",l=".dropdown-toggle",T=".dropdown-menu",f=`:not(${l})`,g='.list-group, .nav, [role="tablist"]',D=".nav-item, .list-group-item",I=`.nav-link${f}, .list-group-item${f}, [role="tab"]${f}`,x='[data-bs-toggle="tab"], [data-bs-toggle="pill"], [data-bs-toggle="list"]',V=`${I}, ${x}`,P=`.${_}[data-bs-toggle="tab"], .${_}[data-bs-toggle="pill"], .${_}[data-bs-toggle="list"]`;class k extends t{constructor(h){super(h),this._parent=this._element.closest(g),this._parent&&(this._setInitialAttributes(this._parent,this._getChildren()),e.on(this._element,C,d=>this._keydown(d)))}static get NAME(){return"tab"}show(){let h=this._element;if(this._elemIsActive(h))return;let d=this._getActiveElem(),O=d?e.trigger(d,a,{relatedTarget:h}):null;e.trigger(h,p,{relatedTarget:d}).defaultPrevented||O&&O.defaultPrevented||(this._deactivate(d,h),this._activate(h,d))}_activate(h,d){if(!h)return;h.classList.add(_),this._activate(i.getElementFromSelector(h));let O=()=>{if(h.getAttribute("role")!=="tab"){h.classList.add(y);return}h.removeAttribute("tabindex"),h.setAttribute("aria-selected",!0),this._toggleDropDown(h,!0),e.trigger(h,o,{relatedTarget:d})};this._queueCallback(O,h,h.classList.contains(v))}_deactivate(h,d){if(!h)return;h.classList.remove(_),h.blur(),this._deactivate(i.getElementFromSelector(h));let O=()=>{if(h.getAttribute("role")!=="tab"){h.classList.remove(y);return}h.setAttribute("aria-selected",!1),h.setAttribute("tabindex","-1"),this._toggleDropDown(h,!1),e.trigger(h,u,{relatedTarget:d})};this._queueCallback(O,h,h.classList.contains(v))}_keydown(h){if(![S,A,L,M,w,$].includes(h.key))return;h.stopPropagation(),h.preventDefault();let d=this._getChildren().filter(q=>!s.isDisabled(q)),O;if([w,$].includes(h.key))O=d[h.key===w?0:d.length-1];else{let q=[A,M].includes(h.key);O=s.getNextActiveElement(d,h.target,q,!0)}O&&(O.focus({preventScroll:!0}),k.getOrCreateInstance(O).show())}_getChildren(){return i.find(V,this._parent)}_getActiveElem(){return this._getChildren().find(h=>this._elemIsActive(h))||null}_setInitialAttributes(h,d){this._setAttributeIfNotExists(h,"role","tablist");for(let O of d)this._setInitialAttributesOnChild(O)}_setInitialAttributesOnChild(h){h=this._getInnerElement(h);let d=this._elemIsActive(h),O=this._getOuterElement(h);h.setAttribute("aria-selected",d),O!==h&&this._setAttributeIfNotExists(O,"role","presentation"),d||h.setAttribute("tabindex","-1"),this._setAttributeIfNotExists(h,"role","tab"),this._setInitialAttributesOnTargetPanel(h)}_setInitialAttributesOnTargetPanel(h){let d=i.getElementFromSelector(h);d&&(this._setAttributeIfNotExists(d,"role","tabpanel"),h.id&&this._setAttributeIfNotExists(d,"aria-labelledby",`${h.id}`))}_toggleDropDown(h,d){let O=this._getOuterElement(h);if(!O.classList.contains(b))return;let q=(j,z)=>{let U=i.findOne(j,O);U&&U.classList.toggle(z,d)};q(l,_),q(T,y),O.setAttribute("aria-expanded",d)}_setAttributeIfNotExists(h,d,O){h.hasAttribute(d)||h.setAttribute(d,O)}_elemIsActive(h){return h.classList.contains(_)}_getInnerElement(h){return h.matches(V)?h:i.findOne(V,h)}_getOuterElement(h){return h.closest(D)||h}static jQueryInterface(h){return this.each(function(){let d=k.getOrCreateInstance(this);if(typeof h=="string"){if(d[h]===void 0||h.startsWith("_")||h==="constructor")throw new TypeError(`No method named "${h}"`);d[h]()}})}}return e.on(document,m,x,function(Y){["A","AREA"].includes(this.tagName)&&Y.preventDefault(),!s.isDisabled(this)&&k.getOrCreateInstance(this).show()}),e.on(window,E,()=>{for(let Y of i.find(P))k.getOrCreateInstance(Y)}),s.defineJQueryPlugin(k),k}))});var Xi=K((ei,ii)=>{(function(t,e){typeof ei=="object"&&typeof ii<"u"?ii.exports=e(ot(),J(),St(),H()):typeof define=="function"&&define.amd?define(["./base-component","./dom/event-handler","./util/component-functions","./util/index"],e):(t=typeof globalThis<"u"?globalThis:t||self,t.Toast=e(t.BaseComponent,t.EventHandler,t.ComponentFunctions,t.Index))})(ei,(function(t,e,i,s){"use strict";let n="toast",c=".bs.toast",a=`mouseover${c}`,u=`mouseout${c}`,p=`focusin${c}`,o=`focusout${c}`,m=`hide${c}`,C=`hidden${c}`,E=`show${c}`,S=`shown${c}`,A="fade",L="hide",M="show",w="showing",$={animation:"boolean",autohide:"boolean",delay:"number"},_={animation:!0,autohide:!0,delay:5e3};class v extends t{constructor(b,l){super(b,l),this._timeout=null,this._hasMouseInteraction=!1,this._hasKeyboardInteraction=!1,this._setListeners()}static get Default(){return _}static get DefaultType(){return $}static get NAME(){return n}show(){if(e.trigger(this._element,E).defaultPrevented)return;this._clearTimeout(),this._config.animation&&this._element.classList.add(A);let l=()=>{this._element.classList.remove(w),e.trigger(this._element,S),this._maybeScheduleHide()};this._element.classList.remove(L),s.reflow(this._element),this._element.classList.add(M,w),this._queueCallback(l,this._element,this._config.animation)}hide(){if(!this.isShown()||e.trigger(this._element,m).defaultPrevented)return;let l=()=>{this._element.classList.add(L),this._element.classList.remove(w,M),e.trigger(this._element,C)};this._element.classList.add(w),this._queueCallback(l,this._element,this._config.animation)}dispose(){this._clearTimeout(),this.isShown()&&this._element.classList.remove(M),super.dispose()}isShown(){return this._element.classList.contains(M)}_maybeScheduleHide(){this._config.autohide&&(this._hasMouseInteraction||this._hasKeyboardInteraction||(this._timeout=setTimeout(()=>{this.hide()},this._config.delay)))}_onInteraction(b,l){switch(b.type){case"mouseover":case"mouseout":{this._hasMouseInteraction=l;break}case"focusin":case"focusout":{this._hasKeyboardInteraction=l;break}}if(l){this._clearTimeout();return}let T=b.relatedTarget;this._element===T||this._element.contains(T)||this._maybeScheduleHide()}_setListeners(){e.on(this._element,a,b=>this._onInteraction(b,!0)),e.on(this._element,u,b=>this._onInteraction(b,!1)),e.on(this._element,p,b=>this._onInteraction(b,!0)),e.on(this._element,o,b=>this._onInteraction(b,!1))}_clearTimeout(){clearTimeout(this._timeout),this._timeout=null}static jQueryInterface(b){return this.each(function(){let l=v.getOrCreateInstance(this,b);if(typeof b=="string"){if(typeof l[b]>"u")throw new TypeError(`No method named "${b}"`);l[b](this)}})}}return i.enableDismissTrigger(v),s.defineJQueryPlugin(v),v}))});var rs=rt(hi()),os=rt(pi()),as=rt(_i()),cs=rt(gi()),ls=rt(Fi()),us=rt(Ki()),fs=rt(Yi()),ds=rt(Hi()),hs=rt(zi()),ps=rt(Gi());var Qi=rt(ze());(()=>{let e=[...document.querySelectorAll('[data-bs-toggle="tooltip"]')].map(i=>new Qi.default(i))})();var Ji=rt(Xi());document.addEventListener("DOMContentLoaded",()=>{let t=[...document.querySelectorAll(".toast")];for(let e of t)new Ji.default(e,{autohide:!1}).show()});(()=>{let t=document.documentElement,e=localStorage.getItem("theme"),i=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light",s=n=>{t.setAttribute("data-bs-theme",n),document.querySelectorAll("[data-theme-toggle]").forEach(r=>{r.setAttribute("aria-label",n==="dark"?"\u5207\u6362\u5230\u6D45\u8272":"\u5207\u6362\u5230\u6DF1\u8272"),r.dataset.mode=n})};s(e||i),document.addEventListener("click",n=>{if(!n.target.closest("[data-theme-toggle]"))return;let c=t.getAttribute("data-bs-theme")==="dark"?"light":"dark";localStorage.setItem("theme",c),s(c)})})();(()=>{let t=()=>{let e=document.querySelector(".xedc-nav");if(!e)return;let i=e.querySelector("[data-menu-toggle]"),s=e.querySelector("[data-search-toggle]"),n=e.querySelector(".xedc-searchbar"),r=a=>{e.classList.toggle("menu-open",a),i.setAttribute("aria-expanded",a),document.body.style.overflow=a?"hidden":""},c=a=>{e.classList.toggle("search-open",a),s.setAttribute("aria-expanded",a),a&&n.querySelector("input").focus()};i.addEventListener("click",()=>{c(!1),r(!e.classList.contains("menu-open"))}),e.querySelectorAll("[data-menu-close]").forEach(a=>a.addEventListener("click",()=>r(!1))),e.querySelectorAll(".xedc-menu a").forEach(a=>a.addEventListener("click",()=>r(!1))),s.addEventListener("click",()=>{r(!1),c(!e.classList.contains("search-open"))}),document.addEventListener("click",a=>{e.classList.contains("search-open")&&(n.contains(a.target)||s.contains(a.target)||c(!1))}),document.addEventListener("keydown",a=>{a.key==="Escape"&&(r(!1),c(!1))}),window.addEventListener("resize",()=>{window.innerWidth>=992&&(r(!1),c(!1))})};document.readyState==="loading"?document.addEventListener("DOMContentLoaded",t):t()})();})();
+(() => {
+  var __create = Object.create;
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getProtoOf = Object.getPrototypeOf;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __commonJS = (cb, mod) => function __require() {
+    try {
+      return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+    } catch (e) {
+      throw mod = 0, e;
+    }
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
+
+  // node_modules/bootstrap/js/dist/dom/data.js
+  var require_data = __commonJS({
+    "node_modules/bootstrap/js/dist/dom/data.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Data = factory());
+      })(exports, (function() {
+        "use strict";
+        const elementMap = /* @__PURE__ */ new Map();
+        const data = {
+          set(element, key, instance) {
+            if (!elementMap.has(element)) {
+              elementMap.set(element, /* @__PURE__ */ new Map());
+            }
+            const instanceMap = elementMap.get(element);
+            if (!instanceMap.has(key) && instanceMap.size !== 0) {
+              console.error(`Bootstrap doesn't allow more than one instance per element. Bound instance: ${Array.from(instanceMap.keys())[0]}.`);
+              return;
+            }
+            instanceMap.set(key, instance);
+          },
+          get(element, key) {
+            if (elementMap.has(element)) {
+              return elementMap.get(element).get(key) || null;
+            }
+            return null;
+          },
+          remove(element, key) {
+            if (!elementMap.has(element)) {
+              return;
+            }
+            const instanceMap = elementMap.get(element);
+            instanceMap.delete(key);
+            if (instanceMap.size === 0) {
+              elementMap.delete(element);
+            }
+          }
+        };
+        return data;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/index.js
+  var require_util = __commonJS({
+    "node_modules/bootstrap/js/dist/util/index.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Index = {}));
+      })(exports, (function(exports2) {
+        "use strict";
+        const MAX_UID = 1e6;
+        const MILLISECONDS_MULTIPLIER = 1e3;
+        const TRANSITION_END = "transitionend";
+        const parseSelector = (selector) => {
+          if (selector && window.CSS && window.CSS.escape) {
+            selector = selector.replace(/#([^\s"#']+)/g, (match, id) => `#${CSS.escape(id)}`);
+          }
+          return selector;
+        };
+        const toType = (object) => {
+          if (object === null || object === void 0) {
+            return `${object}`;
+          }
+          return Object.prototype.toString.call(object).match(/\s([a-z]+)/i)[1].toLowerCase();
+        };
+        const getUID = (prefix) => {
+          do {
+            prefix += Math.floor(Math.random() * MAX_UID);
+          } while (document.getElementById(prefix));
+          return prefix;
+        };
+        const getTransitionDurationFromElement = (element) => {
+          if (!element) {
+            return 0;
+          }
+          let {
+            transitionDuration,
+            transitionDelay
+          } = window.getComputedStyle(element);
+          const floatTransitionDuration = Number.parseFloat(transitionDuration);
+          const floatTransitionDelay = Number.parseFloat(transitionDelay);
+          if (!floatTransitionDuration && !floatTransitionDelay) {
+            return 0;
+          }
+          transitionDuration = transitionDuration.split(",")[0];
+          transitionDelay = transitionDelay.split(",")[0];
+          return (Number.parseFloat(transitionDuration) + Number.parseFloat(transitionDelay)) * MILLISECONDS_MULTIPLIER;
+        };
+        const triggerTransitionEnd = (element) => {
+          element.dispatchEvent(new Event(TRANSITION_END));
+        };
+        const isElement = (object) => {
+          if (!object || typeof object !== "object") {
+            return false;
+          }
+          if (typeof object.jquery !== "undefined") {
+            object = object[0];
+          }
+          return typeof object.nodeType !== "undefined";
+        };
+        const getElement = (object) => {
+          if (isElement(object)) {
+            return object.jquery ? object[0] : object;
+          }
+          if (typeof object === "string" && object.length > 0) {
+            return document.querySelector(parseSelector(object));
+          }
+          return null;
+        };
+        const isVisible = (element) => {
+          if (!isElement(element) || element.getClientRects().length === 0) {
+            return false;
+          }
+          const elementIsVisible = getComputedStyle(element).getPropertyValue("visibility") === "visible";
+          const closedDetails = element.closest("details:not([open])");
+          if (!closedDetails) {
+            return elementIsVisible;
+          }
+          if (closedDetails !== element) {
+            const summary = element.closest("summary");
+            if (summary && summary.parentNode !== closedDetails) {
+              return false;
+            }
+            if (summary === null) {
+              return false;
+            }
+          }
+          return elementIsVisible;
+        };
+        const isDisabled = (element) => {
+          if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+            return true;
+          }
+          if (element.classList.contains("disabled")) {
+            return true;
+          }
+          if (typeof element.disabled !== "undefined") {
+            return element.disabled;
+          }
+          return element.hasAttribute("disabled") && element.getAttribute("disabled") !== "false";
+        };
+        const findShadowRoot = (element) => {
+          if (!document.documentElement.attachShadow) {
+            return null;
+          }
+          if (typeof element.getRootNode === "function") {
+            const root = element.getRootNode();
+            return root instanceof ShadowRoot ? root : null;
+          }
+          if (element instanceof ShadowRoot) {
+            return element;
+          }
+          if (!element.parentNode) {
+            return null;
+          }
+          return findShadowRoot(element.parentNode);
+        };
+        const noop = () => {
+        };
+        const reflow = (element) => {
+          element.offsetHeight;
+        };
+        const getjQuery = () => {
+          if (window.jQuery && !document.body.hasAttribute("data-bs-no-jquery")) {
+            return window.jQuery;
+          }
+          return null;
+        };
+        const DOMContentLoadedCallbacks = [];
+        const onDOMContentLoaded = (callback) => {
+          if (document.readyState === "loading") {
+            if (!DOMContentLoadedCallbacks.length) {
+              document.addEventListener("DOMContentLoaded", () => {
+                for (const callback2 of DOMContentLoadedCallbacks) {
+                  callback2();
+                }
+              });
+            }
+            DOMContentLoadedCallbacks.push(callback);
+          } else {
+            callback();
+          }
+        };
+        const isRTL = () => document.documentElement.dir === "rtl";
+        const defineJQueryPlugin = (plugin) => {
+          onDOMContentLoaded(() => {
+            const $ = getjQuery();
+            if ($) {
+              const name = plugin.NAME;
+              const JQUERY_NO_CONFLICT = $.fn[name];
+              $.fn[name] = plugin.jQueryInterface;
+              $.fn[name].Constructor = plugin;
+              $.fn[name].noConflict = () => {
+                $.fn[name] = JQUERY_NO_CONFLICT;
+                return plugin.jQueryInterface;
+              };
+            }
+          });
+        };
+        const execute = (possibleCallback, args = [], defaultValue = possibleCallback) => {
+          return typeof possibleCallback === "function" ? possibleCallback.call(...args) : defaultValue;
+        };
+        const executeAfterTransition = (callback, transitionElement, waitForTransition = true) => {
+          if (!waitForTransition) {
+            execute(callback);
+            return;
+          }
+          const durationPadding = 5;
+          const emulatedDuration = getTransitionDurationFromElement(transitionElement) + durationPadding;
+          let called = false;
+          const handler = ({
+            target
+          }) => {
+            if (target !== transitionElement) {
+              return;
+            }
+            called = true;
+            transitionElement.removeEventListener(TRANSITION_END, handler);
+            execute(callback);
+          };
+          transitionElement.addEventListener(TRANSITION_END, handler);
+          setTimeout(() => {
+            if (!called) {
+              triggerTransitionEnd(transitionElement);
+            }
+          }, emulatedDuration);
+        };
+        const getNextActiveElement = (list, activeElement, shouldGetNext, isCycleAllowed) => {
+          const listLength = list.length;
+          let index = list.indexOf(activeElement);
+          if (index === -1) {
+            return !shouldGetNext && isCycleAllowed ? list[listLength - 1] : list[0];
+          }
+          index += shouldGetNext ? 1 : -1;
+          if (isCycleAllowed) {
+            index = (index + listLength) % listLength;
+          }
+          return list[Math.max(0, Math.min(index, listLength - 1))];
+        };
+        exports2.defineJQueryPlugin = defineJQueryPlugin;
+        exports2.execute = execute;
+        exports2.executeAfterTransition = executeAfterTransition;
+        exports2.findShadowRoot = findShadowRoot;
+        exports2.getElement = getElement;
+        exports2.getNextActiveElement = getNextActiveElement;
+        exports2.getTransitionDurationFromElement = getTransitionDurationFromElement;
+        exports2.getUID = getUID;
+        exports2.getjQuery = getjQuery;
+        exports2.isDisabled = isDisabled;
+        exports2.isElement = isElement;
+        exports2.isRTL = isRTL;
+        exports2.isVisible = isVisible;
+        exports2.noop = noop;
+        exports2.onDOMContentLoaded = onDOMContentLoaded;
+        exports2.parseSelector = parseSelector;
+        exports2.reflow = reflow;
+        exports2.toType = toType;
+        exports2.triggerTransitionEnd = triggerTransitionEnd;
+        Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/dom/event-handler.js
+  var require_event_handler = __commonJS({
+    "node_modules/bootstrap/js/dist/dom/event-handler.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_util()) : typeof define === "function" && define.amd ? define(["../util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.EventHandler = factory(global.Index));
+      })(exports, (function(index_js) {
+        "use strict";
+        const namespaceRegex = /[^.]*(?=\..*)\.|.*/;
+        const stripNameRegex = /\..*/;
+        const stripUidRegex = /::\d+$/;
+        const eventRegistry = {};
+        let uidEvent = 1;
+        const customEvents = {
+          mouseenter: "mouseover",
+          mouseleave: "mouseout"
+        };
+        const nativeEvents = /* @__PURE__ */ new Set(["click", "dblclick", "mouseup", "mousedown", "contextmenu", "mousewheel", "DOMMouseScroll", "mouseover", "mouseout", "mousemove", "selectstart", "selectend", "keydown", "keypress", "keyup", "orientationchange", "touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "pointerleave", "pointercancel", "gesturestart", "gesturechange", "gestureend", "focus", "blur", "change", "reset", "select", "submit", "focusin", "focusout", "load", "unload", "beforeunload", "resize", "move", "DOMContentLoaded", "readystatechange", "error", "abort", "scroll"]);
+        function makeEventUid(element, uid) {
+          return uid && `${uid}::${uidEvent++}` || element.uidEvent || uidEvent++;
+        }
+        function getElementEvents(element) {
+          const uid = makeEventUid(element);
+          element.uidEvent = uid;
+          eventRegistry[uid] = eventRegistry[uid] || {};
+          return eventRegistry[uid];
+        }
+        function bootstrapHandler(element, fn) {
+          return function handler(event) {
+            hydrateObj(event, {
+              delegateTarget: element
+            });
+            if (handler.oneOff) {
+              EventHandler.off(element, event.type, fn);
+            }
+            return fn.apply(element, [event]);
+          };
+        }
+        function bootstrapDelegationHandler(element, selector, fn) {
+          return function handler(event) {
+            const domElements = element.querySelectorAll(selector);
+            for (let {
+              target
+            } = event; target && target !== this; target = target.parentNode) {
+              for (const domElement of domElements) {
+                if (domElement !== target) {
+                  continue;
+                }
+                hydrateObj(event, {
+                  delegateTarget: target
+                });
+                if (handler.oneOff) {
+                  EventHandler.off(element, event.type, selector, fn);
+                }
+                return fn.apply(target, [event]);
+              }
+            }
+          };
+        }
+        function findHandler(events, callable, delegationSelector = null) {
+          return Object.values(events).find((event) => event.callable === callable && event.delegationSelector === delegationSelector);
+        }
+        function normalizeParameters(originalTypeEvent, handler, delegationFunction) {
+          const isDelegated = typeof handler === "string";
+          const callable = isDelegated ? delegationFunction : handler || delegationFunction;
+          let typeEvent = getTypeEvent(originalTypeEvent);
+          if (!nativeEvents.has(typeEvent)) {
+            typeEvent = originalTypeEvent;
+          }
+          return [isDelegated, callable, typeEvent];
+        }
+        function addHandler(element, originalTypeEvent, handler, delegationFunction, oneOff) {
+          if (typeof originalTypeEvent !== "string" || !element) {
+            return;
+          }
+          let [isDelegated, callable, typeEvent] = normalizeParameters(originalTypeEvent, handler, delegationFunction);
+          if (originalTypeEvent in customEvents) {
+            const wrapFunction = (fn2) => {
+              return function(event) {
+                if (!event.relatedTarget || event.relatedTarget !== event.delegateTarget && !event.delegateTarget.contains(event.relatedTarget)) {
+                  return fn2.call(this, event);
+                }
+              };
+            };
+            callable = wrapFunction(callable);
+          }
+          const events = getElementEvents(element);
+          const handlers = events[typeEvent] || (events[typeEvent] = {});
+          const previousFunction = findHandler(handlers, callable, isDelegated ? handler : null);
+          if (previousFunction) {
+            previousFunction.oneOff = previousFunction.oneOff && oneOff;
+            return;
+          }
+          const uid = makeEventUid(callable, originalTypeEvent.replace(namespaceRegex, ""));
+          const fn = isDelegated ? bootstrapDelegationHandler(element, handler, callable) : bootstrapHandler(element, callable);
+          fn.delegationSelector = isDelegated ? handler : null;
+          fn.callable = callable;
+          fn.oneOff = oneOff;
+          fn.uidEvent = uid;
+          handlers[uid] = fn;
+          element.addEventListener(typeEvent, fn, isDelegated);
+        }
+        function removeHandler(element, events, typeEvent, handler, delegationSelector) {
+          const fn = findHandler(events[typeEvent], handler, delegationSelector);
+          if (!fn) {
+            return;
+          }
+          element.removeEventListener(typeEvent, fn, Boolean(delegationSelector));
+          delete events[typeEvent][fn.uidEvent];
+        }
+        function removeNamespacedHandlers(element, events, typeEvent, namespace) {
+          const storeElementEvent = events[typeEvent] || {};
+          for (const [handlerKey, event] of Object.entries(storeElementEvent)) {
+            if (handlerKey.includes(namespace)) {
+              removeHandler(element, events, typeEvent, event.callable, event.delegationSelector);
+            }
+          }
+        }
+        function getTypeEvent(event) {
+          event = event.replace(stripNameRegex, "");
+          return customEvents[event] || event;
+        }
+        const EventHandler = {
+          on(element, event, handler, delegationFunction) {
+            addHandler(element, event, handler, delegationFunction, false);
+          },
+          one(element, event, handler, delegationFunction) {
+            addHandler(element, event, handler, delegationFunction, true);
+          },
+          off(element, originalTypeEvent, handler, delegationFunction) {
+            if (typeof originalTypeEvent !== "string" || !element) {
+              return;
+            }
+            const [isDelegated, callable, typeEvent] = normalizeParameters(originalTypeEvent, handler, delegationFunction);
+            const inNamespace = typeEvent !== originalTypeEvent;
+            const events = getElementEvents(element);
+            const storeElementEvent = events[typeEvent] || {};
+            const isNamespace = originalTypeEvent.startsWith(".");
+            if (typeof callable !== "undefined") {
+              if (!Object.keys(storeElementEvent).length) {
+                return;
+              }
+              removeHandler(element, events, typeEvent, callable, isDelegated ? handler : null);
+              return;
+            }
+            if (isNamespace) {
+              for (const elementEvent of Object.keys(events)) {
+                removeNamespacedHandlers(element, events, elementEvent, originalTypeEvent.slice(1));
+              }
+            }
+            for (const [keyHandlers, event] of Object.entries(storeElementEvent)) {
+              const handlerKey = keyHandlers.replace(stripUidRegex, "");
+              if (!inNamespace || originalTypeEvent.includes(handlerKey)) {
+                removeHandler(element, events, typeEvent, event.callable, event.delegationSelector);
+              }
+            }
+          },
+          trigger(element, event, args) {
+            if (typeof event !== "string" || !element) {
+              return null;
+            }
+            const $ = index_js.getjQuery();
+            const typeEvent = getTypeEvent(event);
+            const inNamespace = event !== typeEvent;
+            let jQueryEvent = null;
+            let bubbles = true;
+            let nativeDispatch = true;
+            let defaultPrevented = false;
+            if (inNamespace && $) {
+              jQueryEvent = $.Event(event, args);
+              $(element).trigger(jQueryEvent);
+              bubbles = !jQueryEvent.isPropagationStopped();
+              nativeDispatch = !jQueryEvent.isImmediatePropagationStopped();
+              defaultPrevented = jQueryEvent.isDefaultPrevented();
+            }
+            const evt = hydrateObj(new Event(event, {
+              bubbles,
+              cancelable: true
+            }), args);
+            if (defaultPrevented) {
+              evt.preventDefault();
+            }
+            if (nativeDispatch) {
+              element.dispatchEvent(evt);
+            }
+            if (evt.defaultPrevented && jQueryEvent) {
+              jQueryEvent.preventDefault();
+            }
+            return evt;
+          }
+        };
+        function hydrateObj(obj, meta = {}) {
+          for (const [key, value] of Object.entries(meta)) {
+            try {
+              obj[key] = value;
+            } catch (_unused) {
+              Object.defineProperty(obj, key, {
+                configurable: true,
+                get() {
+                  return value;
+                }
+              });
+            }
+          }
+          return obj;
+        }
+        return EventHandler;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/dom/manipulator.js
+  var require_manipulator = __commonJS({
+    "node_modules/bootstrap/js/dist/dom/manipulator.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Manipulator = factory());
+      })(exports, (function() {
+        "use strict";
+        function normalizeData(value) {
+          if (value === "true") {
+            return true;
+          }
+          if (value === "false") {
+            return false;
+          }
+          if (value === Number(value).toString()) {
+            return Number(value);
+          }
+          if (value === "" || value === "null") {
+            return null;
+          }
+          if (typeof value !== "string") {
+            return value;
+          }
+          try {
+            return JSON.parse(decodeURIComponent(value));
+          } catch (_unused) {
+            return value;
+          }
+        }
+        function normalizeDataKey(key) {
+          return key.replace(/[A-Z]/g, (chr) => `-${chr.toLowerCase()}`);
+        }
+        const Manipulator = {
+          setDataAttribute(element, key, value) {
+            element.setAttribute(`data-bs-${normalizeDataKey(key)}`, value);
+          },
+          removeDataAttribute(element, key) {
+            element.removeAttribute(`data-bs-${normalizeDataKey(key)}`);
+          },
+          getDataAttributes(element) {
+            if (!element) {
+              return {};
+            }
+            const attributes = {};
+            const bsKeys = Object.keys(element.dataset).filter((key) => key.startsWith("bs") && !key.startsWith("bsConfig"));
+            for (const key of bsKeys) {
+              let pureKey = key.replace(/^bs/, "");
+              pureKey = pureKey.charAt(0).toLowerCase() + pureKey.slice(1);
+              attributes[pureKey] = normalizeData(element.dataset[key]);
+            }
+            return attributes;
+          },
+          getDataAttribute(element, key) {
+            return normalizeData(element.getAttribute(`data-bs-${normalizeDataKey(key)}`));
+          }
+        };
+        return Manipulator;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/config.js
+  var require_config = __commonJS({
+    "node_modules/bootstrap/js/dist/util/config.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_manipulator(), require_util()) : typeof define === "function" && define.amd ? define(["../dom/manipulator", "./index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Config = factory(global.Manipulator, global.Index));
+      })(exports, (function(Manipulator, index_js) {
+        "use strict";
+        class Config {
+          // Getters
+          static get Default() {
+            return {};
+          }
+          static get DefaultType() {
+            return {};
+          }
+          static get NAME() {
+            throw new Error('You have to implement the static method "NAME", for each component!');
+          }
+          _getConfig(config) {
+            config = this._mergeConfigObj(config);
+            config = this._configAfterMerge(config);
+            this._typeCheckConfig(config);
+            return config;
+          }
+          _configAfterMerge(config) {
+            return config;
+          }
+          _mergeConfigObj(config, element) {
+            const jsonConfig = index_js.isElement(element) ? Manipulator.getDataAttribute(element, "config") : {};
+            return {
+              ...this.constructor.Default,
+              ...typeof jsonConfig === "object" ? jsonConfig : {},
+              ...index_js.isElement(element) ? Manipulator.getDataAttributes(element) : {},
+              ...typeof config === "object" ? config : {}
+            };
+          }
+          _typeCheckConfig(config, configTypes = this.constructor.DefaultType) {
+            for (const [property, expectedTypes] of Object.entries(configTypes)) {
+              const value = config[property];
+              const valueType = index_js.isElement(value) ? "element" : index_js.toType(value);
+              if (!new RegExp(expectedTypes).test(valueType)) {
+                throw new TypeError(`${this.constructor.NAME.toUpperCase()}: Option "${property}" provided type "${valueType}" but expected type "${expectedTypes}".`);
+              }
+            }
+          }
+        }
+        return Config;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/base-component.js
+  var require_base_component = __commonJS({
+    "node_modules/bootstrap/js/dist/base-component.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_data(), require_event_handler(), require_config(), require_util()) : typeof define === "function" && define.amd ? define(["./dom/data", "./dom/event-handler", "./util/config", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.BaseComponent = factory(global.Data, global.EventHandler, global.Config, global.Index));
+      })(exports, (function(Data, EventHandler, Config, index_js) {
+        "use strict";
+        const VERSION = "5.3.8";
+        class BaseComponent extends Config {
+          constructor(element, config) {
+            super();
+            element = index_js.getElement(element);
+            if (!element) {
+              return;
+            }
+            this._element = element;
+            this._config = this._getConfig(config);
+            Data.set(this._element, this.constructor.DATA_KEY, this);
+          }
+          // Public
+          dispose() {
+            Data.remove(this._element, this.constructor.DATA_KEY);
+            EventHandler.off(this._element, this.constructor.EVENT_KEY);
+            for (const propertyName of Object.getOwnPropertyNames(this)) {
+              this[propertyName] = null;
+            }
+          }
+          // Private
+          _queueCallback(callback, element, isAnimated = true) {
+            index_js.executeAfterTransition(callback, element, isAnimated);
+          }
+          _getConfig(config) {
+            config = this._mergeConfigObj(config, this._element);
+            config = this._configAfterMerge(config);
+            this._typeCheckConfig(config);
+            return config;
+          }
+          // Static
+          static getInstance(element) {
+            return Data.get(index_js.getElement(element), this.DATA_KEY);
+          }
+          static getOrCreateInstance(element, config = {}) {
+            return this.getInstance(element) || new this(element, typeof config === "object" ? config : null);
+          }
+          static get VERSION() {
+            return VERSION;
+          }
+          static get DATA_KEY() {
+            return `bs.${this.NAME}`;
+          }
+          static get EVENT_KEY() {
+            return `.${this.DATA_KEY}`;
+          }
+          static eventName(name) {
+            return `${name}${this.EVENT_KEY}`;
+          }
+        }
+        return BaseComponent;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/dom/selector-engine.js
+  var require_selector_engine = __commonJS({
+    "node_modules/bootstrap/js/dist/dom/selector-engine.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_util()) : typeof define === "function" && define.amd ? define(["../util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.SelectorEngine = factory(global.Index));
+      })(exports, (function(index_js) {
+        "use strict";
+        const getSelector = (element) => {
+          let selector = element.getAttribute("data-bs-target");
+          if (!selector || selector === "#") {
+            let hrefAttribute = element.getAttribute("href");
+            if (!hrefAttribute || !hrefAttribute.includes("#") && !hrefAttribute.startsWith(".")) {
+              return null;
+            }
+            if (hrefAttribute.includes("#") && !hrefAttribute.startsWith("#")) {
+              hrefAttribute = `#${hrefAttribute.split("#")[1]}`;
+            }
+            selector = hrefAttribute && hrefAttribute !== "#" ? hrefAttribute.trim() : null;
+          }
+          return selector ? selector.split(",").map((sel) => index_js.parseSelector(sel)).join(",") : null;
+        };
+        const SelectorEngine = {
+          find(selector, element = document.documentElement) {
+            return [].concat(...Element.prototype.querySelectorAll.call(element, selector));
+          },
+          findOne(selector, element = document.documentElement) {
+            return Element.prototype.querySelector.call(element, selector);
+          },
+          children(element, selector) {
+            return [].concat(...element.children).filter((child) => child.matches(selector));
+          },
+          parents(element, selector) {
+            const parents = [];
+            let ancestor = element.parentNode.closest(selector);
+            while (ancestor) {
+              parents.push(ancestor);
+              ancestor = ancestor.parentNode.closest(selector);
+            }
+            return parents;
+          },
+          prev(element, selector) {
+            let previous = element.previousElementSibling;
+            while (previous) {
+              if (previous.matches(selector)) {
+                return [previous];
+              }
+              previous = previous.previousElementSibling;
+            }
+            return [];
+          },
+          // TODO: this is now unused; remove later along with prev()
+          next(element, selector) {
+            let next = element.nextElementSibling;
+            while (next) {
+              if (next.matches(selector)) {
+                return [next];
+              }
+              next = next.nextElementSibling;
+            }
+            return [];
+          },
+          focusableChildren(element) {
+            const focusables = ["a", "button", "input", "textarea", "select", "details", "[tabindex]", '[contenteditable="true"]'].map((selector) => `${selector}:not([tabindex^="-"])`).join(",");
+            return this.find(focusables, element).filter((el) => !index_js.isDisabled(el) && index_js.isVisible(el));
+          },
+          getSelectorFromElement(element) {
+            const selector = getSelector(element);
+            if (selector) {
+              return SelectorEngine.findOne(selector) ? selector : null;
+            }
+            return null;
+          },
+          getElementFromSelector(element) {
+            const selector = getSelector(element);
+            return selector ? SelectorEngine.findOne(selector) : null;
+          },
+          getMultipleElementsFromSelector(element) {
+            const selector = getSelector(element);
+            return selector ? SelectorEngine.find(selector) : [];
+          }
+        };
+        return SelectorEngine;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/component-functions.js
+  var require_component_functions = __commonJS({
+    "node_modules/bootstrap/js/dist/util/component-functions.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require_event_handler(), require_selector_engine(), require_util()) : typeof define === "function" && define.amd ? define(["exports", "../dom/event-handler", "../dom/selector-engine", "./index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.ComponentFunctions = {}, global.EventHandler, global.SelectorEngine, global.Index));
+      })(exports, (function(exports2, EventHandler, SelectorEngine, index_js) {
+        "use strict";
+        const enableDismissTrigger = (component, method = "hide") => {
+          const clickEvent = `click.dismiss${component.EVENT_KEY}`;
+          const name = component.NAME;
+          EventHandler.on(document, clickEvent, `[data-bs-dismiss="${name}"]`, function(event) {
+            if (["A", "AREA"].includes(this.tagName)) {
+              event.preventDefault();
+            }
+            if (index_js.isDisabled(this)) {
+              return;
+            }
+            const target = SelectorEngine.getElementFromSelector(this) || this.closest(`.${name}`);
+            const instance = component.getOrCreateInstance(target);
+            instance[method]();
+          });
+        };
+        exports2.enableDismissTrigger = enableDismissTrigger;
+        Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/alert.js
+  var require_alert = __commonJS({
+    "node_modules/bootstrap/js/dist/alert.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_component_functions(), require_util()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./util/component-functions", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Alert = factory(global.BaseComponent, global.EventHandler, global.ComponentFunctions, global.Index));
+      })(exports, (function(BaseComponent, EventHandler, componentFunctions_js, index_js) {
+        "use strict";
+        const NAME = "alert";
+        const DATA_KEY = "bs.alert";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const EVENT_CLOSE = `close${EVENT_KEY}`;
+        const EVENT_CLOSED = `closed${EVENT_KEY}`;
+        const CLASS_NAME_FADE = "fade";
+        const CLASS_NAME_SHOW = "show";
+        class Alert extends BaseComponent {
+          // Getters
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          close() {
+            const closeEvent = EventHandler.trigger(this._element, EVENT_CLOSE);
+            if (closeEvent.defaultPrevented) {
+              return;
+            }
+            this._element.classList.remove(CLASS_NAME_SHOW);
+            const isAnimated = this._element.classList.contains(CLASS_NAME_FADE);
+            this._queueCallback(() => this._destroyElement(), this._element, isAnimated);
+          }
+          // Private
+          _destroyElement() {
+            this._element.remove();
+            EventHandler.trigger(this._element, EVENT_CLOSED);
+            this.dispose();
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Alert.getOrCreateInstance(this);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (data[config] === void 0 || config.startsWith("_") || config === "constructor") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config](this);
+            });
+          }
+        }
+        componentFunctions_js.enableDismissTrigger(Alert, "close");
+        index_js.defineJQueryPlugin(Alert);
+        return Alert;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/button.js
+  var require_button = __commonJS({
+    "node_modules/bootstrap/js/dist/button.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_util()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Button = factory(global.BaseComponent, global.EventHandler, global.Index));
+      })(exports, (function(BaseComponent, EventHandler, index_js) {
+        "use strict";
+        const NAME = "button";
+        const DATA_KEY = "bs.button";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const DATA_API_KEY = ".data-api";
+        const CLASS_NAME_ACTIVE = "active";
+        const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="button"]';
+        const EVENT_CLICK_DATA_API = `click${EVENT_KEY}${DATA_API_KEY}`;
+        class Button extends BaseComponent {
+          // Getters
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          toggle() {
+            this._element.setAttribute("aria-pressed", this._element.classList.toggle(CLASS_NAME_ACTIVE));
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Button.getOrCreateInstance(this);
+              if (config === "toggle") {
+                data[config]();
+              }
+            });
+          }
+        }
+        EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, (event) => {
+          event.preventDefault();
+          const button = event.target.closest(SELECTOR_DATA_TOGGLE);
+          const data = Button.getOrCreateInstance(button);
+          data.toggle();
+        });
+        index_js.defineJQueryPlugin(Button);
+        return Button;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/swipe.js
+  var require_swipe = __commonJS({
+    "node_modules/bootstrap/js/dist/util/swipe.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_event_handler(), require_config(), require_util()) : typeof define === "function" && define.amd ? define(["../dom/event-handler", "./config", "./index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Swipe = factory(global.EventHandler, global.Config, global.Index));
+      })(exports, (function(EventHandler, Config, index_js) {
+        "use strict";
+        const NAME = "swipe";
+        const EVENT_KEY = ".bs.swipe";
+        const EVENT_TOUCHSTART = `touchstart${EVENT_KEY}`;
+        const EVENT_TOUCHMOVE = `touchmove${EVENT_KEY}`;
+        const EVENT_TOUCHEND = `touchend${EVENT_KEY}`;
+        const EVENT_POINTERDOWN = `pointerdown${EVENT_KEY}`;
+        const EVENT_POINTERUP = `pointerup${EVENT_KEY}`;
+        const POINTER_TYPE_TOUCH = "touch";
+        const POINTER_TYPE_PEN = "pen";
+        const CLASS_NAME_POINTER_EVENT = "pointer-event";
+        const SWIPE_THRESHOLD = 40;
+        const Default = {
+          endCallback: null,
+          leftCallback: null,
+          rightCallback: null
+        };
+        const DefaultType = {
+          endCallback: "(function|null)",
+          leftCallback: "(function|null)",
+          rightCallback: "(function|null)"
+        };
+        class Swipe extends Config {
+          constructor(element, config) {
+            super();
+            this._element = element;
+            if (!element || !Swipe.isSupported()) {
+              return;
+            }
+            this._config = this._getConfig(config);
+            this._deltaX = 0;
+            this._supportPointerEvents = Boolean(window.PointerEvent);
+            this._initEvents();
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          dispose() {
+            EventHandler.off(this._element, EVENT_KEY);
+          }
+          // Private
+          _start(event) {
+            if (!this._supportPointerEvents) {
+              this._deltaX = event.touches[0].clientX;
+              return;
+            }
+            if (this._eventIsPointerPenTouch(event)) {
+              this._deltaX = event.clientX;
+            }
+          }
+          _end(event) {
+            if (this._eventIsPointerPenTouch(event)) {
+              this._deltaX = event.clientX - this._deltaX;
+            }
+            this._handleSwipe();
+            index_js.execute(this._config.endCallback);
+          }
+          _move(event) {
+            this._deltaX = event.touches && event.touches.length > 1 ? 0 : event.touches[0].clientX - this._deltaX;
+          }
+          _handleSwipe() {
+            const absDeltaX = Math.abs(this._deltaX);
+            if (absDeltaX <= SWIPE_THRESHOLD) {
+              return;
+            }
+            const direction = absDeltaX / this._deltaX;
+            this._deltaX = 0;
+            if (!direction) {
+              return;
+            }
+            index_js.execute(direction > 0 ? this._config.rightCallback : this._config.leftCallback);
+          }
+          _initEvents() {
+            if (this._supportPointerEvents) {
+              EventHandler.on(this._element, EVENT_POINTERDOWN, (event) => this._start(event));
+              EventHandler.on(this._element, EVENT_POINTERUP, (event) => this._end(event));
+              this._element.classList.add(CLASS_NAME_POINTER_EVENT);
+            } else {
+              EventHandler.on(this._element, EVENT_TOUCHSTART, (event) => this._start(event));
+              EventHandler.on(this._element, EVENT_TOUCHMOVE, (event) => this._move(event));
+              EventHandler.on(this._element, EVENT_TOUCHEND, (event) => this._end(event));
+            }
+          }
+          _eventIsPointerPenTouch(event) {
+            return this._supportPointerEvents && (event.pointerType === POINTER_TYPE_PEN || event.pointerType === POINTER_TYPE_TOUCH);
+          }
+          // Static
+          static isSupported() {
+            return "ontouchstart" in document.documentElement || navigator.maxTouchPoints > 0;
+          }
+        }
+        return Swipe;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/carousel.js
+  var require_carousel = __commonJS({
+    "node_modules/bootstrap/js/dist/carousel.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_manipulator(), require_selector_engine(), require_util(), require_swipe()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./dom/manipulator", "./dom/selector-engine", "./util/index", "./util/swipe"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Carousel = factory(global.BaseComponent, global.EventHandler, global.Manipulator, global.SelectorEngine, global.Index, global.Swipe));
+      })(exports, (function(BaseComponent, EventHandler, Manipulator, SelectorEngine, index_js, Swipe) {
+        "use strict";
+        const NAME = "carousel";
+        const DATA_KEY = "bs.carousel";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const DATA_API_KEY = ".data-api";
+        const ARROW_LEFT_KEY = "ArrowLeft";
+        const ARROW_RIGHT_KEY = "ArrowRight";
+        const TOUCHEVENT_COMPAT_WAIT = 500;
+        const ORDER_NEXT = "next";
+        const ORDER_PREV = "prev";
+        const DIRECTION_LEFT = "left";
+        const DIRECTION_RIGHT = "right";
+        const EVENT_SLIDE = `slide${EVENT_KEY}`;
+        const EVENT_SLID = `slid${EVENT_KEY}`;
+        const EVENT_KEYDOWN = `keydown${EVENT_KEY}`;
+        const EVENT_MOUSEENTER = `mouseenter${EVENT_KEY}`;
+        const EVENT_MOUSELEAVE = `mouseleave${EVENT_KEY}`;
+        const EVENT_DRAG_START = `dragstart${EVENT_KEY}`;
+        const EVENT_LOAD_DATA_API = `load${EVENT_KEY}${DATA_API_KEY}`;
+        const EVENT_CLICK_DATA_API = `click${EVENT_KEY}${DATA_API_KEY}`;
+        const CLASS_NAME_CAROUSEL = "carousel";
+        const CLASS_NAME_ACTIVE = "active";
+        const CLASS_NAME_SLIDE = "slide";
+        const CLASS_NAME_END = "carousel-item-end";
+        const CLASS_NAME_START = "carousel-item-start";
+        const CLASS_NAME_NEXT = "carousel-item-next";
+        const CLASS_NAME_PREV = "carousel-item-prev";
+        const SELECTOR_ACTIVE = ".active";
+        const SELECTOR_ITEM = ".carousel-item";
+        const SELECTOR_ACTIVE_ITEM = SELECTOR_ACTIVE + SELECTOR_ITEM;
+        const SELECTOR_ITEM_IMG = ".carousel-item img";
+        const SELECTOR_INDICATORS = ".carousel-indicators";
+        const SELECTOR_DATA_SLIDE = "[data-bs-slide], [data-bs-slide-to]";
+        const SELECTOR_DATA_RIDE = '[data-bs-ride="carousel"]';
+        const KEY_TO_DIRECTION = {
+          [ARROW_LEFT_KEY]: DIRECTION_RIGHT,
+          [ARROW_RIGHT_KEY]: DIRECTION_LEFT
+        };
+        const Default = {
+          interval: 5e3,
+          keyboard: true,
+          pause: "hover",
+          ride: false,
+          touch: true,
+          wrap: true
+        };
+        const DefaultType = {
+          interval: "(number|boolean)",
+          // TODO:v6 remove boolean support
+          keyboard: "boolean",
+          pause: "(string|boolean)",
+          ride: "(boolean|string)",
+          touch: "boolean",
+          wrap: "boolean"
+        };
+        class Carousel extends BaseComponent {
+          constructor(element, config) {
+            super(element, config);
+            this._interval = null;
+            this._activeElement = null;
+            this._isSliding = false;
+            this.touchTimeout = null;
+            this._swipeHelper = null;
+            this._indicatorsElement = SelectorEngine.findOne(SELECTOR_INDICATORS, this._element);
+            this._addEventListeners();
+            if (this._config.ride === CLASS_NAME_CAROUSEL) {
+              this.cycle();
+            }
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          next() {
+            this._slide(ORDER_NEXT);
+          }
+          nextWhenVisible() {
+            if (!document.hidden && index_js.isVisible(this._element)) {
+              this.next();
+            }
+          }
+          prev() {
+            this._slide(ORDER_PREV);
+          }
+          pause() {
+            if (this._isSliding) {
+              index_js.triggerTransitionEnd(this._element);
+            }
+            this._clearInterval();
+          }
+          cycle() {
+            this._clearInterval();
+            this._updateInterval();
+            this._interval = setInterval(() => this.nextWhenVisible(), this._config.interval);
+          }
+          _maybeEnableCycle() {
+            if (!this._config.ride) {
+              return;
+            }
+            if (this._isSliding) {
+              EventHandler.one(this._element, EVENT_SLID, () => this.cycle());
+              return;
+            }
+            this.cycle();
+          }
+          to(index) {
+            const items = this._getItems();
+            if (index > items.length - 1 || index < 0) {
+              return;
+            }
+            if (this._isSliding) {
+              EventHandler.one(this._element, EVENT_SLID, () => this.to(index));
+              return;
+            }
+            const activeIndex = this._getItemIndex(this._getActive());
+            if (activeIndex === index) {
+              return;
+            }
+            const order = index > activeIndex ? ORDER_NEXT : ORDER_PREV;
+            this._slide(order, items[index]);
+          }
+          dispose() {
+            if (this._swipeHelper) {
+              this._swipeHelper.dispose();
+            }
+            super.dispose();
+          }
+          // Private
+          _configAfterMerge(config) {
+            config.defaultInterval = config.interval;
+            return config;
+          }
+          _addEventListeners() {
+            if (this._config.keyboard) {
+              EventHandler.on(this._element, EVENT_KEYDOWN, (event) => this._keydown(event));
+            }
+            if (this._config.pause === "hover") {
+              EventHandler.on(this._element, EVENT_MOUSEENTER, () => this.pause());
+              EventHandler.on(this._element, EVENT_MOUSELEAVE, () => this._maybeEnableCycle());
+            }
+            if (this._config.touch && Swipe.isSupported()) {
+              this._addTouchEventListeners();
+            }
+          }
+          _addTouchEventListeners() {
+            for (const img of SelectorEngine.find(SELECTOR_ITEM_IMG, this._element)) {
+              EventHandler.on(img, EVENT_DRAG_START, (event) => event.preventDefault());
+            }
+            const endCallBack = () => {
+              if (this._config.pause !== "hover") {
+                return;
+              }
+              this.pause();
+              if (this.touchTimeout) {
+                clearTimeout(this.touchTimeout);
+              }
+              this.touchTimeout = setTimeout(() => this._maybeEnableCycle(), TOUCHEVENT_COMPAT_WAIT + this._config.interval);
+            };
+            const swipeConfig = {
+              leftCallback: () => this._slide(this._directionToOrder(DIRECTION_LEFT)),
+              rightCallback: () => this._slide(this._directionToOrder(DIRECTION_RIGHT)),
+              endCallback: endCallBack
+            };
+            this._swipeHelper = new Swipe(this._element, swipeConfig);
+          }
+          _keydown(event) {
+            if (/input|textarea/i.test(event.target.tagName)) {
+              return;
+            }
+            const direction = KEY_TO_DIRECTION[event.key];
+            if (direction) {
+              event.preventDefault();
+              this._slide(this._directionToOrder(direction));
+            }
+          }
+          _getItemIndex(element) {
+            return this._getItems().indexOf(element);
+          }
+          _setActiveIndicatorElement(index) {
+            if (!this._indicatorsElement) {
+              return;
+            }
+            const activeIndicator = SelectorEngine.findOne(SELECTOR_ACTIVE, this._indicatorsElement);
+            activeIndicator.classList.remove(CLASS_NAME_ACTIVE);
+            activeIndicator.removeAttribute("aria-current");
+            const newActiveIndicator = SelectorEngine.findOne(`[data-bs-slide-to="${index}"]`, this._indicatorsElement);
+            if (newActiveIndicator) {
+              newActiveIndicator.classList.add(CLASS_NAME_ACTIVE);
+              newActiveIndicator.setAttribute("aria-current", "true");
+            }
+          }
+          _updateInterval() {
+            const element = this._activeElement || this._getActive();
+            if (!element) {
+              return;
+            }
+            const elementInterval = Number.parseInt(element.getAttribute("data-bs-interval"), 10);
+            this._config.interval = elementInterval || this._config.defaultInterval;
+          }
+          _slide(order, element = null) {
+            if (this._isSliding) {
+              return;
+            }
+            const activeElement = this._getActive();
+            const isNext = order === ORDER_NEXT;
+            const nextElement = element || index_js.getNextActiveElement(this._getItems(), activeElement, isNext, this._config.wrap);
+            if (nextElement === activeElement) {
+              return;
+            }
+            const nextElementIndex = this._getItemIndex(nextElement);
+            const triggerEvent = (eventName) => {
+              return EventHandler.trigger(this._element, eventName, {
+                relatedTarget: nextElement,
+                direction: this._orderToDirection(order),
+                from: this._getItemIndex(activeElement),
+                to: nextElementIndex
+              });
+            };
+            const slideEvent = triggerEvent(EVENT_SLIDE);
+            if (slideEvent.defaultPrevented) {
+              return;
+            }
+            if (!activeElement || !nextElement) {
+              return;
+            }
+            const isCycling = Boolean(this._interval);
+            this.pause();
+            this._isSliding = true;
+            this._setActiveIndicatorElement(nextElementIndex);
+            this._activeElement = nextElement;
+            const directionalClassName = isNext ? CLASS_NAME_START : CLASS_NAME_END;
+            const orderClassName = isNext ? CLASS_NAME_NEXT : CLASS_NAME_PREV;
+            nextElement.classList.add(orderClassName);
+            index_js.reflow(nextElement);
+            activeElement.classList.add(directionalClassName);
+            nextElement.classList.add(directionalClassName);
+            const completeCallBack = () => {
+              nextElement.classList.remove(directionalClassName, orderClassName);
+              nextElement.classList.add(CLASS_NAME_ACTIVE);
+              activeElement.classList.remove(CLASS_NAME_ACTIVE, orderClassName, directionalClassName);
+              this._isSliding = false;
+              triggerEvent(EVENT_SLID);
+            };
+            this._queueCallback(completeCallBack, activeElement, this._isAnimated());
+            if (isCycling) {
+              this.cycle();
+            }
+          }
+          _isAnimated() {
+            return this._element.classList.contains(CLASS_NAME_SLIDE);
+          }
+          _getActive() {
+            return SelectorEngine.findOne(SELECTOR_ACTIVE_ITEM, this._element);
+          }
+          _getItems() {
+            return SelectorEngine.find(SELECTOR_ITEM, this._element);
+          }
+          _clearInterval() {
+            if (this._interval) {
+              clearInterval(this._interval);
+              this._interval = null;
+            }
+          }
+          _directionToOrder(direction) {
+            if (index_js.isRTL()) {
+              return direction === DIRECTION_LEFT ? ORDER_PREV : ORDER_NEXT;
+            }
+            return direction === DIRECTION_LEFT ? ORDER_NEXT : ORDER_PREV;
+          }
+          _orderToDirection(order) {
+            if (index_js.isRTL()) {
+              return order === ORDER_PREV ? DIRECTION_LEFT : DIRECTION_RIGHT;
+            }
+            return order === ORDER_PREV ? DIRECTION_RIGHT : DIRECTION_LEFT;
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Carousel.getOrCreateInstance(this, config);
+              if (typeof config === "number") {
+                data.to(config);
+                return;
+              }
+              if (typeof config === "string") {
+                if (data[config] === void 0 || config.startsWith("_") || config === "constructor") {
+                  throw new TypeError(`No method named "${config}"`);
+                }
+                data[config]();
+              }
+            });
+          }
+        }
+        EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_SLIDE, function(event) {
+          const target = SelectorEngine.getElementFromSelector(this);
+          if (!target || !target.classList.contains(CLASS_NAME_CAROUSEL)) {
+            return;
+          }
+          event.preventDefault();
+          const carousel = Carousel.getOrCreateInstance(target);
+          const slideIndex = this.getAttribute("data-bs-slide-to");
+          if (slideIndex) {
+            carousel.to(slideIndex);
+            carousel._maybeEnableCycle();
+            return;
+          }
+          if (Manipulator.getDataAttribute(this, "slide") === "next") {
+            carousel.next();
+            carousel._maybeEnableCycle();
+            return;
+          }
+          carousel.prev();
+          carousel._maybeEnableCycle();
+        });
+        EventHandler.on(window, EVENT_LOAD_DATA_API, () => {
+          const carousels = SelectorEngine.find(SELECTOR_DATA_RIDE);
+          for (const carousel of carousels) {
+            Carousel.getOrCreateInstance(carousel);
+          }
+        });
+        index_js.defineJQueryPlugin(Carousel);
+        return Carousel;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/collapse.js
+  var require_collapse = __commonJS({
+    "node_modules/bootstrap/js/dist/collapse.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_selector_engine(), require_util()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./dom/selector-engine", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Collapse = factory(global.BaseComponent, global.EventHandler, global.SelectorEngine, global.Index));
+      })(exports, (function(BaseComponent, EventHandler, SelectorEngine, index_js) {
+        "use strict";
+        const NAME = "collapse";
+        const DATA_KEY = "bs.collapse";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const DATA_API_KEY = ".data-api";
+        const EVENT_SHOW = `show${EVENT_KEY}`;
+        const EVENT_SHOWN = `shown${EVENT_KEY}`;
+        const EVENT_HIDE = `hide${EVENT_KEY}`;
+        const EVENT_HIDDEN = `hidden${EVENT_KEY}`;
+        const EVENT_CLICK_DATA_API = `click${EVENT_KEY}${DATA_API_KEY}`;
+        const CLASS_NAME_SHOW = "show";
+        const CLASS_NAME_COLLAPSE = "collapse";
+        const CLASS_NAME_COLLAPSING = "collapsing";
+        const CLASS_NAME_COLLAPSED = "collapsed";
+        const CLASS_NAME_DEEPER_CHILDREN = `:scope .${CLASS_NAME_COLLAPSE} .${CLASS_NAME_COLLAPSE}`;
+        const CLASS_NAME_HORIZONTAL = "collapse-horizontal";
+        const WIDTH = "width";
+        const HEIGHT = "height";
+        const SELECTOR_ACTIVES = ".collapse.show, .collapse.collapsing";
+        const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="collapse"]';
+        const Default = {
+          parent: null,
+          toggle: true
+        };
+        const DefaultType = {
+          parent: "(null|element)",
+          toggle: "boolean"
+        };
+        class Collapse extends BaseComponent {
+          constructor(element, config) {
+            super(element, config);
+            this._isTransitioning = false;
+            this._triggerArray = [];
+            const toggleList = SelectorEngine.find(SELECTOR_DATA_TOGGLE);
+            for (const elem of toggleList) {
+              const selector = SelectorEngine.getSelectorFromElement(elem);
+              const filterElement = SelectorEngine.find(selector).filter((foundElement) => foundElement === this._element);
+              if (selector !== null && filterElement.length) {
+                this._triggerArray.push(elem);
+              }
+            }
+            this._initializeChildren();
+            if (!this._config.parent) {
+              this._addAriaAndCollapsedClass(this._triggerArray, this._isShown());
+            }
+            if (this._config.toggle) {
+              this.toggle();
+            }
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          toggle() {
+            if (this._isShown()) {
+              this.hide();
+            } else {
+              this.show();
+            }
+          }
+          show() {
+            if (this._isTransitioning || this._isShown()) {
+              return;
+            }
+            let activeChildren = [];
+            if (this._config.parent) {
+              activeChildren = this._getFirstLevelChildren(SELECTOR_ACTIVES).filter((element) => element !== this._element).map((element) => Collapse.getOrCreateInstance(element, {
+                toggle: false
+              }));
+            }
+            if (activeChildren.length && activeChildren[0]._isTransitioning) {
+              return;
+            }
+            const startEvent = EventHandler.trigger(this._element, EVENT_SHOW);
+            if (startEvent.defaultPrevented) {
+              return;
+            }
+            for (const activeInstance of activeChildren) {
+              activeInstance.hide();
+            }
+            const dimension = this._getDimension();
+            this._element.classList.remove(CLASS_NAME_COLLAPSE);
+            this._element.classList.add(CLASS_NAME_COLLAPSING);
+            this._element.style[dimension] = 0;
+            this._addAriaAndCollapsedClass(this._triggerArray, true);
+            this._isTransitioning = true;
+            const complete = () => {
+              this._isTransitioning = false;
+              this._element.classList.remove(CLASS_NAME_COLLAPSING);
+              this._element.classList.add(CLASS_NAME_COLLAPSE, CLASS_NAME_SHOW);
+              this._element.style[dimension] = "";
+              EventHandler.trigger(this._element, EVENT_SHOWN);
+            };
+            const capitalizedDimension = dimension[0].toUpperCase() + dimension.slice(1);
+            const scrollSize = `scroll${capitalizedDimension}`;
+            this._queueCallback(complete, this._element, true);
+            this._element.style[dimension] = `${this._element[scrollSize]}px`;
+          }
+          hide() {
+            if (this._isTransitioning || !this._isShown()) {
+              return;
+            }
+            const startEvent = EventHandler.trigger(this._element, EVENT_HIDE);
+            if (startEvent.defaultPrevented) {
+              return;
+            }
+            const dimension = this._getDimension();
+            this._element.style[dimension] = `${this._element.getBoundingClientRect()[dimension]}px`;
+            index_js.reflow(this._element);
+            this._element.classList.add(CLASS_NAME_COLLAPSING);
+            this._element.classList.remove(CLASS_NAME_COLLAPSE, CLASS_NAME_SHOW);
+            for (const trigger of this._triggerArray) {
+              const element = SelectorEngine.getElementFromSelector(trigger);
+              if (element && !this._isShown(element)) {
+                this._addAriaAndCollapsedClass([trigger], false);
+              }
+            }
+            this._isTransitioning = true;
+            const complete = () => {
+              this._isTransitioning = false;
+              this._element.classList.remove(CLASS_NAME_COLLAPSING);
+              this._element.classList.add(CLASS_NAME_COLLAPSE);
+              EventHandler.trigger(this._element, EVENT_HIDDEN);
+            };
+            this._element.style[dimension] = "";
+            this._queueCallback(complete, this._element, true);
+          }
+          // Private
+          _isShown(element = this._element) {
+            return element.classList.contains(CLASS_NAME_SHOW);
+          }
+          _configAfterMerge(config) {
+            config.toggle = Boolean(config.toggle);
+            config.parent = index_js.getElement(config.parent);
+            return config;
+          }
+          _getDimension() {
+            return this._element.classList.contains(CLASS_NAME_HORIZONTAL) ? WIDTH : HEIGHT;
+          }
+          _initializeChildren() {
+            if (!this._config.parent) {
+              return;
+            }
+            const children = this._getFirstLevelChildren(SELECTOR_DATA_TOGGLE);
+            for (const element of children) {
+              const selected = SelectorEngine.getElementFromSelector(element);
+              if (selected) {
+                this._addAriaAndCollapsedClass([element], this._isShown(selected));
+              }
+            }
+          }
+          _getFirstLevelChildren(selector) {
+            const children = SelectorEngine.find(CLASS_NAME_DEEPER_CHILDREN, this._config.parent);
+            return SelectorEngine.find(selector, this._config.parent).filter((element) => !children.includes(element));
+          }
+          _addAriaAndCollapsedClass(triggerArray, isOpen) {
+            if (!triggerArray.length) {
+              return;
+            }
+            for (const element of triggerArray) {
+              element.classList.toggle(CLASS_NAME_COLLAPSED, !isOpen);
+              element.setAttribute("aria-expanded", isOpen);
+            }
+          }
+          // Static
+          static jQueryInterface(config) {
+            const _config = {};
+            if (typeof config === "string" && /show|hide/.test(config)) {
+              _config.toggle = false;
+            }
+            return this.each(function() {
+              const data = Collapse.getOrCreateInstance(this, _config);
+              if (typeof config === "string") {
+                if (typeof data[config] === "undefined") {
+                  throw new TypeError(`No method named "${config}"`);
+                }
+                data[config]();
+              }
+            });
+          }
+        }
+        EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, function(event) {
+          if (event.target.tagName === "A" || event.delegateTarget && event.delegateTarget.tagName === "A") {
+            event.preventDefault();
+          }
+          for (const element of SelectorEngine.getMultipleElementsFromSelector(this)) {
+            Collapse.getOrCreateInstance(element, {
+              toggle: false
+            }).toggle();
+          }
+        });
+        index_js.defineJQueryPlugin(Collapse);
+        return Collapse;
+      }));
+    }
+  });
+
+  // node_modules/@popperjs/core/dist/cjs/popper.js
+  var require_popper = __commonJS({
+    "node_modules/@popperjs/core/dist/cjs/popper.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      function getWindow(node) {
+        if (node == null) {
+          return window;
+        }
+        if (node.toString() !== "[object Window]") {
+          var ownerDocument = node.ownerDocument;
+          return ownerDocument ? ownerDocument.defaultView || window : window;
+        }
+        return node;
+      }
+      function isElement(node) {
+        var OwnElement = getWindow(node).Element;
+        return node instanceof OwnElement || node instanceof Element;
+      }
+      function isHTMLElement(node) {
+        var OwnElement = getWindow(node).HTMLElement;
+        return node instanceof OwnElement || node instanceof HTMLElement;
+      }
+      function isShadowRoot(node) {
+        if (typeof ShadowRoot === "undefined") {
+          return false;
+        }
+        var OwnElement = getWindow(node).ShadowRoot;
+        return node instanceof OwnElement || node instanceof ShadowRoot;
+      }
+      var max = Math.max;
+      var min = Math.min;
+      var round = Math.round;
+      function getUAString() {
+        var uaData = navigator.userAgentData;
+        if (uaData != null && uaData.brands && Array.isArray(uaData.brands)) {
+          return uaData.brands.map(function(item) {
+            return item.brand + "/" + item.version;
+          }).join(" ");
+        }
+        return navigator.userAgent;
+      }
+      function isLayoutViewport() {
+        return !/^((?!chrome|android).)*safari/i.test(getUAString());
+      }
+      function getBoundingClientRect(element, includeScale, isFixedStrategy) {
+        if (includeScale === void 0) {
+          includeScale = false;
+        }
+        if (isFixedStrategy === void 0) {
+          isFixedStrategy = false;
+        }
+        var clientRect = element.getBoundingClientRect();
+        var scaleX = 1;
+        var scaleY = 1;
+        if (includeScale && isHTMLElement(element)) {
+          scaleX = element.offsetWidth > 0 ? round(clientRect.width) / element.offsetWidth || 1 : 1;
+          scaleY = element.offsetHeight > 0 ? round(clientRect.height) / element.offsetHeight || 1 : 1;
+        }
+        var _ref = isElement(element) ? getWindow(element) : window, visualViewport = _ref.visualViewport;
+        var addVisualOffsets = !isLayoutViewport() && isFixedStrategy;
+        var x = (clientRect.left + (addVisualOffsets && visualViewport ? visualViewport.offsetLeft : 0)) / scaleX;
+        var y = (clientRect.top + (addVisualOffsets && visualViewport ? visualViewport.offsetTop : 0)) / scaleY;
+        var width = clientRect.width / scaleX;
+        var height = clientRect.height / scaleY;
+        return {
+          width,
+          height,
+          top: y,
+          right: x + width,
+          bottom: y + height,
+          left: x,
+          x,
+          y
+        };
+      }
+      function getWindowScroll(node) {
+        var win = getWindow(node);
+        var scrollLeft = win.pageXOffset;
+        var scrollTop = win.pageYOffset;
+        return {
+          scrollLeft,
+          scrollTop
+        };
+      }
+      function getHTMLElementScroll(element) {
+        return {
+          scrollLeft: element.scrollLeft,
+          scrollTop: element.scrollTop
+        };
+      }
+      function getNodeScroll(node) {
+        if (node === getWindow(node) || !isHTMLElement(node)) {
+          return getWindowScroll(node);
+        } else {
+          return getHTMLElementScroll(node);
+        }
+      }
+      function getNodeName(element) {
+        return element ? (element.nodeName || "").toLowerCase() : null;
+      }
+      function getDocumentElement(element) {
+        return ((isElement(element) ? element.ownerDocument : (
+          // $FlowFixMe[prop-missing]
+          element.document
+        )) || window.document).documentElement;
+      }
+      function getWindowScrollBarX(element) {
+        return getBoundingClientRect(getDocumentElement(element)).left + getWindowScroll(element).scrollLeft;
+      }
+      function getComputedStyle2(element) {
+        return getWindow(element).getComputedStyle(element);
+      }
+      function isScrollParent(element) {
+        var _getComputedStyle = getComputedStyle2(element), overflow = _getComputedStyle.overflow, overflowX = _getComputedStyle.overflowX, overflowY = _getComputedStyle.overflowY;
+        return /auto|scroll|overlay|hidden/.test(overflow + overflowY + overflowX);
+      }
+      function isElementScaled(element) {
+        var rect = element.getBoundingClientRect();
+        var scaleX = round(rect.width) / element.offsetWidth || 1;
+        var scaleY = round(rect.height) / element.offsetHeight || 1;
+        return scaleX !== 1 || scaleY !== 1;
+      }
+      function getCompositeRect(elementOrVirtualElement, offsetParent, isFixed) {
+        if (isFixed === void 0) {
+          isFixed = false;
+        }
+        var isOffsetParentAnElement = isHTMLElement(offsetParent);
+        var offsetParentIsScaled = isHTMLElement(offsetParent) && isElementScaled(offsetParent);
+        var documentElement = getDocumentElement(offsetParent);
+        var rect = getBoundingClientRect(elementOrVirtualElement, offsetParentIsScaled, isFixed);
+        var scroll = {
+          scrollLeft: 0,
+          scrollTop: 0
+        };
+        var offsets = {
+          x: 0,
+          y: 0
+        };
+        if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+          if (getNodeName(offsetParent) !== "body" || // https://github.com/popperjs/popper-core/issues/1078
+          isScrollParent(documentElement)) {
+            scroll = getNodeScroll(offsetParent);
+          }
+          if (isHTMLElement(offsetParent)) {
+            offsets = getBoundingClientRect(offsetParent, true);
+            offsets.x += offsetParent.clientLeft;
+            offsets.y += offsetParent.clientTop;
+          } else if (documentElement) {
+            offsets.x = getWindowScrollBarX(documentElement);
+          }
+        }
+        return {
+          x: rect.left + scroll.scrollLeft - offsets.x,
+          y: rect.top + scroll.scrollTop - offsets.y,
+          width: rect.width,
+          height: rect.height
+        };
+      }
+      function getLayoutRect(element) {
+        var clientRect = getBoundingClientRect(element);
+        var width = element.offsetWidth;
+        var height = element.offsetHeight;
+        if (Math.abs(clientRect.width - width) <= 1) {
+          width = clientRect.width;
+        }
+        if (Math.abs(clientRect.height - height) <= 1) {
+          height = clientRect.height;
+        }
+        return {
+          x: element.offsetLeft,
+          y: element.offsetTop,
+          width,
+          height
+        };
+      }
+      function getParentNode(element) {
+        if (getNodeName(element) === "html") {
+          return element;
+        }
+        return (
+          // this is a quicker (but less type safe) way to save quite some bytes from the bundle
+          // $FlowFixMe[incompatible-return]
+          // $FlowFixMe[prop-missing]
+          element.assignedSlot || // step into the shadow DOM of the parent of a slotted node
+          element.parentNode || // DOM Element detected
+          (isShadowRoot(element) ? element.host : null) || // ShadowRoot detected
+          // $FlowFixMe[incompatible-call]: HTMLElement is a Node
+          getDocumentElement(element)
+        );
+      }
+      function getScrollParent(node) {
+        if (["html", "body", "#document"].indexOf(getNodeName(node)) >= 0) {
+          return node.ownerDocument.body;
+        }
+        if (isHTMLElement(node) && isScrollParent(node)) {
+          return node;
+        }
+        return getScrollParent(getParentNode(node));
+      }
+      function listScrollParents(element, list) {
+        var _element$ownerDocumen;
+        if (list === void 0) {
+          list = [];
+        }
+        var scrollParent = getScrollParent(element);
+        var isBody = scrollParent === ((_element$ownerDocumen = element.ownerDocument) == null ? void 0 : _element$ownerDocumen.body);
+        var win = getWindow(scrollParent);
+        var target = isBody ? [win].concat(win.visualViewport || [], isScrollParent(scrollParent) ? scrollParent : []) : scrollParent;
+        var updatedList = list.concat(target);
+        return isBody ? updatedList : (
+          // $FlowFixMe[incompatible-call]: isBody tells us target will be an HTMLElement here
+          updatedList.concat(listScrollParents(getParentNode(target)))
+        );
+      }
+      function isTableElement(element) {
+        return ["table", "td", "th"].indexOf(getNodeName(element)) >= 0;
+      }
+      function getTrueOffsetParent(element) {
+        if (!isHTMLElement(element) || // https://github.com/popperjs/popper-core/issues/837
+        getComputedStyle2(element).position === "fixed") {
+          return null;
+        }
+        return element.offsetParent;
+      }
+      function getContainingBlock(element) {
+        var isFirefox = /firefox/i.test(getUAString());
+        var isIE = /Trident/i.test(getUAString());
+        if (isIE && isHTMLElement(element)) {
+          var elementCss = getComputedStyle2(element);
+          if (elementCss.position === "fixed") {
+            return null;
+          }
+        }
+        var currentNode = getParentNode(element);
+        if (isShadowRoot(currentNode)) {
+          currentNode = currentNode.host;
+        }
+        while (isHTMLElement(currentNode) && ["html", "body"].indexOf(getNodeName(currentNode)) < 0) {
+          var css = getComputedStyle2(currentNode);
+          if (css.transform !== "none" || css.perspective !== "none" || css.contain === "paint" || ["transform", "perspective"].indexOf(css.willChange) !== -1 || isFirefox && css.willChange === "filter" || isFirefox && css.filter && css.filter !== "none") {
+            return currentNode;
+          } else {
+            currentNode = currentNode.parentNode;
+          }
+        }
+        return null;
+      }
+      function getOffsetParent(element) {
+        var window2 = getWindow(element);
+        var offsetParent = getTrueOffsetParent(element);
+        while (offsetParent && isTableElement(offsetParent) && getComputedStyle2(offsetParent).position === "static") {
+          offsetParent = getTrueOffsetParent(offsetParent);
+        }
+        if (offsetParent && (getNodeName(offsetParent) === "html" || getNodeName(offsetParent) === "body" && getComputedStyle2(offsetParent).position === "static")) {
+          return window2;
+        }
+        return offsetParent || getContainingBlock(element) || window2;
+      }
+      var top = "top";
+      var bottom = "bottom";
+      var right = "right";
+      var left = "left";
+      var auto = "auto";
+      var basePlacements = [top, bottom, right, left];
+      var start = "start";
+      var end = "end";
+      var clippingParents = "clippingParents";
+      var viewport = "viewport";
+      var popper = "popper";
+      var reference = "reference";
+      var variationPlacements = /* @__PURE__ */ basePlacements.reduce(function(acc, placement) {
+        return acc.concat([placement + "-" + start, placement + "-" + end]);
+      }, []);
+      var placements = /* @__PURE__ */ [].concat(basePlacements, [auto]).reduce(function(acc, placement) {
+        return acc.concat([placement, placement + "-" + start, placement + "-" + end]);
+      }, []);
+      var beforeRead = "beforeRead";
+      var read = "read";
+      var afterRead = "afterRead";
+      var beforeMain = "beforeMain";
+      var main = "main";
+      var afterMain = "afterMain";
+      var beforeWrite = "beforeWrite";
+      var write = "write";
+      var afterWrite = "afterWrite";
+      var modifierPhases = [beforeRead, read, afterRead, beforeMain, main, afterMain, beforeWrite, write, afterWrite];
+      function order(modifiers) {
+        var map = /* @__PURE__ */ new Map();
+        var visited = /* @__PURE__ */ new Set();
+        var result = [];
+        modifiers.forEach(function(modifier) {
+          map.set(modifier.name, modifier);
+        });
+        function sort(modifier) {
+          visited.add(modifier.name);
+          var requires = [].concat(modifier.requires || [], modifier.requiresIfExists || []);
+          requires.forEach(function(dep) {
+            if (!visited.has(dep)) {
+              var depModifier = map.get(dep);
+              if (depModifier) {
+                sort(depModifier);
+              }
+            }
+          });
+          result.push(modifier);
+        }
+        modifiers.forEach(function(modifier) {
+          if (!visited.has(modifier.name)) {
+            sort(modifier);
+          }
+        });
+        return result;
+      }
+      function orderModifiers(modifiers) {
+        var orderedModifiers = order(modifiers);
+        return modifierPhases.reduce(function(acc, phase) {
+          return acc.concat(orderedModifiers.filter(function(modifier) {
+            return modifier.phase === phase;
+          }));
+        }, []);
+      }
+      function debounce(fn) {
+        var pending;
+        return function() {
+          if (!pending) {
+            pending = new Promise(function(resolve) {
+              Promise.resolve().then(function() {
+                pending = void 0;
+                resolve(fn());
+              });
+            });
+          }
+          return pending;
+        };
+      }
+      function mergeByName(modifiers) {
+        var merged = modifiers.reduce(function(merged2, current) {
+          var existing = merged2[current.name];
+          merged2[current.name] = existing ? Object.assign({}, existing, current, {
+            options: Object.assign({}, existing.options, current.options),
+            data: Object.assign({}, existing.data, current.data)
+          }) : current;
+          return merged2;
+        }, {});
+        return Object.keys(merged).map(function(key) {
+          return merged[key];
+        });
+      }
+      function getViewportRect(element, strategy) {
+        var win = getWindow(element);
+        var html = getDocumentElement(element);
+        var visualViewport = win.visualViewport;
+        var width = html.clientWidth;
+        var height = html.clientHeight;
+        var x = 0;
+        var y = 0;
+        if (visualViewport) {
+          width = visualViewport.width;
+          height = visualViewport.height;
+          var layoutViewport = isLayoutViewport();
+          if (layoutViewport || !layoutViewport && strategy === "fixed") {
+            x = visualViewport.offsetLeft;
+            y = visualViewport.offsetTop;
+          }
+        }
+        return {
+          width,
+          height,
+          x: x + getWindowScrollBarX(element),
+          y
+        };
+      }
+      function getDocumentRect(element) {
+        var _element$ownerDocumen;
+        var html = getDocumentElement(element);
+        var winScroll = getWindowScroll(element);
+        var body = (_element$ownerDocumen = element.ownerDocument) == null ? void 0 : _element$ownerDocumen.body;
+        var width = max(html.scrollWidth, html.clientWidth, body ? body.scrollWidth : 0, body ? body.clientWidth : 0);
+        var height = max(html.scrollHeight, html.clientHeight, body ? body.scrollHeight : 0, body ? body.clientHeight : 0);
+        var x = -winScroll.scrollLeft + getWindowScrollBarX(element);
+        var y = -winScroll.scrollTop;
+        if (getComputedStyle2(body || html).direction === "rtl") {
+          x += max(html.clientWidth, body ? body.clientWidth : 0) - width;
+        }
+        return {
+          width,
+          height,
+          x,
+          y
+        };
+      }
+      function contains(parent, child) {
+        var rootNode = child.getRootNode && child.getRootNode();
+        if (parent.contains(child)) {
+          return true;
+        } else if (rootNode && isShadowRoot(rootNode)) {
+          var next = child;
+          do {
+            if (next && parent.isSameNode(next)) {
+              return true;
+            }
+            next = next.parentNode || next.host;
+          } while (next);
+        }
+        return false;
+      }
+      function rectToClientRect(rect) {
+        return Object.assign({}, rect, {
+          left: rect.x,
+          top: rect.y,
+          right: rect.x + rect.width,
+          bottom: rect.y + rect.height
+        });
+      }
+      function getInnerBoundingClientRect(element, strategy) {
+        var rect = getBoundingClientRect(element, false, strategy === "fixed");
+        rect.top = rect.top + element.clientTop;
+        rect.left = rect.left + element.clientLeft;
+        rect.bottom = rect.top + element.clientHeight;
+        rect.right = rect.left + element.clientWidth;
+        rect.width = element.clientWidth;
+        rect.height = element.clientHeight;
+        rect.x = rect.left;
+        rect.y = rect.top;
+        return rect;
+      }
+      function getClientRectFromMixedType(element, clippingParent, strategy) {
+        return clippingParent === viewport ? rectToClientRect(getViewportRect(element, strategy)) : isElement(clippingParent) ? getInnerBoundingClientRect(clippingParent, strategy) : rectToClientRect(getDocumentRect(getDocumentElement(element)));
+      }
+      function getClippingParents(element) {
+        var clippingParents2 = listScrollParents(getParentNode(element));
+        var canEscapeClipping = ["absolute", "fixed"].indexOf(getComputedStyle2(element).position) >= 0;
+        var clipperElement = canEscapeClipping && isHTMLElement(element) ? getOffsetParent(element) : element;
+        if (!isElement(clipperElement)) {
+          return [];
+        }
+        return clippingParents2.filter(function(clippingParent) {
+          return isElement(clippingParent) && contains(clippingParent, clipperElement) && getNodeName(clippingParent) !== "body";
+        });
+      }
+      function getClippingRect(element, boundary, rootBoundary, strategy) {
+        var mainClippingParents = boundary === "clippingParents" ? getClippingParents(element) : [].concat(boundary);
+        var clippingParents2 = [].concat(mainClippingParents, [rootBoundary]);
+        var firstClippingParent = clippingParents2[0];
+        var clippingRect = clippingParents2.reduce(function(accRect, clippingParent) {
+          var rect = getClientRectFromMixedType(element, clippingParent, strategy);
+          accRect.top = max(rect.top, accRect.top);
+          accRect.right = min(rect.right, accRect.right);
+          accRect.bottom = min(rect.bottom, accRect.bottom);
+          accRect.left = max(rect.left, accRect.left);
+          return accRect;
+        }, getClientRectFromMixedType(element, firstClippingParent, strategy));
+        clippingRect.width = clippingRect.right - clippingRect.left;
+        clippingRect.height = clippingRect.bottom - clippingRect.top;
+        clippingRect.x = clippingRect.left;
+        clippingRect.y = clippingRect.top;
+        return clippingRect;
+      }
+      function getBasePlacement(placement) {
+        return placement.split("-")[0];
+      }
+      function getVariation(placement) {
+        return placement.split("-")[1];
+      }
+      function getMainAxisFromPlacement(placement) {
+        return ["top", "bottom"].indexOf(placement) >= 0 ? "x" : "y";
+      }
+      function computeOffsets(_ref) {
+        var reference2 = _ref.reference, element = _ref.element, placement = _ref.placement;
+        var basePlacement = placement ? getBasePlacement(placement) : null;
+        var variation = placement ? getVariation(placement) : null;
+        var commonX = reference2.x + reference2.width / 2 - element.width / 2;
+        var commonY = reference2.y + reference2.height / 2 - element.height / 2;
+        var offsets;
+        switch (basePlacement) {
+          case top:
+            offsets = {
+              x: commonX,
+              y: reference2.y - element.height
+            };
+            break;
+          case bottom:
+            offsets = {
+              x: commonX,
+              y: reference2.y + reference2.height
+            };
+            break;
+          case right:
+            offsets = {
+              x: reference2.x + reference2.width,
+              y: commonY
+            };
+            break;
+          case left:
+            offsets = {
+              x: reference2.x - element.width,
+              y: commonY
+            };
+            break;
+          default:
+            offsets = {
+              x: reference2.x,
+              y: reference2.y
+            };
+        }
+        var mainAxis = basePlacement ? getMainAxisFromPlacement(basePlacement) : null;
+        if (mainAxis != null) {
+          var len = mainAxis === "y" ? "height" : "width";
+          switch (variation) {
+            case start:
+              offsets[mainAxis] = offsets[mainAxis] - (reference2[len] / 2 - element[len] / 2);
+              break;
+            case end:
+              offsets[mainAxis] = offsets[mainAxis] + (reference2[len] / 2 - element[len] / 2);
+              break;
+          }
+        }
+        return offsets;
+      }
+      function getFreshSideObject() {
+        return {
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0
+        };
+      }
+      function mergePaddingObject(paddingObject) {
+        return Object.assign({}, getFreshSideObject(), paddingObject);
+      }
+      function expandToHashMap(value, keys) {
+        return keys.reduce(function(hashMap, key) {
+          hashMap[key] = value;
+          return hashMap;
+        }, {});
+      }
+      function detectOverflow(state, options) {
+        if (options === void 0) {
+          options = {};
+        }
+        var _options = options, _options$placement = _options.placement, placement = _options$placement === void 0 ? state.placement : _options$placement, _options$strategy = _options.strategy, strategy = _options$strategy === void 0 ? state.strategy : _options$strategy, _options$boundary = _options.boundary, boundary = _options$boundary === void 0 ? clippingParents : _options$boundary, _options$rootBoundary = _options.rootBoundary, rootBoundary = _options$rootBoundary === void 0 ? viewport : _options$rootBoundary, _options$elementConte = _options.elementContext, elementContext = _options$elementConte === void 0 ? popper : _options$elementConte, _options$altBoundary = _options.altBoundary, altBoundary = _options$altBoundary === void 0 ? false : _options$altBoundary, _options$padding = _options.padding, padding = _options$padding === void 0 ? 0 : _options$padding;
+        var paddingObject = mergePaddingObject(typeof padding !== "number" ? padding : expandToHashMap(padding, basePlacements));
+        var altContext = elementContext === popper ? reference : popper;
+        var popperRect = state.rects.popper;
+        var element = state.elements[altBoundary ? altContext : elementContext];
+        var clippingClientRect = getClippingRect(isElement(element) ? element : element.contextElement || getDocumentElement(state.elements.popper), boundary, rootBoundary, strategy);
+        var referenceClientRect = getBoundingClientRect(state.elements.reference);
+        var popperOffsets2 = computeOffsets({
+          reference: referenceClientRect,
+          element: popperRect,
+          strategy: "absolute",
+          placement
+        });
+        var popperClientRect = rectToClientRect(Object.assign({}, popperRect, popperOffsets2));
+        var elementClientRect = elementContext === popper ? popperClientRect : referenceClientRect;
+        var overflowOffsets = {
+          top: clippingClientRect.top - elementClientRect.top + paddingObject.top,
+          bottom: elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom,
+          left: clippingClientRect.left - elementClientRect.left + paddingObject.left,
+          right: elementClientRect.right - clippingClientRect.right + paddingObject.right
+        };
+        var offsetData = state.modifiersData.offset;
+        if (elementContext === popper && offsetData) {
+          var offset2 = offsetData[placement];
+          Object.keys(overflowOffsets).forEach(function(key) {
+            var multiply = [right, bottom].indexOf(key) >= 0 ? 1 : -1;
+            var axis = [top, bottom].indexOf(key) >= 0 ? "y" : "x";
+            overflowOffsets[key] += offset2[axis] * multiply;
+          });
+        }
+        return overflowOffsets;
+      }
+      var DEFAULT_OPTIONS = {
+        placement: "bottom",
+        modifiers: [],
+        strategy: "absolute"
+      };
+      function areValidElements() {
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+        return !args.some(function(element) {
+          return !(element && typeof element.getBoundingClientRect === "function");
+        });
+      }
+      function popperGenerator(generatorOptions) {
+        if (generatorOptions === void 0) {
+          generatorOptions = {};
+        }
+        var _generatorOptions = generatorOptions, _generatorOptions$def = _generatorOptions.defaultModifiers, defaultModifiers2 = _generatorOptions$def === void 0 ? [] : _generatorOptions$def, _generatorOptions$def2 = _generatorOptions.defaultOptions, defaultOptions = _generatorOptions$def2 === void 0 ? DEFAULT_OPTIONS : _generatorOptions$def2;
+        return function createPopper2(reference2, popper2, options) {
+          if (options === void 0) {
+            options = defaultOptions;
+          }
+          var state = {
+            placement: "bottom",
+            orderedModifiers: [],
+            options: Object.assign({}, DEFAULT_OPTIONS, defaultOptions),
+            modifiersData: {},
+            elements: {
+              reference: reference2,
+              popper: popper2
+            },
+            attributes: {},
+            styles: {}
+          };
+          var effectCleanupFns = [];
+          var isDestroyed = false;
+          var instance = {
+            state,
+            setOptions: function setOptions(setOptionsAction) {
+              var options2 = typeof setOptionsAction === "function" ? setOptionsAction(state.options) : setOptionsAction;
+              cleanupModifierEffects();
+              state.options = Object.assign({}, defaultOptions, state.options, options2);
+              state.scrollParents = {
+                reference: isElement(reference2) ? listScrollParents(reference2) : reference2.contextElement ? listScrollParents(reference2.contextElement) : [],
+                popper: listScrollParents(popper2)
+              };
+              var orderedModifiers = orderModifiers(mergeByName([].concat(defaultModifiers2, state.options.modifiers)));
+              state.orderedModifiers = orderedModifiers.filter(function(m) {
+                return m.enabled;
+              });
+              runModifierEffects();
+              return instance.update();
+            },
+            // Sync update – it will always be executed, even if not necessary. This
+            // is useful for low frequency updates where sync behavior simplifies the
+            // logic.
+            // For high frequency updates (e.g. `resize` and `scroll` events), always
+            // prefer the async Popper#update method
+            forceUpdate: function forceUpdate() {
+              if (isDestroyed) {
+                return;
+              }
+              var _state$elements = state.elements, reference3 = _state$elements.reference, popper3 = _state$elements.popper;
+              if (!areValidElements(reference3, popper3)) {
+                return;
+              }
+              state.rects = {
+                reference: getCompositeRect(reference3, getOffsetParent(popper3), state.options.strategy === "fixed"),
+                popper: getLayoutRect(popper3)
+              };
+              state.reset = false;
+              state.placement = state.options.placement;
+              state.orderedModifiers.forEach(function(modifier) {
+                return state.modifiersData[modifier.name] = Object.assign({}, modifier.data);
+              });
+              for (var index = 0; index < state.orderedModifiers.length; index++) {
+                if (state.reset === true) {
+                  state.reset = false;
+                  index = -1;
+                  continue;
+                }
+                var _state$orderedModifie = state.orderedModifiers[index], fn = _state$orderedModifie.fn, _state$orderedModifie2 = _state$orderedModifie.options, _options = _state$orderedModifie2 === void 0 ? {} : _state$orderedModifie2, name = _state$orderedModifie.name;
+                if (typeof fn === "function") {
+                  state = fn({
+                    state,
+                    options: _options,
+                    name,
+                    instance
+                  }) || state;
+                }
+              }
+            },
+            // Async and optimistically optimized update – it will not be executed if
+            // not necessary (debounced to run at most once-per-tick)
+            update: debounce(function() {
+              return new Promise(function(resolve) {
+                instance.forceUpdate();
+                resolve(state);
+              });
+            }),
+            destroy: function destroy() {
+              cleanupModifierEffects();
+              isDestroyed = true;
+            }
+          };
+          if (!areValidElements(reference2, popper2)) {
+            return instance;
+          }
+          instance.setOptions(options).then(function(state2) {
+            if (!isDestroyed && options.onFirstUpdate) {
+              options.onFirstUpdate(state2);
+            }
+          });
+          function runModifierEffects() {
+            state.orderedModifiers.forEach(function(_ref) {
+              var name = _ref.name, _ref$options = _ref.options, options2 = _ref$options === void 0 ? {} : _ref$options, effect2 = _ref.effect;
+              if (typeof effect2 === "function") {
+                var cleanupFn = effect2({
+                  state,
+                  name,
+                  instance,
+                  options: options2
+                });
+                var noopFn = function noopFn2() {
+                };
+                effectCleanupFns.push(cleanupFn || noopFn);
+              }
+            });
+          }
+          function cleanupModifierEffects() {
+            effectCleanupFns.forEach(function(fn) {
+              return fn();
+            });
+            effectCleanupFns = [];
+          }
+          return instance;
+        };
+      }
+      var passive = {
+        passive: true
+      };
+      function effect$2(_ref) {
+        var state = _ref.state, instance = _ref.instance, options = _ref.options;
+        var _options$scroll = options.scroll, scroll = _options$scroll === void 0 ? true : _options$scroll, _options$resize = options.resize, resize = _options$resize === void 0 ? true : _options$resize;
+        var window2 = getWindow(state.elements.popper);
+        var scrollParents = [].concat(state.scrollParents.reference, state.scrollParents.popper);
+        if (scroll) {
+          scrollParents.forEach(function(scrollParent) {
+            scrollParent.addEventListener("scroll", instance.update, passive);
+          });
+        }
+        if (resize) {
+          window2.addEventListener("resize", instance.update, passive);
+        }
+        return function() {
+          if (scroll) {
+            scrollParents.forEach(function(scrollParent) {
+              scrollParent.removeEventListener("scroll", instance.update, passive);
+            });
+          }
+          if (resize) {
+            window2.removeEventListener("resize", instance.update, passive);
+          }
+        };
+      }
+      var eventListeners = {
+        name: "eventListeners",
+        enabled: true,
+        phase: "write",
+        fn: function fn() {
+        },
+        effect: effect$2,
+        data: {}
+      };
+      function popperOffsets(_ref) {
+        var state = _ref.state, name = _ref.name;
+        state.modifiersData[name] = computeOffsets({
+          reference: state.rects.reference,
+          element: state.rects.popper,
+          strategy: "absolute",
+          placement: state.placement
+        });
+      }
+      var popperOffsets$1 = {
+        name: "popperOffsets",
+        enabled: true,
+        phase: "read",
+        fn: popperOffsets,
+        data: {}
+      };
+      var unsetSides = {
+        top: "auto",
+        right: "auto",
+        bottom: "auto",
+        left: "auto"
+      };
+      function roundOffsetsByDPR(_ref, win) {
+        var x = _ref.x, y = _ref.y;
+        var dpr = win.devicePixelRatio || 1;
+        return {
+          x: round(x * dpr) / dpr || 0,
+          y: round(y * dpr) / dpr || 0
+        };
+      }
+      function mapToStyles(_ref2) {
+        var _Object$assign2;
+        var popper2 = _ref2.popper, popperRect = _ref2.popperRect, placement = _ref2.placement, variation = _ref2.variation, offsets = _ref2.offsets, position = _ref2.position, gpuAcceleration = _ref2.gpuAcceleration, adaptive = _ref2.adaptive, roundOffsets = _ref2.roundOffsets, isFixed = _ref2.isFixed;
+        var _offsets$x = offsets.x, x = _offsets$x === void 0 ? 0 : _offsets$x, _offsets$y = offsets.y, y = _offsets$y === void 0 ? 0 : _offsets$y;
+        var _ref3 = typeof roundOffsets === "function" ? roundOffsets({
+          x,
+          y
+        }) : {
+          x,
+          y
+        };
+        x = _ref3.x;
+        y = _ref3.y;
+        var hasX = offsets.hasOwnProperty("x");
+        var hasY = offsets.hasOwnProperty("y");
+        var sideX = left;
+        var sideY = top;
+        var win = window;
+        if (adaptive) {
+          var offsetParent = getOffsetParent(popper2);
+          var heightProp = "clientHeight";
+          var widthProp = "clientWidth";
+          if (offsetParent === getWindow(popper2)) {
+            offsetParent = getDocumentElement(popper2);
+            if (getComputedStyle2(offsetParent).position !== "static" && position === "absolute") {
+              heightProp = "scrollHeight";
+              widthProp = "scrollWidth";
+            }
+          }
+          offsetParent = offsetParent;
+          if (placement === top || (placement === left || placement === right) && variation === end) {
+            sideY = bottom;
+            var offsetY = isFixed && offsetParent === win && win.visualViewport ? win.visualViewport.height : (
+              // $FlowFixMe[prop-missing]
+              offsetParent[heightProp]
+            );
+            y -= offsetY - popperRect.height;
+            y *= gpuAcceleration ? 1 : -1;
+          }
+          if (placement === left || (placement === top || placement === bottom) && variation === end) {
+            sideX = right;
+            var offsetX = isFixed && offsetParent === win && win.visualViewport ? win.visualViewport.width : (
+              // $FlowFixMe[prop-missing]
+              offsetParent[widthProp]
+            );
+            x -= offsetX - popperRect.width;
+            x *= gpuAcceleration ? 1 : -1;
+          }
+        }
+        var commonStyles = Object.assign({
+          position
+        }, adaptive && unsetSides);
+        var _ref4 = roundOffsets === true ? roundOffsetsByDPR({
+          x,
+          y
+        }, getWindow(popper2)) : {
+          x,
+          y
+        };
+        x = _ref4.x;
+        y = _ref4.y;
+        if (gpuAcceleration) {
+          var _Object$assign;
+          return Object.assign({}, commonStyles, (_Object$assign = {}, _Object$assign[sideY] = hasY ? "0" : "", _Object$assign[sideX] = hasX ? "0" : "", _Object$assign.transform = (win.devicePixelRatio || 1) <= 1 ? "translate(" + x + "px, " + y + "px)" : "translate3d(" + x + "px, " + y + "px, 0)", _Object$assign));
+        }
+        return Object.assign({}, commonStyles, (_Object$assign2 = {}, _Object$assign2[sideY] = hasY ? y + "px" : "", _Object$assign2[sideX] = hasX ? x + "px" : "", _Object$assign2.transform = "", _Object$assign2));
+      }
+      function computeStyles(_ref5) {
+        var state = _ref5.state, options = _ref5.options;
+        var _options$gpuAccelerat = options.gpuAcceleration, gpuAcceleration = _options$gpuAccelerat === void 0 ? true : _options$gpuAccelerat, _options$adaptive = options.adaptive, adaptive = _options$adaptive === void 0 ? true : _options$adaptive, _options$roundOffsets = options.roundOffsets, roundOffsets = _options$roundOffsets === void 0 ? true : _options$roundOffsets;
+        var commonStyles = {
+          placement: getBasePlacement(state.placement),
+          variation: getVariation(state.placement),
+          popper: state.elements.popper,
+          popperRect: state.rects.popper,
+          gpuAcceleration,
+          isFixed: state.options.strategy === "fixed"
+        };
+        if (state.modifiersData.popperOffsets != null) {
+          state.styles.popper = Object.assign({}, state.styles.popper, mapToStyles(Object.assign({}, commonStyles, {
+            offsets: state.modifiersData.popperOffsets,
+            position: state.options.strategy,
+            adaptive,
+            roundOffsets
+          })));
+        }
+        if (state.modifiersData.arrow != null) {
+          state.styles.arrow = Object.assign({}, state.styles.arrow, mapToStyles(Object.assign({}, commonStyles, {
+            offsets: state.modifiersData.arrow,
+            position: "absolute",
+            adaptive: false,
+            roundOffsets
+          })));
+        }
+        state.attributes.popper = Object.assign({}, state.attributes.popper, {
+          "data-popper-placement": state.placement
+        });
+      }
+      var computeStyles$1 = {
+        name: "computeStyles",
+        enabled: true,
+        phase: "beforeWrite",
+        fn: computeStyles,
+        data: {}
+      };
+      function applyStyles(_ref) {
+        var state = _ref.state;
+        Object.keys(state.elements).forEach(function(name) {
+          var style = state.styles[name] || {};
+          var attributes = state.attributes[name] || {};
+          var element = state.elements[name];
+          if (!isHTMLElement(element) || !getNodeName(element)) {
+            return;
+          }
+          Object.assign(element.style, style);
+          Object.keys(attributes).forEach(function(name2) {
+            var value = attributes[name2];
+            if (value === false) {
+              element.removeAttribute(name2);
+            } else {
+              element.setAttribute(name2, value === true ? "" : value);
+            }
+          });
+        });
+      }
+      function effect$1(_ref2) {
+        var state = _ref2.state;
+        var initialStyles = {
+          popper: {
+            position: state.options.strategy,
+            left: "0",
+            top: "0",
+            margin: "0"
+          },
+          arrow: {
+            position: "absolute"
+          },
+          reference: {}
+        };
+        Object.assign(state.elements.popper.style, initialStyles.popper);
+        state.styles = initialStyles;
+        if (state.elements.arrow) {
+          Object.assign(state.elements.arrow.style, initialStyles.arrow);
+        }
+        return function() {
+          Object.keys(state.elements).forEach(function(name) {
+            var element = state.elements[name];
+            var attributes = state.attributes[name] || {};
+            var styleProperties = Object.keys(state.styles.hasOwnProperty(name) ? state.styles[name] : initialStyles[name]);
+            var style = styleProperties.reduce(function(style2, property) {
+              style2[property] = "";
+              return style2;
+            }, {});
+            if (!isHTMLElement(element) || !getNodeName(element)) {
+              return;
+            }
+            Object.assign(element.style, style);
+            Object.keys(attributes).forEach(function(attribute) {
+              element.removeAttribute(attribute);
+            });
+          });
+        };
+      }
+      var applyStyles$1 = {
+        name: "applyStyles",
+        enabled: true,
+        phase: "write",
+        fn: applyStyles,
+        effect: effect$1,
+        requires: ["computeStyles"]
+      };
+      function distanceAndSkiddingToXY(placement, rects, offset2) {
+        var basePlacement = getBasePlacement(placement);
+        var invertDistance = [left, top].indexOf(basePlacement) >= 0 ? -1 : 1;
+        var _ref = typeof offset2 === "function" ? offset2(Object.assign({}, rects, {
+          placement
+        })) : offset2, skidding = _ref[0], distance = _ref[1];
+        skidding = skidding || 0;
+        distance = (distance || 0) * invertDistance;
+        return [left, right].indexOf(basePlacement) >= 0 ? {
+          x: distance,
+          y: skidding
+        } : {
+          x: skidding,
+          y: distance
+        };
+      }
+      function offset(_ref2) {
+        var state = _ref2.state, options = _ref2.options, name = _ref2.name;
+        var _options$offset = options.offset, offset2 = _options$offset === void 0 ? [0, 0] : _options$offset;
+        var data = placements.reduce(function(acc, placement) {
+          acc[placement] = distanceAndSkiddingToXY(placement, state.rects, offset2);
+          return acc;
+        }, {});
+        var _data$state$placement = data[state.placement], x = _data$state$placement.x, y = _data$state$placement.y;
+        if (state.modifiersData.popperOffsets != null) {
+          state.modifiersData.popperOffsets.x += x;
+          state.modifiersData.popperOffsets.y += y;
+        }
+        state.modifiersData[name] = data;
+      }
+      var offset$1 = {
+        name: "offset",
+        enabled: true,
+        phase: "main",
+        requires: ["popperOffsets"],
+        fn: offset
+      };
+      var hash$1 = {
+        left: "right",
+        right: "left",
+        bottom: "top",
+        top: "bottom"
+      };
+      function getOppositePlacement(placement) {
+        return placement.replace(/left|right|bottom|top/g, function(matched) {
+          return hash$1[matched];
+        });
+      }
+      var hash = {
+        start: "end",
+        end: "start"
+      };
+      function getOppositeVariationPlacement(placement) {
+        return placement.replace(/start|end/g, function(matched) {
+          return hash[matched];
+        });
+      }
+      function computeAutoPlacement(state, options) {
+        if (options === void 0) {
+          options = {};
+        }
+        var _options = options, placement = _options.placement, boundary = _options.boundary, rootBoundary = _options.rootBoundary, padding = _options.padding, flipVariations = _options.flipVariations, _options$allowedAutoP = _options.allowedAutoPlacements, allowedAutoPlacements = _options$allowedAutoP === void 0 ? placements : _options$allowedAutoP;
+        var variation = getVariation(placement);
+        var placements$1 = variation ? flipVariations ? variationPlacements : variationPlacements.filter(function(placement2) {
+          return getVariation(placement2) === variation;
+        }) : basePlacements;
+        var allowedPlacements = placements$1.filter(function(placement2) {
+          return allowedAutoPlacements.indexOf(placement2) >= 0;
+        });
+        if (allowedPlacements.length === 0) {
+          allowedPlacements = placements$1;
+        }
+        var overflows = allowedPlacements.reduce(function(acc, placement2) {
+          acc[placement2] = detectOverflow(state, {
+            placement: placement2,
+            boundary,
+            rootBoundary,
+            padding
+          })[getBasePlacement(placement2)];
+          return acc;
+        }, {});
+        return Object.keys(overflows).sort(function(a, b) {
+          return overflows[a] - overflows[b];
+        });
+      }
+      function getExpandedFallbackPlacements(placement) {
+        if (getBasePlacement(placement) === auto) {
+          return [];
+        }
+        var oppositePlacement = getOppositePlacement(placement);
+        return [getOppositeVariationPlacement(placement), oppositePlacement, getOppositeVariationPlacement(oppositePlacement)];
+      }
+      function flip(_ref) {
+        var state = _ref.state, options = _ref.options, name = _ref.name;
+        if (state.modifiersData[name]._skip) {
+          return;
+        }
+        var _options$mainAxis = options.mainAxis, checkMainAxis = _options$mainAxis === void 0 ? true : _options$mainAxis, _options$altAxis = options.altAxis, checkAltAxis = _options$altAxis === void 0 ? true : _options$altAxis, specifiedFallbackPlacements = options.fallbackPlacements, padding = options.padding, boundary = options.boundary, rootBoundary = options.rootBoundary, altBoundary = options.altBoundary, _options$flipVariatio = options.flipVariations, flipVariations = _options$flipVariatio === void 0 ? true : _options$flipVariatio, allowedAutoPlacements = options.allowedAutoPlacements;
+        var preferredPlacement = state.options.placement;
+        var basePlacement = getBasePlacement(preferredPlacement);
+        var isBasePlacement = basePlacement === preferredPlacement;
+        var fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipVariations ? [getOppositePlacement(preferredPlacement)] : getExpandedFallbackPlacements(preferredPlacement));
+        var placements2 = [preferredPlacement].concat(fallbackPlacements).reduce(function(acc, placement2) {
+          return acc.concat(getBasePlacement(placement2) === auto ? computeAutoPlacement(state, {
+            placement: placement2,
+            boundary,
+            rootBoundary,
+            padding,
+            flipVariations,
+            allowedAutoPlacements
+          }) : placement2);
+        }, []);
+        var referenceRect = state.rects.reference;
+        var popperRect = state.rects.popper;
+        var checksMap = /* @__PURE__ */ new Map();
+        var makeFallbackChecks = true;
+        var firstFittingPlacement = placements2[0];
+        for (var i = 0; i < placements2.length; i++) {
+          var placement = placements2[i];
+          var _basePlacement = getBasePlacement(placement);
+          var isStartVariation = getVariation(placement) === start;
+          var isVertical = [top, bottom].indexOf(_basePlacement) >= 0;
+          var len = isVertical ? "width" : "height";
+          var overflow = detectOverflow(state, {
+            placement,
+            boundary,
+            rootBoundary,
+            altBoundary,
+            padding
+          });
+          var mainVariationSide = isVertical ? isStartVariation ? right : left : isStartVariation ? bottom : top;
+          if (referenceRect[len] > popperRect[len]) {
+            mainVariationSide = getOppositePlacement(mainVariationSide);
+          }
+          var altVariationSide = getOppositePlacement(mainVariationSide);
+          var checks = [];
+          if (checkMainAxis) {
+            checks.push(overflow[_basePlacement] <= 0);
+          }
+          if (checkAltAxis) {
+            checks.push(overflow[mainVariationSide] <= 0, overflow[altVariationSide] <= 0);
+          }
+          if (checks.every(function(check) {
+            return check;
+          })) {
+            firstFittingPlacement = placement;
+            makeFallbackChecks = false;
+            break;
+          }
+          checksMap.set(placement, checks);
+        }
+        if (makeFallbackChecks) {
+          var numberOfChecks = flipVariations ? 3 : 1;
+          var _loop = function _loop2(_i2) {
+            var fittingPlacement = placements2.find(function(placement2) {
+              var checks2 = checksMap.get(placement2);
+              if (checks2) {
+                return checks2.slice(0, _i2).every(function(check) {
+                  return check;
+                });
+              }
+            });
+            if (fittingPlacement) {
+              firstFittingPlacement = fittingPlacement;
+              return "break";
+            }
+          };
+          for (var _i = numberOfChecks; _i > 0; _i--) {
+            var _ret = _loop(_i);
+            if (_ret === "break") break;
+          }
+        }
+        if (state.placement !== firstFittingPlacement) {
+          state.modifiersData[name]._skip = true;
+          state.placement = firstFittingPlacement;
+          state.reset = true;
+        }
+      }
+      var flip$1 = {
+        name: "flip",
+        enabled: true,
+        phase: "main",
+        fn: flip,
+        requiresIfExists: ["offset"],
+        data: {
+          _skip: false
+        }
+      };
+      function getAltAxis(axis) {
+        return axis === "x" ? "y" : "x";
+      }
+      function within(min$1, value, max$1) {
+        return max(min$1, min(value, max$1));
+      }
+      function withinMaxClamp(min2, value, max2) {
+        var v = within(min2, value, max2);
+        return v > max2 ? max2 : v;
+      }
+      function preventOverflow(_ref) {
+        var state = _ref.state, options = _ref.options, name = _ref.name;
+        var _options$mainAxis = options.mainAxis, checkMainAxis = _options$mainAxis === void 0 ? true : _options$mainAxis, _options$altAxis = options.altAxis, checkAltAxis = _options$altAxis === void 0 ? false : _options$altAxis, boundary = options.boundary, rootBoundary = options.rootBoundary, altBoundary = options.altBoundary, padding = options.padding, _options$tether = options.tether, tether = _options$tether === void 0 ? true : _options$tether, _options$tetherOffset = options.tetherOffset, tetherOffset = _options$tetherOffset === void 0 ? 0 : _options$tetherOffset;
+        var overflow = detectOverflow(state, {
+          boundary,
+          rootBoundary,
+          padding,
+          altBoundary
+        });
+        var basePlacement = getBasePlacement(state.placement);
+        var variation = getVariation(state.placement);
+        var isBasePlacement = !variation;
+        var mainAxis = getMainAxisFromPlacement(basePlacement);
+        var altAxis = getAltAxis(mainAxis);
+        var popperOffsets2 = state.modifiersData.popperOffsets;
+        var referenceRect = state.rects.reference;
+        var popperRect = state.rects.popper;
+        var tetherOffsetValue = typeof tetherOffset === "function" ? tetherOffset(Object.assign({}, state.rects, {
+          placement: state.placement
+        })) : tetherOffset;
+        var normalizedTetherOffsetValue = typeof tetherOffsetValue === "number" ? {
+          mainAxis: tetherOffsetValue,
+          altAxis: tetherOffsetValue
+        } : Object.assign({
+          mainAxis: 0,
+          altAxis: 0
+        }, tetherOffsetValue);
+        var offsetModifierState = state.modifiersData.offset ? state.modifiersData.offset[state.placement] : null;
+        var data = {
+          x: 0,
+          y: 0
+        };
+        if (!popperOffsets2) {
+          return;
+        }
+        if (checkMainAxis) {
+          var _offsetModifierState$;
+          var mainSide = mainAxis === "y" ? top : left;
+          var altSide = mainAxis === "y" ? bottom : right;
+          var len = mainAxis === "y" ? "height" : "width";
+          var offset2 = popperOffsets2[mainAxis];
+          var min$1 = offset2 + overflow[mainSide];
+          var max$1 = offset2 - overflow[altSide];
+          var additive = tether ? -popperRect[len] / 2 : 0;
+          var minLen = variation === start ? referenceRect[len] : popperRect[len];
+          var maxLen = variation === start ? -popperRect[len] : -referenceRect[len];
+          var arrowElement = state.elements.arrow;
+          var arrowRect = tether && arrowElement ? getLayoutRect(arrowElement) : {
+            width: 0,
+            height: 0
+          };
+          var arrowPaddingObject = state.modifiersData["arrow#persistent"] ? state.modifiersData["arrow#persistent"].padding : getFreshSideObject();
+          var arrowPaddingMin = arrowPaddingObject[mainSide];
+          var arrowPaddingMax = arrowPaddingObject[altSide];
+          var arrowLen = within(0, referenceRect[len], arrowRect[len]);
+          var minOffset = isBasePlacement ? referenceRect[len] / 2 - additive - arrowLen - arrowPaddingMin - normalizedTetherOffsetValue.mainAxis : minLen - arrowLen - arrowPaddingMin - normalizedTetherOffsetValue.mainAxis;
+          var maxOffset = isBasePlacement ? -referenceRect[len] / 2 + additive + arrowLen + arrowPaddingMax + normalizedTetherOffsetValue.mainAxis : maxLen + arrowLen + arrowPaddingMax + normalizedTetherOffsetValue.mainAxis;
+          var arrowOffsetParent = state.elements.arrow && getOffsetParent(state.elements.arrow);
+          var clientOffset = arrowOffsetParent ? mainAxis === "y" ? arrowOffsetParent.clientTop || 0 : arrowOffsetParent.clientLeft || 0 : 0;
+          var offsetModifierValue = (_offsetModifierState$ = offsetModifierState == null ? void 0 : offsetModifierState[mainAxis]) != null ? _offsetModifierState$ : 0;
+          var tetherMin = offset2 + minOffset - offsetModifierValue - clientOffset;
+          var tetherMax = offset2 + maxOffset - offsetModifierValue;
+          var preventedOffset = within(tether ? min(min$1, tetherMin) : min$1, offset2, tether ? max(max$1, tetherMax) : max$1);
+          popperOffsets2[mainAxis] = preventedOffset;
+          data[mainAxis] = preventedOffset - offset2;
+        }
+        if (checkAltAxis) {
+          var _offsetModifierState$2;
+          var _mainSide = mainAxis === "x" ? top : left;
+          var _altSide = mainAxis === "x" ? bottom : right;
+          var _offset = popperOffsets2[altAxis];
+          var _len = altAxis === "y" ? "height" : "width";
+          var _min = _offset + overflow[_mainSide];
+          var _max = _offset - overflow[_altSide];
+          var isOriginSide = [top, left].indexOf(basePlacement) !== -1;
+          var _offsetModifierValue = (_offsetModifierState$2 = offsetModifierState == null ? void 0 : offsetModifierState[altAxis]) != null ? _offsetModifierState$2 : 0;
+          var _tetherMin = isOriginSide ? _min : _offset - referenceRect[_len] - popperRect[_len] - _offsetModifierValue + normalizedTetherOffsetValue.altAxis;
+          var _tetherMax = isOriginSide ? _offset + referenceRect[_len] + popperRect[_len] - _offsetModifierValue - normalizedTetherOffsetValue.altAxis : _max;
+          var _preventedOffset = tether && isOriginSide ? withinMaxClamp(_tetherMin, _offset, _tetherMax) : within(tether ? _tetherMin : _min, _offset, tether ? _tetherMax : _max);
+          popperOffsets2[altAxis] = _preventedOffset;
+          data[altAxis] = _preventedOffset - _offset;
+        }
+        state.modifiersData[name] = data;
+      }
+      var preventOverflow$1 = {
+        name: "preventOverflow",
+        enabled: true,
+        phase: "main",
+        fn: preventOverflow,
+        requiresIfExists: ["offset"]
+      };
+      var toPaddingObject = function toPaddingObject2(padding, state) {
+        padding = typeof padding === "function" ? padding(Object.assign({}, state.rects, {
+          placement: state.placement
+        })) : padding;
+        return mergePaddingObject(typeof padding !== "number" ? padding : expandToHashMap(padding, basePlacements));
+      };
+      function arrow(_ref) {
+        var _state$modifiersData$;
+        var state = _ref.state, name = _ref.name, options = _ref.options;
+        var arrowElement = state.elements.arrow;
+        var popperOffsets2 = state.modifiersData.popperOffsets;
+        var basePlacement = getBasePlacement(state.placement);
+        var axis = getMainAxisFromPlacement(basePlacement);
+        var isVertical = [left, right].indexOf(basePlacement) >= 0;
+        var len = isVertical ? "height" : "width";
+        if (!arrowElement || !popperOffsets2) {
+          return;
+        }
+        var paddingObject = toPaddingObject(options.padding, state);
+        var arrowRect = getLayoutRect(arrowElement);
+        var minProp = axis === "y" ? top : left;
+        var maxProp = axis === "y" ? bottom : right;
+        var endDiff = state.rects.reference[len] + state.rects.reference[axis] - popperOffsets2[axis] - state.rects.popper[len];
+        var startDiff = popperOffsets2[axis] - state.rects.reference[axis];
+        var arrowOffsetParent = getOffsetParent(arrowElement);
+        var clientSize = arrowOffsetParent ? axis === "y" ? arrowOffsetParent.clientHeight || 0 : arrowOffsetParent.clientWidth || 0 : 0;
+        var centerToReference = endDiff / 2 - startDiff / 2;
+        var min2 = paddingObject[minProp];
+        var max2 = clientSize - arrowRect[len] - paddingObject[maxProp];
+        var center = clientSize / 2 - arrowRect[len] / 2 + centerToReference;
+        var offset2 = within(min2, center, max2);
+        var axisProp = axis;
+        state.modifiersData[name] = (_state$modifiersData$ = {}, _state$modifiersData$[axisProp] = offset2, _state$modifiersData$.centerOffset = offset2 - center, _state$modifiersData$);
+      }
+      function effect(_ref2) {
+        var state = _ref2.state, options = _ref2.options;
+        var _options$element = options.element, arrowElement = _options$element === void 0 ? "[data-popper-arrow]" : _options$element;
+        if (arrowElement == null) {
+          return;
+        }
+        if (typeof arrowElement === "string") {
+          arrowElement = state.elements.popper.querySelector(arrowElement);
+          if (!arrowElement) {
+            return;
+          }
+        }
+        if (!contains(state.elements.popper, arrowElement)) {
+          return;
+        }
+        state.elements.arrow = arrowElement;
+      }
+      var arrow$1 = {
+        name: "arrow",
+        enabled: true,
+        phase: "main",
+        fn: arrow,
+        effect,
+        requires: ["popperOffsets"],
+        requiresIfExists: ["preventOverflow"]
+      };
+      function getSideOffsets(overflow, rect, preventedOffsets) {
+        if (preventedOffsets === void 0) {
+          preventedOffsets = {
+            x: 0,
+            y: 0
+          };
+        }
+        return {
+          top: overflow.top - rect.height - preventedOffsets.y,
+          right: overflow.right - rect.width + preventedOffsets.x,
+          bottom: overflow.bottom - rect.height + preventedOffsets.y,
+          left: overflow.left - rect.width - preventedOffsets.x
+        };
+      }
+      function isAnySideFullyClipped(overflow) {
+        return [top, right, bottom, left].some(function(side) {
+          return overflow[side] >= 0;
+        });
+      }
+      function hide(_ref) {
+        var state = _ref.state, name = _ref.name;
+        var referenceRect = state.rects.reference;
+        var popperRect = state.rects.popper;
+        var preventedOffsets = state.modifiersData.preventOverflow;
+        var referenceOverflow = detectOverflow(state, {
+          elementContext: "reference"
+        });
+        var popperAltOverflow = detectOverflow(state, {
+          altBoundary: true
+        });
+        var referenceClippingOffsets = getSideOffsets(referenceOverflow, referenceRect);
+        var popperEscapeOffsets = getSideOffsets(popperAltOverflow, popperRect, preventedOffsets);
+        var isReferenceHidden = isAnySideFullyClipped(referenceClippingOffsets);
+        var hasPopperEscaped = isAnySideFullyClipped(popperEscapeOffsets);
+        state.modifiersData[name] = {
+          referenceClippingOffsets,
+          popperEscapeOffsets,
+          isReferenceHidden,
+          hasPopperEscaped
+        };
+        state.attributes.popper = Object.assign({}, state.attributes.popper, {
+          "data-popper-reference-hidden": isReferenceHidden,
+          "data-popper-escaped": hasPopperEscaped
+        });
+      }
+      var hide$1 = {
+        name: "hide",
+        enabled: true,
+        phase: "main",
+        requiresIfExists: ["preventOverflow"],
+        fn: hide
+      };
+      var defaultModifiers$1 = [eventListeners, popperOffsets$1, computeStyles$1, applyStyles$1];
+      var createPopper$1 = /* @__PURE__ */ popperGenerator({
+        defaultModifiers: defaultModifiers$1
+      });
+      var defaultModifiers = [eventListeners, popperOffsets$1, computeStyles$1, applyStyles$1, offset$1, flip$1, preventOverflow$1, arrow$1, hide$1];
+      var createPopper = /* @__PURE__ */ popperGenerator({
+        defaultModifiers
+      });
+      exports.applyStyles = applyStyles$1;
+      exports.arrow = arrow$1;
+      exports.computeStyles = computeStyles$1;
+      exports.createPopper = createPopper;
+      exports.createPopperLite = createPopper$1;
+      exports.defaultModifiers = defaultModifiers;
+      exports.detectOverflow = detectOverflow;
+      exports.eventListeners = eventListeners;
+      exports.flip = flip$1;
+      exports.hide = hide$1;
+      exports.offset = offset$1;
+      exports.popperGenerator = popperGenerator;
+      exports.popperOffsets = popperOffsets$1;
+      exports.preventOverflow = preventOverflow$1;
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/dropdown.js
+  var require_dropdown = __commonJS({
+    "node_modules/bootstrap/js/dist/dropdown.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_popper(), require_base_component(), require_event_handler(), require_manipulator(), require_selector_engine(), require_util()) : typeof define === "function" && define.amd ? define(["@popperjs/core", "./base-component", "./dom/event-handler", "./dom/manipulator", "./dom/selector-engine", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Dropdown = factory(global["@popperjs/core"], global.BaseComponent, global.EventHandler, global.Manipulator, global.SelectorEngine, global.Index));
+      })(exports, (function(Popper, BaseComponent, EventHandler, Manipulator, SelectorEngine, index_js) {
+        "use strict";
+        function _interopNamespaceDefault(e) {
+          const n = Object.create(null, { [Symbol.toStringTag]: { value: "Module" } });
+          if (e) {
+            for (const k in e) {
+              if (k !== "default") {
+                const d = Object.getOwnPropertyDescriptor(e, k);
+                Object.defineProperty(n, k, d.get ? d : {
+                  enumerable: true,
+                  get: () => e[k]
+                });
+              }
+            }
+          }
+          n.default = e;
+          return Object.freeze(n);
+        }
+        const Popper__namespace = /* @__PURE__ */ _interopNamespaceDefault(Popper);
+        const NAME = "dropdown";
+        const DATA_KEY = "bs.dropdown";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const DATA_API_KEY = ".data-api";
+        const ESCAPE_KEY = "Escape";
+        const TAB_KEY = "Tab";
+        const ARROW_UP_KEY = "ArrowUp";
+        const ARROW_DOWN_KEY = "ArrowDown";
+        const RIGHT_MOUSE_BUTTON = 2;
+        const EVENT_HIDE = `hide${EVENT_KEY}`;
+        const EVENT_HIDDEN = `hidden${EVENT_KEY}`;
+        const EVENT_SHOW = `show${EVENT_KEY}`;
+        const EVENT_SHOWN = `shown${EVENT_KEY}`;
+        const EVENT_CLICK_DATA_API = `click${EVENT_KEY}${DATA_API_KEY}`;
+        const EVENT_KEYDOWN_DATA_API = `keydown${EVENT_KEY}${DATA_API_KEY}`;
+        const EVENT_KEYUP_DATA_API = `keyup${EVENT_KEY}${DATA_API_KEY}`;
+        const CLASS_NAME_SHOW = "show";
+        const CLASS_NAME_DROPUP = "dropup";
+        const CLASS_NAME_DROPEND = "dropend";
+        const CLASS_NAME_DROPSTART = "dropstart";
+        const CLASS_NAME_DROPUP_CENTER = "dropup-center";
+        const CLASS_NAME_DROPDOWN_CENTER = "dropdown-center";
+        const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="dropdown"]:not(.disabled):not(:disabled)';
+        const SELECTOR_DATA_TOGGLE_SHOWN = `${SELECTOR_DATA_TOGGLE}.${CLASS_NAME_SHOW}`;
+        const SELECTOR_MENU = ".dropdown-menu";
+        const SELECTOR_NAVBAR = ".navbar";
+        const SELECTOR_NAVBAR_NAV = ".navbar-nav";
+        const SELECTOR_VISIBLE_ITEMS = ".dropdown-menu .dropdown-item:not(.disabled):not(:disabled)";
+        const PLACEMENT_TOP = index_js.isRTL() ? "top-end" : "top-start";
+        const PLACEMENT_TOPEND = index_js.isRTL() ? "top-start" : "top-end";
+        const PLACEMENT_BOTTOM = index_js.isRTL() ? "bottom-end" : "bottom-start";
+        const PLACEMENT_BOTTOMEND = index_js.isRTL() ? "bottom-start" : "bottom-end";
+        const PLACEMENT_RIGHT = index_js.isRTL() ? "left-start" : "right-start";
+        const PLACEMENT_LEFT = index_js.isRTL() ? "right-start" : "left-start";
+        const PLACEMENT_TOPCENTER = "top";
+        const PLACEMENT_BOTTOMCENTER = "bottom";
+        const Default = {
+          autoClose: true,
+          boundary: "clippingParents",
+          display: "dynamic",
+          offset: [0, 2],
+          popperConfig: null,
+          reference: "toggle"
+        };
+        const DefaultType = {
+          autoClose: "(boolean|string)",
+          boundary: "(string|element)",
+          display: "string",
+          offset: "(array|string|function)",
+          popperConfig: "(null|object|function)",
+          reference: "(string|element|object)"
+        };
+        class Dropdown extends BaseComponent {
+          constructor(element, config) {
+            super(element, config);
+            this._popper = null;
+            this._parent = this._element.parentNode;
+            this._menu = SelectorEngine.next(this._element, SELECTOR_MENU)[0] || SelectorEngine.prev(this._element, SELECTOR_MENU)[0] || SelectorEngine.findOne(SELECTOR_MENU, this._parent);
+            this._inNavbar = this._detectNavbar();
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          toggle() {
+            return this._isShown() ? this.hide() : this.show();
+          }
+          show() {
+            if (index_js.isDisabled(this._element) || this._isShown()) {
+              return;
+            }
+            const relatedTarget = {
+              relatedTarget: this._element
+            };
+            const showEvent = EventHandler.trigger(this._element, EVENT_SHOW, relatedTarget);
+            if (showEvent.defaultPrevented) {
+              return;
+            }
+            this._createPopper();
+            if ("ontouchstart" in document.documentElement && !this._parent.closest(SELECTOR_NAVBAR_NAV)) {
+              for (const element of [].concat(...document.body.children)) {
+                EventHandler.on(element, "mouseover", index_js.noop);
+              }
+            }
+            this._element.focus();
+            this._element.setAttribute("aria-expanded", true);
+            this._menu.classList.add(CLASS_NAME_SHOW);
+            this._element.classList.add(CLASS_NAME_SHOW);
+            EventHandler.trigger(this._element, EVENT_SHOWN, relatedTarget);
+          }
+          hide() {
+            if (index_js.isDisabled(this._element) || !this._isShown()) {
+              return;
+            }
+            const relatedTarget = {
+              relatedTarget: this._element
+            };
+            this._completeHide(relatedTarget);
+          }
+          dispose() {
+            if (this._popper) {
+              this._popper.destroy();
+            }
+            super.dispose();
+          }
+          update() {
+            this._inNavbar = this._detectNavbar();
+            if (this._popper) {
+              this._popper.update();
+            }
+          }
+          // Private
+          _completeHide(relatedTarget) {
+            const hideEvent = EventHandler.trigger(this._element, EVENT_HIDE, relatedTarget);
+            if (hideEvent.defaultPrevented) {
+              return;
+            }
+            if ("ontouchstart" in document.documentElement) {
+              for (const element of [].concat(...document.body.children)) {
+                EventHandler.off(element, "mouseover", index_js.noop);
+              }
+            }
+            if (this._popper) {
+              this._popper.destroy();
+            }
+            this._menu.classList.remove(CLASS_NAME_SHOW);
+            this._element.classList.remove(CLASS_NAME_SHOW);
+            this._element.setAttribute("aria-expanded", "false");
+            Manipulator.removeDataAttribute(this._menu, "popper");
+            EventHandler.trigger(this._element, EVENT_HIDDEN, relatedTarget);
+          }
+          _getConfig(config) {
+            config = super._getConfig(config);
+            if (typeof config.reference === "object" && !index_js.isElement(config.reference) && typeof config.reference.getBoundingClientRect !== "function") {
+              throw new TypeError(`${NAME.toUpperCase()}: Option "reference" provided type "object" without a required "getBoundingClientRect" method.`);
+            }
+            return config;
+          }
+          _createPopper() {
+            if (typeof Popper__namespace === "undefined") {
+              throw new TypeError("Bootstrap's dropdowns require Popper (https://popper.js.org/docs/v2/)");
+            }
+            let referenceElement = this._element;
+            if (this._config.reference === "parent") {
+              referenceElement = this._parent;
+            } else if (index_js.isElement(this._config.reference)) {
+              referenceElement = index_js.getElement(this._config.reference);
+            } else if (typeof this._config.reference === "object") {
+              referenceElement = this._config.reference;
+            }
+            const popperConfig = this._getPopperConfig();
+            this._popper = Popper__namespace.createPopper(referenceElement, this._menu, popperConfig);
+          }
+          _isShown() {
+            return this._menu.classList.contains(CLASS_NAME_SHOW);
+          }
+          _getPlacement() {
+            const parentDropdown = this._parent;
+            if (parentDropdown.classList.contains(CLASS_NAME_DROPEND)) {
+              return PLACEMENT_RIGHT;
+            }
+            if (parentDropdown.classList.contains(CLASS_NAME_DROPSTART)) {
+              return PLACEMENT_LEFT;
+            }
+            if (parentDropdown.classList.contains(CLASS_NAME_DROPUP_CENTER)) {
+              return PLACEMENT_TOPCENTER;
+            }
+            if (parentDropdown.classList.contains(CLASS_NAME_DROPDOWN_CENTER)) {
+              return PLACEMENT_BOTTOMCENTER;
+            }
+            const isEnd = getComputedStyle(this._menu).getPropertyValue("--bs-position").trim() === "end";
+            if (parentDropdown.classList.contains(CLASS_NAME_DROPUP)) {
+              return isEnd ? PLACEMENT_TOPEND : PLACEMENT_TOP;
+            }
+            return isEnd ? PLACEMENT_BOTTOMEND : PLACEMENT_BOTTOM;
+          }
+          _detectNavbar() {
+            return this._element.closest(SELECTOR_NAVBAR) !== null;
+          }
+          _getOffset() {
+            const {
+              offset
+            } = this._config;
+            if (typeof offset === "string") {
+              return offset.split(",").map((value) => Number.parseInt(value, 10));
+            }
+            if (typeof offset === "function") {
+              return (popperData) => offset(popperData, this._element);
+            }
+            return offset;
+          }
+          _getPopperConfig() {
+            const defaultBsPopperConfig = {
+              placement: this._getPlacement(),
+              modifiers: [{
+                name: "preventOverflow",
+                options: {
+                  boundary: this._config.boundary
+                }
+              }, {
+                name: "offset",
+                options: {
+                  offset: this._getOffset()
+                }
+              }]
+            };
+            if (this._inNavbar || this._config.display === "static") {
+              Manipulator.setDataAttribute(this._menu, "popper", "static");
+              defaultBsPopperConfig.modifiers = [{
+                name: "applyStyles",
+                enabled: false
+              }];
+            }
+            return {
+              ...defaultBsPopperConfig,
+              ...index_js.execute(this._config.popperConfig, [void 0, defaultBsPopperConfig])
+            };
+          }
+          _selectMenuItem({
+            key,
+            target
+          }) {
+            const items = SelectorEngine.find(SELECTOR_VISIBLE_ITEMS, this._menu).filter((element) => index_js.isVisible(element));
+            if (!items.length) {
+              return;
+            }
+            index_js.getNextActiveElement(items, target, key === ARROW_DOWN_KEY, !items.includes(target)).focus();
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Dropdown.getOrCreateInstance(this, config);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (typeof data[config] === "undefined") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config]();
+            });
+          }
+          static clearMenus(event) {
+            if (event.button === RIGHT_MOUSE_BUTTON || event.type === "keyup" && event.key !== TAB_KEY) {
+              return;
+            }
+            const openToggles = SelectorEngine.find(SELECTOR_DATA_TOGGLE_SHOWN);
+            for (const toggle of openToggles) {
+              const context = Dropdown.getInstance(toggle);
+              if (!context || context._config.autoClose === false) {
+                continue;
+              }
+              const composedPath = event.composedPath();
+              const isMenuTarget = composedPath.includes(context._menu);
+              if (composedPath.includes(context._element) || context._config.autoClose === "inside" && !isMenuTarget || context._config.autoClose === "outside" && isMenuTarget) {
+                continue;
+              }
+              if (context._menu.contains(event.target) && (event.type === "keyup" && event.key === TAB_KEY || /input|select|option|textarea|form/i.test(event.target.tagName))) {
+                continue;
+              }
+              const relatedTarget = {
+                relatedTarget: context._element
+              };
+              if (event.type === "click") {
+                relatedTarget.clickEvent = event;
+              }
+              context._completeHide(relatedTarget);
+            }
+          }
+          static dataApiKeydownHandler(event) {
+            const isInput = /input|textarea/i.test(event.target.tagName);
+            const isEscapeEvent = event.key === ESCAPE_KEY;
+            const isUpOrDownEvent = [ARROW_UP_KEY, ARROW_DOWN_KEY].includes(event.key);
+            if (!isUpOrDownEvent && !isEscapeEvent) {
+              return;
+            }
+            if (isInput && !isEscapeEvent) {
+              return;
+            }
+            event.preventDefault();
+            const getToggleButton = this.matches(SELECTOR_DATA_TOGGLE) ? this : SelectorEngine.prev(this, SELECTOR_DATA_TOGGLE)[0] || SelectorEngine.next(this, SELECTOR_DATA_TOGGLE)[0] || SelectorEngine.findOne(SELECTOR_DATA_TOGGLE, event.delegateTarget.parentNode);
+            const instance = Dropdown.getOrCreateInstance(getToggleButton);
+            if (isUpOrDownEvent) {
+              event.stopPropagation();
+              instance.show();
+              instance._selectMenuItem(event);
+              return;
+            }
+            if (instance._isShown()) {
+              event.stopPropagation();
+              instance.hide();
+              getToggleButton.focus();
+            }
+          }
+        }
+        EventHandler.on(document, EVENT_KEYDOWN_DATA_API, SELECTOR_DATA_TOGGLE, Dropdown.dataApiKeydownHandler);
+        EventHandler.on(document, EVENT_KEYDOWN_DATA_API, SELECTOR_MENU, Dropdown.dataApiKeydownHandler);
+        EventHandler.on(document, EVENT_CLICK_DATA_API, Dropdown.clearMenus);
+        EventHandler.on(document, EVENT_KEYUP_DATA_API, Dropdown.clearMenus);
+        EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, function(event) {
+          event.preventDefault();
+          Dropdown.getOrCreateInstance(this).toggle();
+        });
+        index_js.defineJQueryPlugin(Dropdown);
+        return Dropdown;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/backdrop.js
+  var require_backdrop = __commonJS({
+    "node_modules/bootstrap/js/dist/util/backdrop.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_event_handler(), require_config(), require_util()) : typeof define === "function" && define.amd ? define(["../dom/event-handler", "./config", "./index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Backdrop = factory(global.EventHandler, global.Config, global.Index));
+      })(exports, (function(EventHandler, Config, index_js) {
+        "use strict";
+        const NAME = "backdrop";
+        const CLASS_NAME_FADE = "fade";
+        const CLASS_NAME_SHOW = "show";
+        const EVENT_MOUSEDOWN = `mousedown.bs.${NAME}`;
+        const Default = {
+          className: "modal-backdrop",
+          clickCallback: null,
+          isAnimated: false,
+          isVisible: true,
+          // if false, we use the backdrop helper without adding any element to the dom
+          rootElement: "body"
+          // give the choice to place backdrop under different elements
+        };
+        const DefaultType = {
+          className: "string",
+          clickCallback: "(function|null)",
+          isAnimated: "boolean",
+          isVisible: "boolean",
+          rootElement: "(element|string)"
+        };
+        class Backdrop extends Config {
+          constructor(config) {
+            super();
+            this._config = this._getConfig(config);
+            this._isAppended = false;
+            this._element = null;
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          show(callback) {
+            if (!this._config.isVisible) {
+              index_js.execute(callback);
+              return;
+            }
+            this._append();
+            const element = this._getElement();
+            if (this._config.isAnimated) {
+              index_js.reflow(element);
+            }
+            element.classList.add(CLASS_NAME_SHOW);
+            this._emulateAnimation(() => {
+              index_js.execute(callback);
+            });
+          }
+          hide(callback) {
+            if (!this._config.isVisible) {
+              index_js.execute(callback);
+              return;
+            }
+            this._getElement().classList.remove(CLASS_NAME_SHOW);
+            this._emulateAnimation(() => {
+              this.dispose();
+              index_js.execute(callback);
+            });
+          }
+          dispose() {
+            if (!this._isAppended) {
+              return;
+            }
+            EventHandler.off(this._element, EVENT_MOUSEDOWN);
+            this._element.remove();
+            this._isAppended = false;
+          }
+          // Private
+          _getElement() {
+            if (!this._element) {
+              const backdrop = document.createElement("div");
+              backdrop.className = this._config.className;
+              if (this._config.isAnimated) {
+                backdrop.classList.add(CLASS_NAME_FADE);
+              }
+              this._element = backdrop;
+            }
+            return this._element;
+          }
+          _configAfterMerge(config) {
+            config.rootElement = index_js.getElement(config.rootElement);
+            return config;
+          }
+          _append() {
+            if (this._isAppended) {
+              return;
+            }
+            const element = this._getElement();
+            this._config.rootElement.append(element);
+            EventHandler.on(element, EVENT_MOUSEDOWN, () => {
+              index_js.execute(this._config.clickCallback);
+            });
+            this._isAppended = true;
+          }
+          _emulateAnimation(callback) {
+            index_js.executeAfterTransition(callback, this._getElement(), this._config.isAnimated);
+          }
+        }
+        return Backdrop;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/focustrap.js
+  var require_focustrap = __commonJS({
+    "node_modules/bootstrap/js/dist/util/focustrap.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_event_handler(), require_selector_engine(), require_config()) : typeof define === "function" && define.amd ? define(["../dom/event-handler", "../dom/selector-engine", "./config"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Focustrap = factory(global.EventHandler, global.SelectorEngine, global.Config));
+      })(exports, (function(EventHandler, SelectorEngine, Config) {
+        "use strict";
+        const NAME = "focustrap";
+        const DATA_KEY = "bs.focustrap";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const EVENT_FOCUSIN = `focusin${EVENT_KEY}`;
+        const EVENT_KEYDOWN_TAB = `keydown.tab${EVENT_KEY}`;
+        const TAB_KEY = "Tab";
+        const TAB_NAV_FORWARD = "forward";
+        const TAB_NAV_BACKWARD = "backward";
+        const Default = {
+          autofocus: true,
+          trapElement: null
+          // The element to trap focus inside of
+        };
+        const DefaultType = {
+          autofocus: "boolean",
+          trapElement: "element"
+        };
+        class FocusTrap extends Config {
+          constructor(config) {
+            super();
+            this._config = this._getConfig(config);
+            this._isActive = false;
+            this._lastTabNavDirection = null;
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          activate() {
+            if (this._isActive) {
+              return;
+            }
+            if (this._config.autofocus) {
+              this._config.trapElement.focus();
+            }
+            EventHandler.off(document, EVENT_KEY);
+            EventHandler.on(document, EVENT_FOCUSIN, (event) => this._handleFocusin(event));
+            EventHandler.on(document, EVENT_KEYDOWN_TAB, (event) => this._handleKeydown(event));
+            this._isActive = true;
+          }
+          deactivate() {
+            if (!this._isActive) {
+              return;
+            }
+            this._isActive = false;
+            EventHandler.off(document, EVENT_KEY);
+          }
+          // Private
+          _handleFocusin(event) {
+            const {
+              trapElement
+            } = this._config;
+            if (event.target === document || event.target === trapElement || trapElement.contains(event.target)) {
+              return;
+            }
+            const elements = SelectorEngine.focusableChildren(trapElement);
+            if (elements.length === 0) {
+              trapElement.focus();
+            } else if (this._lastTabNavDirection === TAB_NAV_BACKWARD) {
+              elements[elements.length - 1].focus();
+            } else {
+              elements[0].focus();
+            }
+          }
+          _handleKeydown(event) {
+            if (event.key !== TAB_KEY) {
+              return;
+            }
+            this._lastTabNavDirection = event.shiftKey ? TAB_NAV_BACKWARD : TAB_NAV_FORWARD;
+          }
+        }
+        return FocusTrap;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/scrollbar.js
+  var require_scrollbar = __commonJS({
+    "node_modules/bootstrap/js/dist/util/scrollbar.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_manipulator(), require_selector_engine(), require_util()) : typeof define === "function" && define.amd ? define(["../dom/manipulator", "../dom/selector-engine", "./index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Scrollbar = factory(global.Manipulator, global.SelectorEngine, global.Index));
+      })(exports, (function(Manipulator, SelectorEngine, index_js) {
+        "use strict";
+        const SELECTOR_FIXED_CONTENT = ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top";
+        const SELECTOR_STICKY_CONTENT = ".sticky-top";
+        const PROPERTY_PADDING = "padding-right";
+        const PROPERTY_MARGIN = "margin-right";
+        class ScrollBarHelper {
+          constructor() {
+            this._element = document.body;
+          }
+          // Public
+          getWidth() {
+            const documentWidth = document.documentElement.clientWidth;
+            return Math.abs(window.innerWidth - documentWidth);
+          }
+          hide() {
+            const width = this.getWidth();
+            this._disableOverFlow();
+            this._setElementAttributes(this._element, PROPERTY_PADDING, (calculatedValue) => calculatedValue + width);
+            this._setElementAttributes(SELECTOR_FIXED_CONTENT, PROPERTY_PADDING, (calculatedValue) => calculatedValue + width);
+            this._setElementAttributes(SELECTOR_STICKY_CONTENT, PROPERTY_MARGIN, (calculatedValue) => calculatedValue - width);
+          }
+          reset() {
+            this._resetElementAttributes(this._element, "overflow");
+            this._resetElementAttributes(this._element, PROPERTY_PADDING);
+            this._resetElementAttributes(SELECTOR_FIXED_CONTENT, PROPERTY_PADDING);
+            this._resetElementAttributes(SELECTOR_STICKY_CONTENT, PROPERTY_MARGIN);
+          }
+          isOverflowing() {
+            return this.getWidth() > 0;
+          }
+          // Private
+          _disableOverFlow() {
+            this._saveInitialAttribute(this._element, "overflow");
+            this._element.style.overflow = "hidden";
+          }
+          _setElementAttributes(selector, styleProperty, callback) {
+            const scrollbarWidth = this.getWidth();
+            const manipulationCallBack = (element) => {
+              if (element !== this._element && window.innerWidth > element.clientWidth + scrollbarWidth) {
+                return;
+              }
+              this._saveInitialAttribute(element, styleProperty);
+              const calculatedValue = window.getComputedStyle(element).getPropertyValue(styleProperty);
+              element.style.setProperty(styleProperty, `${callback(Number.parseFloat(calculatedValue))}px`);
+            };
+            this._applyManipulationCallback(selector, manipulationCallBack);
+          }
+          _saveInitialAttribute(element, styleProperty) {
+            const actualValue = element.style.getPropertyValue(styleProperty);
+            if (actualValue) {
+              Manipulator.setDataAttribute(element, styleProperty, actualValue);
+            }
+          }
+          _resetElementAttributes(selector, styleProperty) {
+            const manipulationCallBack = (element) => {
+              const value = Manipulator.getDataAttribute(element, styleProperty);
+              if (value === null) {
+                element.style.removeProperty(styleProperty);
+                return;
+              }
+              Manipulator.removeDataAttribute(element, styleProperty);
+              element.style.setProperty(styleProperty, value);
+            };
+            this._applyManipulationCallback(selector, manipulationCallBack);
+          }
+          _applyManipulationCallback(selector, callBack) {
+            if (index_js.isElement(selector)) {
+              callBack(selector);
+              return;
+            }
+            for (const sel of SelectorEngine.find(selector, this._element)) {
+              callBack(sel);
+            }
+          }
+        }
+        return ScrollBarHelper;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/offcanvas.js
+  var require_offcanvas = __commonJS({
+    "node_modules/bootstrap/js/dist/offcanvas.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_selector_engine(), require_backdrop(), require_component_functions(), require_focustrap(), require_util(), require_scrollbar()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./dom/selector-engine", "./util/backdrop", "./util/component-functions", "./util/focustrap", "./util/index", "./util/scrollbar"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Offcanvas = factory(global.BaseComponent, global.EventHandler, global.SelectorEngine, global.Backdrop, global.ComponentFunctions, global.Focustrap, global.Index, global.Scrollbar));
+      })(exports, (function(BaseComponent, EventHandler, SelectorEngine, Backdrop, componentFunctions_js, FocusTrap, index_js, ScrollBarHelper) {
+        "use strict";
+        const NAME = "offcanvas";
+        const DATA_KEY = "bs.offcanvas";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const DATA_API_KEY = ".data-api";
+        const EVENT_LOAD_DATA_API = `load${EVENT_KEY}${DATA_API_KEY}`;
+        const ESCAPE_KEY = "Escape";
+        const CLASS_NAME_SHOW = "show";
+        const CLASS_NAME_SHOWING = "showing";
+        const CLASS_NAME_HIDING = "hiding";
+        const CLASS_NAME_BACKDROP = "offcanvas-backdrop";
+        const OPEN_SELECTOR = ".offcanvas.show";
+        const EVENT_SHOW = `show${EVENT_KEY}`;
+        const EVENT_SHOWN = `shown${EVENT_KEY}`;
+        const EVENT_HIDE = `hide${EVENT_KEY}`;
+        const EVENT_HIDE_PREVENTED = `hidePrevented${EVENT_KEY}`;
+        const EVENT_HIDDEN = `hidden${EVENT_KEY}`;
+        const EVENT_RESIZE = `resize${EVENT_KEY}`;
+        const EVENT_CLICK_DATA_API = `click${EVENT_KEY}${DATA_API_KEY}`;
+        const EVENT_KEYDOWN_DISMISS = `keydown.dismiss${EVENT_KEY}`;
+        const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="offcanvas"]';
+        const Default = {
+          backdrop: true,
+          keyboard: true,
+          scroll: false
+        };
+        const DefaultType = {
+          backdrop: "(boolean|string)",
+          keyboard: "boolean",
+          scroll: "boolean"
+        };
+        class Offcanvas extends BaseComponent {
+          constructor(element, config) {
+            super(element, config);
+            this._isShown = false;
+            this._backdrop = this._initializeBackDrop();
+            this._focustrap = this._initializeFocusTrap();
+            this._addEventListeners();
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          toggle(relatedTarget) {
+            return this._isShown ? this.hide() : this.show(relatedTarget);
+          }
+          show(relatedTarget) {
+            if (this._isShown) {
+              return;
+            }
+            const showEvent = EventHandler.trigger(this._element, EVENT_SHOW, {
+              relatedTarget
+            });
+            if (showEvent.defaultPrevented) {
+              return;
+            }
+            this._isShown = true;
+            this._backdrop.show();
+            if (!this._config.scroll) {
+              new ScrollBarHelper().hide();
+            }
+            this._element.setAttribute("aria-modal", true);
+            this._element.setAttribute("role", "dialog");
+            this._element.classList.add(CLASS_NAME_SHOWING);
+            const completeCallBack = () => {
+              if (!this._config.scroll || this._config.backdrop) {
+                this._focustrap.activate();
+              }
+              this._element.classList.add(CLASS_NAME_SHOW);
+              this._element.classList.remove(CLASS_NAME_SHOWING);
+              EventHandler.trigger(this._element, EVENT_SHOWN, {
+                relatedTarget
+              });
+            };
+            this._queueCallback(completeCallBack, this._element, true);
+          }
+          hide() {
+            if (!this._isShown) {
+              return;
+            }
+            const hideEvent = EventHandler.trigger(this._element, EVENT_HIDE);
+            if (hideEvent.defaultPrevented) {
+              return;
+            }
+            this._focustrap.deactivate();
+            this._element.blur();
+            this._isShown = false;
+            this._element.classList.add(CLASS_NAME_HIDING);
+            this._backdrop.hide();
+            const completeCallback = () => {
+              this._element.classList.remove(CLASS_NAME_SHOW, CLASS_NAME_HIDING);
+              this._element.removeAttribute("aria-modal");
+              this._element.removeAttribute("role");
+              if (!this._config.scroll) {
+                new ScrollBarHelper().reset();
+              }
+              EventHandler.trigger(this._element, EVENT_HIDDEN);
+            };
+            this._queueCallback(completeCallback, this._element, true);
+          }
+          dispose() {
+            this._backdrop.dispose();
+            this._focustrap.deactivate();
+            super.dispose();
+          }
+          // Private
+          _initializeBackDrop() {
+            const clickCallback = () => {
+              if (this._config.backdrop === "static") {
+                EventHandler.trigger(this._element, EVENT_HIDE_PREVENTED);
+                return;
+              }
+              this.hide();
+            };
+            const isVisible = Boolean(this._config.backdrop);
+            return new Backdrop({
+              className: CLASS_NAME_BACKDROP,
+              isVisible,
+              isAnimated: true,
+              rootElement: this._element.parentNode,
+              clickCallback: isVisible ? clickCallback : null
+            });
+          }
+          _initializeFocusTrap() {
+            return new FocusTrap({
+              trapElement: this._element
+            });
+          }
+          _addEventListeners() {
+            EventHandler.on(this._element, EVENT_KEYDOWN_DISMISS, (event) => {
+              if (event.key !== ESCAPE_KEY) {
+                return;
+              }
+              if (this._config.keyboard) {
+                this.hide();
+                return;
+              }
+              EventHandler.trigger(this._element, EVENT_HIDE_PREVENTED);
+            });
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Offcanvas.getOrCreateInstance(this, config);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (data[config] === void 0 || config.startsWith("_") || config === "constructor") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config](this);
+            });
+          }
+        }
+        EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, function(event) {
+          const target = SelectorEngine.getElementFromSelector(this);
+          if (["A", "AREA"].includes(this.tagName)) {
+            event.preventDefault();
+          }
+          if (index_js.isDisabled(this)) {
+            return;
+          }
+          EventHandler.one(target, EVENT_HIDDEN, () => {
+            if (index_js.isVisible(this)) {
+              this.focus();
+            }
+          });
+          const alreadyOpen = SelectorEngine.findOne(OPEN_SELECTOR);
+          if (alreadyOpen && alreadyOpen !== target) {
+            Offcanvas.getInstance(alreadyOpen).hide();
+          }
+          const data = Offcanvas.getOrCreateInstance(target);
+          data.toggle(this);
+        });
+        EventHandler.on(window, EVENT_LOAD_DATA_API, () => {
+          for (const selector of SelectorEngine.find(OPEN_SELECTOR)) {
+            Offcanvas.getOrCreateInstance(selector).show();
+          }
+        });
+        EventHandler.on(window, EVENT_RESIZE, () => {
+          for (const element of SelectorEngine.find("[aria-modal][class*=show][class*=offcanvas-]")) {
+            if (getComputedStyle(element).position !== "fixed") {
+              Offcanvas.getOrCreateInstance(element).hide();
+            }
+          }
+        });
+        componentFunctions_js.enableDismissTrigger(Offcanvas);
+        index_js.defineJQueryPlugin(Offcanvas);
+        return Offcanvas;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/modal.js
+  var require_modal = __commonJS({
+    "node_modules/bootstrap/js/dist/modal.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_selector_engine(), require_backdrop(), require_component_functions(), require_focustrap(), require_util(), require_scrollbar()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./dom/selector-engine", "./util/backdrop", "./util/component-functions", "./util/focustrap", "./util/index", "./util/scrollbar"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Modal = factory(global.BaseComponent, global.EventHandler, global.SelectorEngine, global.Backdrop, global.ComponentFunctions, global.Focustrap, global.Index, global.Scrollbar));
+      })(exports, (function(BaseComponent, EventHandler, SelectorEngine, Backdrop, componentFunctions_js, FocusTrap, index_js, ScrollBarHelper) {
+        "use strict";
+        const NAME = "modal";
+        const DATA_KEY = "bs.modal";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const DATA_API_KEY = ".data-api";
+        const ESCAPE_KEY = "Escape";
+        const EVENT_HIDE = `hide${EVENT_KEY}`;
+        const EVENT_HIDE_PREVENTED = `hidePrevented${EVENT_KEY}`;
+        const EVENT_HIDDEN = `hidden${EVENT_KEY}`;
+        const EVENT_SHOW = `show${EVENT_KEY}`;
+        const EVENT_SHOWN = `shown${EVENT_KEY}`;
+        const EVENT_RESIZE = `resize${EVENT_KEY}`;
+        const EVENT_CLICK_DISMISS = `click.dismiss${EVENT_KEY}`;
+        const EVENT_MOUSEDOWN_DISMISS = `mousedown.dismiss${EVENT_KEY}`;
+        const EVENT_KEYDOWN_DISMISS = `keydown.dismiss${EVENT_KEY}`;
+        const EVENT_CLICK_DATA_API = `click${EVENT_KEY}${DATA_API_KEY}`;
+        const CLASS_NAME_OPEN = "modal-open";
+        const CLASS_NAME_FADE = "fade";
+        const CLASS_NAME_SHOW = "show";
+        const CLASS_NAME_STATIC = "modal-static";
+        const OPEN_SELECTOR = ".modal.show";
+        const SELECTOR_DIALOG = ".modal-dialog";
+        const SELECTOR_MODAL_BODY = ".modal-body";
+        const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="modal"]';
+        const Default = {
+          backdrop: true,
+          focus: true,
+          keyboard: true
+        };
+        const DefaultType = {
+          backdrop: "(boolean|string)",
+          focus: "boolean",
+          keyboard: "boolean"
+        };
+        class Modal extends BaseComponent {
+          constructor(element, config) {
+            super(element, config);
+            this._dialog = SelectorEngine.findOne(SELECTOR_DIALOG, this._element);
+            this._backdrop = this._initializeBackDrop();
+            this._focustrap = this._initializeFocusTrap();
+            this._isShown = false;
+            this._isTransitioning = false;
+            this._scrollBar = new ScrollBarHelper();
+            this._addEventListeners();
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          toggle(relatedTarget) {
+            return this._isShown ? this.hide() : this.show(relatedTarget);
+          }
+          show(relatedTarget) {
+            if (this._isShown || this._isTransitioning) {
+              return;
+            }
+            const showEvent = EventHandler.trigger(this._element, EVENT_SHOW, {
+              relatedTarget
+            });
+            if (showEvent.defaultPrevented) {
+              return;
+            }
+            this._isShown = true;
+            this._isTransitioning = true;
+            this._scrollBar.hide();
+            document.body.classList.add(CLASS_NAME_OPEN);
+            this._adjustDialog();
+            this._backdrop.show(() => this._showElement(relatedTarget));
+          }
+          hide() {
+            if (!this._isShown || this._isTransitioning) {
+              return;
+            }
+            const hideEvent = EventHandler.trigger(this._element, EVENT_HIDE);
+            if (hideEvent.defaultPrevented) {
+              return;
+            }
+            this._isShown = false;
+            this._isTransitioning = true;
+            this._focustrap.deactivate();
+            this._element.classList.remove(CLASS_NAME_SHOW);
+            this._queueCallback(() => this._hideModal(), this._element, this._isAnimated());
+          }
+          dispose() {
+            EventHandler.off(window, EVENT_KEY);
+            EventHandler.off(this._dialog, EVENT_KEY);
+            this._backdrop.dispose();
+            this._focustrap.deactivate();
+            super.dispose();
+          }
+          handleUpdate() {
+            this._adjustDialog();
+          }
+          // Private
+          _initializeBackDrop() {
+            return new Backdrop({
+              isVisible: Boolean(this._config.backdrop),
+              // 'static' option will be translated to true, and booleans will keep their value,
+              isAnimated: this._isAnimated()
+            });
+          }
+          _initializeFocusTrap() {
+            return new FocusTrap({
+              trapElement: this._element
+            });
+          }
+          _showElement(relatedTarget) {
+            if (!document.body.contains(this._element)) {
+              document.body.append(this._element);
+            }
+            this._element.style.display = "block";
+            this._element.removeAttribute("aria-hidden");
+            this._element.setAttribute("aria-modal", true);
+            this._element.setAttribute("role", "dialog");
+            this._element.scrollTop = 0;
+            const modalBody = SelectorEngine.findOne(SELECTOR_MODAL_BODY, this._dialog);
+            if (modalBody) {
+              modalBody.scrollTop = 0;
+            }
+            index_js.reflow(this._element);
+            this._element.classList.add(CLASS_NAME_SHOW);
+            const transitionComplete = () => {
+              if (this._config.focus) {
+                this._focustrap.activate();
+              }
+              this._isTransitioning = false;
+              EventHandler.trigger(this._element, EVENT_SHOWN, {
+                relatedTarget
+              });
+            };
+            this._queueCallback(transitionComplete, this._dialog, this._isAnimated());
+          }
+          _addEventListeners() {
+            EventHandler.on(this._element, EVENT_KEYDOWN_DISMISS, (event) => {
+              if (event.key !== ESCAPE_KEY) {
+                return;
+              }
+              if (this._config.keyboard) {
+                this.hide();
+                return;
+              }
+              this._triggerBackdropTransition();
+            });
+            EventHandler.on(window, EVENT_RESIZE, () => {
+              if (this._isShown && !this._isTransitioning) {
+                this._adjustDialog();
+              }
+            });
+            EventHandler.on(this._element, EVENT_MOUSEDOWN_DISMISS, (event) => {
+              EventHandler.one(this._element, EVENT_CLICK_DISMISS, (event2) => {
+                if (this._element !== event.target || this._element !== event2.target) {
+                  return;
+                }
+                if (this._config.backdrop === "static") {
+                  this._triggerBackdropTransition();
+                  return;
+                }
+                if (this._config.backdrop) {
+                  this.hide();
+                }
+              });
+            });
+          }
+          _hideModal() {
+            this._element.style.display = "none";
+            this._element.setAttribute("aria-hidden", true);
+            this._element.removeAttribute("aria-modal");
+            this._element.removeAttribute("role");
+            this._isTransitioning = false;
+            this._backdrop.hide(() => {
+              document.body.classList.remove(CLASS_NAME_OPEN);
+              this._resetAdjustments();
+              this._scrollBar.reset();
+              EventHandler.trigger(this._element, EVENT_HIDDEN);
+            });
+          }
+          _isAnimated() {
+            return this._element.classList.contains(CLASS_NAME_FADE);
+          }
+          _triggerBackdropTransition() {
+            const hideEvent = EventHandler.trigger(this._element, EVENT_HIDE_PREVENTED);
+            if (hideEvent.defaultPrevented) {
+              return;
+            }
+            const isModalOverflowing = this._element.scrollHeight > document.documentElement.clientHeight;
+            const initialOverflowY = this._element.style.overflowY;
+            if (initialOverflowY === "hidden" || this._element.classList.contains(CLASS_NAME_STATIC)) {
+              return;
+            }
+            if (!isModalOverflowing) {
+              this._element.style.overflowY = "hidden";
+            }
+            this._element.classList.add(CLASS_NAME_STATIC);
+            this._queueCallback(() => {
+              this._element.classList.remove(CLASS_NAME_STATIC);
+              this._queueCallback(() => {
+                this._element.style.overflowY = initialOverflowY;
+              }, this._dialog);
+            }, this._dialog);
+            this._element.focus();
+          }
+          /**
+           * The following methods are used to handle overflowing modals
+           */
+          _adjustDialog() {
+            const isModalOverflowing = this._element.scrollHeight > document.documentElement.clientHeight;
+            const scrollbarWidth = this._scrollBar.getWidth();
+            const isBodyOverflowing = scrollbarWidth > 0;
+            if (isBodyOverflowing && !isModalOverflowing) {
+              const property = index_js.isRTL() ? "paddingLeft" : "paddingRight";
+              this._element.style[property] = `${scrollbarWidth}px`;
+            }
+            if (!isBodyOverflowing && isModalOverflowing) {
+              const property = index_js.isRTL() ? "paddingRight" : "paddingLeft";
+              this._element.style[property] = `${scrollbarWidth}px`;
+            }
+          }
+          _resetAdjustments() {
+            this._element.style.paddingLeft = "";
+            this._element.style.paddingRight = "";
+          }
+          // Static
+          static jQueryInterface(config, relatedTarget) {
+            return this.each(function() {
+              const data = Modal.getOrCreateInstance(this, config);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (typeof data[config] === "undefined") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config](relatedTarget);
+            });
+          }
+        }
+        EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, function(event) {
+          const target = SelectorEngine.getElementFromSelector(this);
+          if (["A", "AREA"].includes(this.tagName)) {
+            event.preventDefault();
+          }
+          EventHandler.one(target, EVENT_SHOW, (showEvent) => {
+            if (showEvent.defaultPrevented) {
+              return;
+            }
+            EventHandler.one(target, EVENT_HIDDEN, () => {
+              if (index_js.isVisible(this)) {
+                this.focus();
+              }
+            });
+          });
+          const alreadyOpen = SelectorEngine.findOne(OPEN_SELECTOR);
+          if (alreadyOpen) {
+            Modal.getInstance(alreadyOpen).hide();
+          }
+          const data = Modal.getOrCreateInstance(target);
+          data.toggle(this);
+        });
+        componentFunctions_js.enableDismissTrigger(Modal);
+        index_js.defineJQueryPlugin(Modal);
+        return Modal;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/sanitizer.js
+  var require_sanitizer = __commonJS({
+    "node_modules/bootstrap/js/dist/util/sanitizer.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Sanitizer = {}));
+      })(exports, (function(exports2) {
+        "use strict";
+        const ARIA_ATTRIBUTE_PATTERN = /^aria-[\w-]*$/i;
+        const DefaultAllowlist = {
+          // Global attributes allowed on any supplied element below.
+          "*": ["class", "dir", "id", "lang", "role", ARIA_ATTRIBUTE_PATTERN],
+          a: ["target", "href", "title", "rel"],
+          area: [],
+          b: [],
+          br: [],
+          col: [],
+          code: [],
+          dd: [],
+          div: [],
+          dl: [],
+          dt: [],
+          em: [],
+          hr: [],
+          h1: [],
+          h2: [],
+          h3: [],
+          h4: [],
+          h5: [],
+          h6: [],
+          i: [],
+          img: ["src", "srcset", "alt", "title", "width", "height"],
+          li: [],
+          ol: [],
+          p: [],
+          pre: [],
+          s: [],
+          small: [],
+          span: [],
+          sub: [],
+          sup: [],
+          strong: [],
+          u: [],
+          ul: []
+        };
+        const uriAttributes = /* @__PURE__ */ new Set(["background", "cite", "href", "itemtype", "longdesc", "poster", "src", "xlink:href"]);
+        const SAFE_URL_PATTERN = /^(?!javascript:)(?:[a-z0-9+.-]+:|[^&:/?#]*(?:[/?#]|$))/i;
+        const allowedAttribute = (attribute, allowedAttributeList) => {
+          const attributeName = attribute.nodeName.toLowerCase();
+          if (allowedAttributeList.includes(attributeName)) {
+            if (uriAttributes.has(attributeName)) {
+              return Boolean(SAFE_URL_PATTERN.test(attribute.nodeValue));
+            }
+            return true;
+          }
+          return allowedAttributeList.filter((attributeRegex) => attributeRegex instanceof RegExp).some((regex) => regex.test(attributeName));
+        };
+        function sanitizeHtml(unsafeHtml, allowList, sanitizeFunction) {
+          if (!unsafeHtml.length) {
+            return unsafeHtml;
+          }
+          if (sanitizeFunction && typeof sanitizeFunction === "function") {
+            return sanitizeFunction(unsafeHtml);
+          }
+          const domParser = new window.DOMParser();
+          const createdDocument = domParser.parseFromString(unsafeHtml, "text/html");
+          const elements = [].concat(...createdDocument.body.querySelectorAll("*"));
+          for (const element of elements) {
+            const elementName = element.nodeName.toLowerCase();
+            if (!Object.keys(allowList).includes(elementName)) {
+              element.remove();
+              continue;
+            }
+            const attributeList = [].concat(...element.attributes);
+            const allowedAttributes = [].concat(allowList["*"] || [], allowList[elementName] || []);
+            for (const attribute of attributeList) {
+              if (!allowedAttribute(attribute, allowedAttributes)) {
+                element.removeAttribute(attribute.nodeName);
+              }
+            }
+          }
+          return createdDocument.body.innerHTML;
+        }
+        exports2.DefaultAllowlist = DefaultAllowlist;
+        exports2.sanitizeHtml = sanitizeHtml;
+        Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/util/template-factory.js
+  var require_template_factory = __commonJS({
+    "node_modules/bootstrap/js/dist/util/template-factory.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_selector_engine(), require_config(), require_sanitizer(), require_util()) : typeof define === "function" && define.amd ? define(["../dom/selector-engine", "./config", "./sanitizer", "./index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.TemplateFactory = factory(global.SelectorEngine, global.Config, global.Sanitizer, global.Index));
+      })(exports, (function(SelectorEngine, Config, sanitizer_js, index_js) {
+        "use strict";
+        const NAME = "TemplateFactory";
+        const Default = {
+          allowList: sanitizer_js.DefaultAllowlist,
+          content: {},
+          // { selector : text ,  selector2 : text2 , }
+          extraClass: "",
+          html: false,
+          sanitize: true,
+          sanitizeFn: null,
+          template: "<div></div>"
+        };
+        const DefaultType = {
+          allowList: "object",
+          content: "object",
+          extraClass: "(string|function)",
+          html: "boolean",
+          sanitize: "boolean",
+          sanitizeFn: "(null|function)",
+          template: "string"
+        };
+        const DefaultContentType = {
+          entry: "(string|element|function|null)",
+          selector: "(string|element)"
+        };
+        class TemplateFactory extends Config {
+          constructor(config) {
+            super();
+            this._config = this._getConfig(config);
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          getContent() {
+            return Object.values(this._config.content).map((config) => this._resolvePossibleFunction(config)).filter(Boolean);
+          }
+          hasContent() {
+            return this.getContent().length > 0;
+          }
+          changeContent(content) {
+            this._checkContent(content);
+            this._config.content = {
+              ...this._config.content,
+              ...content
+            };
+            return this;
+          }
+          toHtml() {
+            const templateWrapper = document.createElement("div");
+            templateWrapper.innerHTML = this._maybeSanitize(this._config.template);
+            for (const [selector, text] of Object.entries(this._config.content)) {
+              this._setContent(templateWrapper, text, selector);
+            }
+            const template = templateWrapper.children[0];
+            const extraClass = this._resolvePossibleFunction(this._config.extraClass);
+            if (extraClass) {
+              template.classList.add(...extraClass.split(" "));
+            }
+            return template;
+          }
+          // Private
+          _typeCheckConfig(config) {
+            super._typeCheckConfig(config);
+            this._checkContent(config.content);
+          }
+          _checkContent(arg) {
+            for (const [selector, content] of Object.entries(arg)) {
+              super._typeCheckConfig({
+                selector,
+                entry: content
+              }, DefaultContentType);
+            }
+          }
+          _setContent(template, content, selector) {
+            const templateElement = SelectorEngine.findOne(selector, template);
+            if (!templateElement) {
+              return;
+            }
+            content = this._resolvePossibleFunction(content);
+            if (!content) {
+              templateElement.remove();
+              return;
+            }
+            if (index_js.isElement(content)) {
+              this._putElementInTemplate(index_js.getElement(content), templateElement);
+              return;
+            }
+            if (this._config.html) {
+              templateElement.innerHTML = this._maybeSanitize(content);
+              return;
+            }
+            templateElement.textContent = content;
+          }
+          _maybeSanitize(arg) {
+            return this._config.sanitize ? sanitizer_js.sanitizeHtml(arg, this._config.allowList, this._config.sanitizeFn) : arg;
+          }
+          _resolvePossibleFunction(arg) {
+            return index_js.execute(arg, [void 0, this]);
+          }
+          _putElementInTemplate(element, templateElement) {
+            if (this._config.html) {
+              templateElement.innerHTML = "";
+              templateElement.append(element);
+              return;
+            }
+            templateElement.textContent = element.textContent;
+          }
+        }
+        return TemplateFactory;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/tooltip.js
+  var require_tooltip = __commonJS({
+    "node_modules/bootstrap/js/dist/tooltip.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_popper(), require_base_component(), require_event_handler(), require_manipulator(), require_util(), require_sanitizer(), require_template_factory()) : typeof define === "function" && define.amd ? define(["@popperjs/core", "./base-component", "./dom/event-handler", "./dom/manipulator", "./util/index", "./util/sanitizer", "./util/template-factory"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Tooltip = factory(global["@popperjs/core"], global.BaseComponent, global.EventHandler, global.Manipulator, global.Index, global.Sanitizer, global.TemplateFactory));
+      })(exports, (function(Popper, BaseComponent, EventHandler, Manipulator, index_js, sanitizer_js, TemplateFactory) {
+        "use strict";
+        function _interopNamespaceDefault(e) {
+          const n = Object.create(null, { [Symbol.toStringTag]: { value: "Module" } });
+          if (e) {
+            for (const k in e) {
+              if (k !== "default") {
+                const d = Object.getOwnPropertyDescriptor(e, k);
+                Object.defineProperty(n, k, d.get ? d : {
+                  enumerable: true,
+                  get: () => e[k]
+                });
+              }
+            }
+          }
+          n.default = e;
+          return Object.freeze(n);
+        }
+        const Popper__namespace = /* @__PURE__ */ _interopNamespaceDefault(Popper);
+        const NAME = "tooltip";
+        const DISALLOWED_ATTRIBUTES = /* @__PURE__ */ new Set(["sanitize", "allowList", "sanitizeFn"]);
+        const CLASS_NAME_FADE = "fade";
+        const CLASS_NAME_MODAL = "modal";
+        const CLASS_NAME_SHOW = "show";
+        const SELECTOR_TOOLTIP_INNER = ".tooltip-inner";
+        const SELECTOR_MODAL = `.${CLASS_NAME_MODAL}`;
+        const EVENT_MODAL_HIDE = "hide.bs.modal";
+        const TRIGGER_HOVER = "hover";
+        const TRIGGER_FOCUS = "focus";
+        const TRIGGER_CLICK = "click";
+        const TRIGGER_MANUAL = "manual";
+        const EVENT_HIDE = "hide";
+        const EVENT_HIDDEN = "hidden";
+        const EVENT_SHOW = "show";
+        const EVENT_SHOWN = "shown";
+        const EVENT_INSERTED = "inserted";
+        const EVENT_CLICK = "click";
+        const EVENT_FOCUSIN = "focusin";
+        const EVENT_FOCUSOUT = "focusout";
+        const EVENT_MOUSEENTER = "mouseenter";
+        const EVENT_MOUSELEAVE = "mouseleave";
+        const AttachmentMap = {
+          AUTO: "auto",
+          TOP: "top",
+          RIGHT: index_js.isRTL() ? "left" : "right",
+          BOTTOM: "bottom",
+          LEFT: index_js.isRTL() ? "right" : "left"
+        };
+        const Default = {
+          allowList: sanitizer_js.DefaultAllowlist,
+          animation: true,
+          boundary: "clippingParents",
+          container: false,
+          customClass: "",
+          delay: 0,
+          fallbackPlacements: ["top", "right", "bottom", "left"],
+          html: false,
+          offset: [0, 6],
+          placement: "top",
+          popperConfig: null,
+          sanitize: true,
+          sanitizeFn: null,
+          selector: false,
+          template: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+          title: "",
+          trigger: "hover focus"
+        };
+        const DefaultType = {
+          allowList: "object",
+          animation: "boolean",
+          boundary: "(string|element)",
+          container: "(string|element|boolean)",
+          customClass: "(string|function)",
+          delay: "(number|object)",
+          fallbackPlacements: "array",
+          html: "boolean",
+          offset: "(array|string|function)",
+          placement: "(string|function)",
+          popperConfig: "(null|object|function)",
+          sanitize: "boolean",
+          sanitizeFn: "(null|function)",
+          selector: "(string|boolean)",
+          template: "string",
+          title: "(string|element|function)",
+          trigger: "string"
+        };
+        class Tooltip2 extends BaseComponent {
+          constructor(element, config) {
+            if (typeof Popper__namespace === "undefined") {
+              throw new TypeError("Bootstrap's tooltips require Popper (https://popper.js.org/docs/v2/)");
+            }
+            super(element, config);
+            this._isEnabled = true;
+            this._timeout = 0;
+            this._isHovered = null;
+            this._activeTrigger = {};
+            this._popper = null;
+            this._templateFactory = null;
+            this._newContent = null;
+            this.tip = null;
+            this._setListeners();
+            if (!this._config.selector) {
+              this._fixTitle();
+            }
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          enable() {
+            this._isEnabled = true;
+          }
+          disable() {
+            this._isEnabled = false;
+          }
+          toggleEnabled() {
+            this._isEnabled = !this._isEnabled;
+          }
+          toggle() {
+            if (!this._isEnabled) {
+              return;
+            }
+            if (this._isShown()) {
+              this._leave();
+              return;
+            }
+            this._enter();
+          }
+          dispose() {
+            clearTimeout(this._timeout);
+            EventHandler.off(this._element.closest(SELECTOR_MODAL), EVENT_MODAL_HIDE, this._hideModalHandler);
+            if (this._element.getAttribute("data-bs-original-title")) {
+              this._element.setAttribute("title", this._element.getAttribute("data-bs-original-title"));
+            }
+            this._disposePopper();
+            super.dispose();
+          }
+          show() {
+            if (this._element.style.display === "none") {
+              throw new Error("Please use show on visible elements");
+            }
+            if (!(this._isWithContent() && this._isEnabled)) {
+              return;
+            }
+            const showEvent = EventHandler.trigger(this._element, this.constructor.eventName(EVENT_SHOW));
+            const shadowRoot = index_js.findShadowRoot(this._element);
+            const isInTheDom = (shadowRoot || this._element.ownerDocument.documentElement).contains(this._element);
+            if (showEvent.defaultPrevented || !isInTheDom) {
+              return;
+            }
+            this._disposePopper();
+            const tip = this._getTipElement();
+            this._element.setAttribute("aria-describedby", tip.getAttribute("id"));
+            const {
+              container
+            } = this._config;
+            if (!this._element.ownerDocument.documentElement.contains(this.tip)) {
+              container.append(tip);
+              EventHandler.trigger(this._element, this.constructor.eventName(EVENT_INSERTED));
+            }
+            this._popper = this._createPopper(tip);
+            tip.classList.add(CLASS_NAME_SHOW);
+            if ("ontouchstart" in document.documentElement) {
+              for (const element of [].concat(...document.body.children)) {
+                EventHandler.on(element, "mouseover", index_js.noop);
+              }
+            }
+            const complete = () => {
+              EventHandler.trigger(this._element, this.constructor.eventName(EVENT_SHOWN));
+              if (this._isHovered === false) {
+                this._leave();
+              }
+              this._isHovered = false;
+            };
+            this._queueCallback(complete, this.tip, this._isAnimated());
+          }
+          hide() {
+            if (!this._isShown()) {
+              return;
+            }
+            const hideEvent = EventHandler.trigger(this._element, this.constructor.eventName(EVENT_HIDE));
+            if (hideEvent.defaultPrevented) {
+              return;
+            }
+            const tip = this._getTipElement();
+            tip.classList.remove(CLASS_NAME_SHOW);
+            if ("ontouchstart" in document.documentElement) {
+              for (const element of [].concat(...document.body.children)) {
+                EventHandler.off(element, "mouseover", index_js.noop);
+              }
+            }
+            this._activeTrigger[TRIGGER_CLICK] = false;
+            this._activeTrigger[TRIGGER_FOCUS] = false;
+            this._activeTrigger[TRIGGER_HOVER] = false;
+            this._isHovered = null;
+            const complete = () => {
+              if (this._isWithActiveTrigger()) {
+                return;
+              }
+              if (!this._isHovered) {
+                this._disposePopper();
+              }
+              this._element.removeAttribute("aria-describedby");
+              EventHandler.trigger(this._element, this.constructor.eventName(EVENT_HIDDEN));
+            };
+            this._queueCallback(complete, this.tip, this._isAnimated());
+          }
+          update() {
+            if (this._popper) {
+              this._popper.update();
+            }
+          }
+          // Protected
+          _isWithContent() {
+            return Boolean(this._getTitle());
+          }
+          _getTipElement() {
+            if (!this.tip) {
+              this.tip = this._createTipElement(this._newContent || this._getContentForTemplate());
+            }
+            return this.tip;
+          }
+          _createTipElement(content) {
+            const tip = this._getTemplateFactory(content).toHtml();
+            if (!tip) {
+              return null;
+            }
+            tip.classList.remove(CLASS_NAME_FADE, CLASS_NAME_SHOW);
+            tip.classList.add(`bs-${this.constructor.NAME}-auto`);
+            const tipId = index_js.getUID(this.constructor.NAME).toString();
+            tip.setAttribute("id", tipId);
+            if (this._isAnimated()) {
+              tip.classList.add(CLASS_NAME_FADE);
+            }
+            return tip;
+          }
+          setContent(content) {
+            this._newContent = content;
+            if (this._isShown()) {
+              this._disposePopper();
+              this.show();
+            }
+          }
+          _getTemplateFactory(content) {
+            if (this._templateFactory) {
+              this._templateFactory.changeContent(content);
+            } else {
+              this._templateFactory = new TemplateFactory({
+                ...this._config,
+                // the `content` var has to be after `this._config`
+                // to override config.content in case of popover
+                content,
+                extraClass: this._resolvePossibleFunction(this._config.customClass)
+              });
+            }
+            return this._templateFactory;
+          }
+          _getContentForTemplate() {
+            return {
+              [SELECTOR_TOOLTIP_INNER]: this._getTitle()
+            };
+          }
+          _getTitle() {
+            return this._resolvePossibleFunction(this._config.title) || this._element.getAttribute("data-bs-original-title");
+          }
+          // Private
+          _initializeOnDelegatedTarget(event) {
+            return this.constructor.getOrCreateInstance(event.delegateTarget, this._getDelegateConfig());
+          }
+          _isAnimated() {
+            return this._config.animation || this.tip && this.tip.classList.contains(CLASS_NAME_FADE);
+          }
+          _isShown() {
+            return this.tip && this.tip.classList.contains(CLASS_NAME_SHOW);
+          }
+          _createPopper(tip) {
+            const placement = index_js.execute(this._config.placement, [this, tip, this._element]);
+            const attachment = AttachmentMap[placement.toUpperCase()];
+            return Popper__namespace.createPopper(this._element, tip, this._getPopperConfig(attachment));
+          }
+          _getOffset() {
+            const {
+              offset
+            } = this._config;
+            if (typeof offset === "string") {
+              return offset.split(",").map((value) => Number.parseInt(value, 10));
+            }
+            if (typeof offset === "function") {
+              return (popperData) => offset(popperData, this._element);
+            }
+            return offset;
+          }
+          _resolvePossibleFunction(arg) {
+            return index_js.execute(arg, [this._element, this._element]);
+          }
+          _getPopperConfig(attachment) {
+            const defaultBsPopperConfig = {
+              placement: attachment,
+              modifiers: [{
+                name: "flip",
+                options: {
+                  fallbackPlacements: this._config.fallbackPlacements
+                }
+              }, {
+                name: "offset",
+                options: {
+                  offset: this._getOffset()
+                }
+              }, {
+                name: "preventOverflow",
+                options: {
+                  boundary: this._config.boundary
+                }
+              }, {
+                name: "arrow",
+                options: {
+                  element: `.${this.constructor.NAME}-arrow`
+                }
+              }, {
+                name: "preSetPlacement",
+                enabled: true,
+                phase: "beforeMain",
+                fn: (data) => {
+                  this._getTipElement().setAttribute("data-popper-placement", data.state.placement);
+                }
+              }]
+            };
+            return {
+              ...defaultBsPopperConfig,
+              ...index_js.execute(this._config.popperConfig, [void 0, defaultBsPopperConfig])
+            };
+          }
+          _setListeners() {
+            const triggers = this._config.trigger.split(" ");
+            for (const trigger of triggers) {
+              if (trigger === "click") {
+                EventHandler.on(this._element, this.constructor.eventName(EVENT_CLICK), this._config.selector, (event) => {
+                  const context = this._initializeOnDelegatedTarget(event);
+                  context._activeTrigger[TRIGGER_CLICK] = !(context._isShown() && context._activeTrigger[TRIGGER_CLICK]);
+                  context.toggle();
+                });
+              } else if (trigger !== TRIGGER_MANUAL) {
+                const eventIn = trigger === TRIGGER_HOVER ? this.constructor.eventName(EVENT_MOUSEENTER) : this.constructor.eventName(EVENT_FOCUSIN);
+                const eventOut = trigger === TRIGGER_HOVER ? this.constructor.eventName(EVENT_MOUSELEAVE) : this.constructor.eventName(EVENT_FOCUSOUT);
+                EventHandler.on(this._element, eventIn, this._config.selector, (event) => {
+                  const context = this._initializeOnDelegatedTarget(event);
+                  context._activeTrigger[event.type === "focusin" ? TRIGGER_FOCUS : TRIGGER_HOVER] = true;
+                  context._enter();
+                });
+                EventHandler.on(this._element, eventOut, this._config.selector, (event) => {
+                  const context = this._initializeOnDelegatedTarget(event);
+                  context._activeTrigger[event.type === "focusout" ? TRIGGER_FOCUS : TRIGGER_HOVER] = context._element.contains(event.relatedTarget);
+                  context._leave();
+                });
+              }
+            }
+            this._hideModalHandler = () => {
+              if (this._element) {
+                this.hide();
+              }
+            };
+            EventHandler.on(this._element.closest(SELECTOR_MODAL), EVENT_MODAL_HIDE, this._hideModalHandler);
+          }
+          _fixTitle() {
+            const title = this._element.getAttribute("title");
+            if (!title) {
+              return;
+            }
+            if (!this._element.getAttribute("aria-label") && !this._element.textContent.trim()) {
+              this._element.setAttribute("aria-label", title);
+            }
+            this._element.setAttribute("data-bs-original-title", title);
+            this._element.removeAttribute("title");
+          }
+          _enter() {
+            if (this._isShown() || this._isHovered) {
+              this._isHovered = true;
+              return;
+            }
+            this._isHovered = true;
+            this._setTimeout(() => {
+              if (this._isHovered) {
+                this.show();
+              }
+            }, this._config.delay.show);
+          }
+          _leave() {
+            if (this._isWithActiveTrigger()) {
+              return;
+            }
+            this._isHovered = false;
+            this._setTimeout(() => {
+              if (!this._isHovered) {
+                this.hide();
+              }
+            }, this._config.delay.hide);
+          }
+          _setTimeout(handler, timeout) {
+            clearTimeout(this._timeout);
+            this._timeout = setTimeout(handler, timeout);
+          }
+          _isWithActiveTrigger() {
+            return Object.values(this._activeTrigger).includes(true);
+          }
+          _getConfig(config) {
+            const dataAttributes = Manipulator.getDataAttributes(this._element);
+            for (const dataAttribute of Object.keys(dataAttributes)) {
+              if (DISALLOWED_ATTRIBUTES.has(dataAttribute)) {
+                delete dataAttributes[dataAttribute];
+              }
+            }
+            config = {
+              ...dataAttributes,
+              ...typeof config === "object" && config ? config : {}
+            };
+            config = this._mergeConfigObj(config);
+            config = this._configAfterMerge(config);
+            this._typeCheckConfig(config);
+            return config;
+          }
+          _configAfterMerge(config) {
+            config.container = config.container === false ? document.body : index_js.getElement(config.container);
+            if (typeof config.delay === "number") {
+              config.delay = {
+                show: config.delay,
+                hide: config.delay
+              };
+            }
+            if (typeof config.title === "number") {
+              config.title = config.title.toString();
+            }
+            if (typeof config.content === "number") {
+              config.content = config.content.toString();
+            }
+            return config;
+          }
+          _getDelegateConfig() {
+            const config = {};
+            for (const [key, value] of Object.entries(this._config)) {
+              if (this.constructor.Default[key] !== value) {
+                config[key] = value;
+              }
+            }
+            config.selector = false;
+            config.trigger = "manual";
+            return config;
+          }
+          _disposePopper() {
+            if (this._popper) {
+              this._popper.destroy();
+              this._popper = null;
+            }
+            if (this.tip) {
+              this.tip.remove();
+              this.tip = null;
+            }
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Tooltip2.getOrCreateInstance(this, config);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (typeof data[config] === "undefined") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config]();
+            });
+          }
+        }
+        index_js.defineJQueryPlugin(Tooltip2);
+        return Tooltip2;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/popover.js
+  var require_popover = __commonJS({
+    "node_modules/bootstrap/js/dist/popover.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_tooltip(), require_util()) : typeof define === "function" && define.amd ? define(["./tooltip", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Popover = factory(global.Tooltip, global.Index));
+      })(exports, (function(Tooltip2, index_js) {
+        "use strict";
+        const NAME = "popover";
+        const SELECTOR_TITLE = ".popover-header";
+        const SELECTOR_CONTENT = ".popover-body";
+        const Default = {
+          ...Tooltip2.Default,
+          content: "",
+          offset: [0, 8],
+          placement: "right",
+          template: '<div class="popover" role="tooltip"><div class="popover-arrow"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>',
+          trigger: "click"
+        };
+        const DefaultType = {
+          ...Tooltip2.DefaultType,
+          content: "(null|string|element|function)"
+        };
+        class Popover extends Tooltip2 {
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Overrides
+          _isWithContent() {
+            return this._getTitle() || this._getContent();
+          }
+          // Private
+          _getContentForTemplate() {
+            return {
+              [SELECTOR_TITLE]: this._getTitle(),
+              [SELECTOR_CONTENT]: this._getContent()
+            };
+          }
+          _getContent() {
+            return this._resolvePossibleFunction(this._config.content);
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Popover.getOrCreateInstance(this, config);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (typeof data[config] === "undefined") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config]();
+            });
+          }
+        }
+        index_js.defineJQueryPlugin(Popover);
+        return Popover;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/scrollspy.js
+  var require_scrollspy = __commonJS({
+    "node_modules/bootstrap/js/dist/scrollspy.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_selector_engine(), require_util()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./dom/selector-engine", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Scrollspy = factory(global.BaseComponent, global.EventHandler, global.SelectorEngine, global.Index));
+      })(exports, (function(BaseComponent, EventHandler, SelectorEngine, index_js) {
+        "use strict";
+        const NAME = "scrollspy";
+        const DATA_KEY = "bs.scrollspy";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const DATA_API_KEY = ".data-api";
+        const EVENT_ACTIVATE = `activate${EVENT_KEY}`;
+        const EVENT_CLICK = `click${EVENT_KEY}`;
+        const EVENT_LOAD_DATA_API = `load${EVENT_KEY}${DATA_API_KEY}`;
+        const CLASS_NAME_DROPDOWN_ITEM = "dropdown-item";
+        const CLASS_NAME_ACTIVE = "active";
+        const SELECTOR_DATA_SPY = '[data-bs-spy="scroll"]';
+        const SELECTOR_TARGET_LINKS = "[href]";
+        const SELECTOR_NAV_LIST_GROUP = ".nav, .list-group";
+        const SELECTOR_NAV_LINKS = ".nav-link";
+        const SELECTOR_NAV_ITEMS = ".nav-item";
+        const SELECTOR_LIST_ITEMS = ".list-group-item";
+        const SELECTOR_LINK_ITEMS = `${SELECTOR_NAV_LINKS}, ${SELECTOR_NAV_ITEMS} > ${SELECTOR_NAV_LINKS}, ${SELECTOR_LIST_ITEMS}`;
+        const SELECTOR_DROPDOWN = ".dropdown";
+        const SELECTOR_DROPDOWN_TOGGLE = ".dropdown-toggle";
+        const Default = {
+          offset: null,
+          // TODO: v6 @deprecated, keep it for backwards compatibility reasons
+          rootMargin: "0px 0px -25%",
+          smoothScroll: false,
+          target: null,
+          threshold: [0.1, 0.5, 1]
+        };
+        const DefaultType = {
+          offset: "(number|null)",
+          // TODO v6 @deprecated, keep it for backwards compatibility reasons
+          rootMargin: "string",
+          smoothScroll: "boolean",
+          target: "element",
+          threshold: "array"
+        };
+        class ScrollSpy extends BaseComponent {
+          constructor(element, config) {
+            super(element, config);
+            this._targetLinks = /* @__PURE__ */ new Map();
+            this._observableSections = /* @__PURE__ */ new Map();
+            this._rootElement = getComputedStyle(this._element).overflowY === "visible" ? null : this._element;
+            this._activeTarget = null;
+            this._observer = null;
+            this._previousScrollData = {
+              visibleEntryTop: 0,
+              parentScrollTop: 0
+            };
+            this.refresh();
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          refresh() {
+            this._initializeTargetsAndObservables();
+            this._maybeEnableSmoothScroll();
+            if (this._observer) {
+              this._observer.disconnect();
+            } else {
+              this._observer = this._getNewObserver();
+            }
+            for (const section of this._observableSections.values()) {
+              this._observer.observe(section);
+            }
+          }
+          dispose() {
+            this._observer.disconnect();
+            super.dispose();
+          }
+          // Private
+          _configAfterMerge(config) {
+            config.target = index_js.getElement(config.target) || document.body;
+            config.rootMargin = config.offset ? `${config.offset}px 0px -30%` : config.rootMargin;
+            if (typeof config.threshold === "string") {
+              config.threshold = config.threshold.split(",").map((value) => Number.parseFloat(value));
+            }
+            return config;
+          }
+          _maybeEnableSmoothScroll() {
+            if (!this._config.smoothScroll) {
+              return;
+            }
+            EventHandler.off(this._config.target, EVENT_CLICK);
+            EventHandler.on(this._config.target, EVENT_CLICK, SELECTOR_TARGET_LINKS, (event) => {
+              const observableSection = this._observableSections.get(event.target.hash);
+              if (observableSection) {
+                event.preventDefault();
+                const root = this._rootElement || window;
+                const height = observableSection.offsetTop - this._element.offsetTop;
+                if (root.scrollTo) {
+                  root.scrollTo({
+                    top: height,
+                    behavior: "smooth"
+                  });
+                  return;
+                }
+                root.scrollTop = height;
+              }
+            });
+          }
+          _getNewObserver() {
+            const options = {
+              root: this._rootElement,
+              threshold: this._config.threshold,
+              rootMargin: this._config.rootMargin
+            };
+            return new IntersectionObserver((entries) => this._observerCallback(entries), options);
+          }
+          // The logic of selection
+          _observerCallback(entries) {
+            const targetElement = (entry) => this._targetLinks.get(`#${entry.target.id}`);
+            const activate = (entry) => {
+              this._previousScrollData.visibleEntryTop = entry.target.offsetTop;
+              this._process(targetElement(entry));
+            };
+            const parentScrollTop = (this._rootElement || document.documentElement).scrollTop;
+            const userScrollsDown = parentScrollTop >= this._previousScrollData.parentScrollTop;
+            this._previousScrollData.parentScrollTop = parentScrollTop;
+            for (const entry of entries) {
+              if (!entry.isIntersecting) {
+                this._activeTarget = null;
+                this._clearActiveClass(targetElement(entry));
+                continue;
+              }
+              const entryIsLowerThanPrevious = entry.target.offsetTop >= this._previousScrollData.visibleEntryTop;
+              if (userScrollsDown && entryIsLowerThanPrevious) {
+                activate(entry);
+                if (!parentScrollTop) {
+                  return;
+                }
+                continue;
+              }
+              if (!userScrollsDown && !entryIsLowerThanPrevious) {
+                activate(entry);
+              }
+            }
+          }
+          _initializeTargetsAndObservables() {
+            this._targetLinks = /* @__PURE__ */ new Map();
+            this._observableSections = /* @__PURE__ */ new Map();
+            const targetLinks = SelectorEngine.find(SELECTOR_TARGET_LINKS, this._config.target);
+            for (const anchor of targetLinks) {
+              if (!anchor.hash || index_js.isDisabled(anchor)) {
+                continue;
+              }
+              const observableSection = SelectorEngine.findOne(decodeURI(anchor.hash), this._element);
+              if (index_js.isVisible(observableSection)) {
+                this._targetLinks.set(decodeURI(anchor.hash), anchor);
+                this._observableSections.set(anchor.hash, observableSection);
+              }
+            }
+          }
+          _process(target) {
+            if (this._activeTarget === target) {
+              return;
+            }
+            this._clearActiveClass(this._config.target);
+            this._activeTarget = target;
+            target.classList.add(CLASS_NAME_ACTIVE);
+            this._activateParents(target);
+            EventHandler.trigger(this._element, EVENT_ACTIVATE, {
+              relatedTarget: target
+            });
+          }
+          _activateParents(target) {
+            if (target.classList.contains(CLASS_NAME_DROPDOWN_ITEM)) {
+              SelectorEngine.findOne(SELECTOR_DROPDOWN_TOGGLE, target.closest(SELECTOR_DROPDOWN)).classList.add(CLASS_NAME_ACTIVE);
+              return;
+            }
+            for (const listGroup of SelectorEngine.parents(target, SELECTOR_NAV_LIST_GROUP)) {
+              for (const item of SelectorEngine.prev(listGroup, SELECTOR_LINK_ITEMS)) {
+                item.classList.add(CLASS_NAME_ACTIVE);
+              }
+            }
+          }
+          _clearActiveClass(parent) {
+            parent.classList.remove(CLASS_NAME_ACTIVE);
+            const activeNodes = SelectorEngine.find(`${SELECTOR_TARGET_LINKS}.${CLASS_NAME_ACTIVE}`, parent);
+            for (const node of activeNodes) {
+              node.classList.remove(CLASS_NAME_ACTIVE);
+            }
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = ScrollSpy.getOrCreateInstance(this, config);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (data[config] === void 0 || config.startsWith("_") || config === "constructor") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config]();
+            });
+          }
+        }
+        EventHandler.on(window, EVENT_LOAD_DATA_API, () => {
+          for (const spy of SelectorEngine.find(SELECTOR_DATA_SPY)) {
+            ScrollSpy.getOrCreateInstance(spy);
+          }
+        });
+        index_js.defineJQueryPlugin(ScrollSpy);
+        return ScrollSpy;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/tab.js
+  var require_tab = __commonJS({
+    "node_modules/bootstrap/js/dist/tab.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_selector_engine(), require_util()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./dom/selector-engine", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Tab = factory(global.BaseComponent, global.EventHandler, global.SelectorEngine, global.Index));
+      })(exports, (function(BaseComponent, EventHandler, SelectorEngine, index_js) {
+        "use strict";
+        const NAME = "tab";
+        const DATA_KEY = "bs.tab";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const EVENT_HIDE = `hide${EVENT_KEY}`;
+        const EVENT_HIDDEN = `hidden${EVENT_KEY}`;
+        const EVENT_SHOW = `show${EVENT_KEY}`;
+        const EVENT_SHOWN = `shown${EVENT_KEY}`;
+        const EVENT_CLICK_DATA_API = `click${EVENT_KEY}`;
+        const EVENT_KEYDOWN = `keydown${EVENT_KEY}`;
+        const EVENT_LOAD_DATA_API = `load${EVENT_KEY}`;
+        const ARROW_LEFT_KEY = "ArrowLeft";
+        const ARROW_RIGHT_KEY = "ArrowRight";
+        const ARROW_UP_KEY = "ArrowUp";
+        const ARROW_DOWN_KEY = "ArrowDown";
+        const HOME_KEY = "Home";
+        const END_KEY = "End";
+        const CLASS_NAME_ACTIVE = "active";
+        const CLASS_NAME_FADE = "fade";
+        const CLASS_NAME_SHOW = "show";
+        const CLASS_DROPDOWN = "dropdown";
+        const SELECTOR_DROPDOWN_TOGGLE = ".dropdown-toggle";
+        const SELECTOR_DROPDOWN_MENU = ".dropdown-menu";
+        const NOT_SELECTOR_DROPDOWN_TOGGLE = `:not(${SELECTOR_DROPDOWN_TOGGLE})`;
+        const SELECTOR_TAB_PANEL = '.list-group, .nav, [role="tablist"]';
+        const SELECTOR_OUTER = ".nav-item, .list-group-item";
+        const SELECTOR_INNER = `.nav-link${NOT_SELECTOR_DROPDOWN_TOGGLE}, .list-group-item${NOT_SELECTOR_DROPDOWN_TOGGLE}, [role="tab"]${NOT_SELECTOR_DROPDOWN_TOGGLE}`;
+        const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="tab"], [data-bs-toggle="pill"], [data-bs-toggle="list"]';
+        const SELECTOR_INNER_ELEM = `${SELECTOR_INNER}, ${SELECTOR_DATA_TOGGLE}`;
+        const SELECTOR_DATA_TOGGLE_ACTIVE = `.${CLASS_NAME_ACTIVE}[data-bs-toggle="tab"], .${CLASS_NAME_ACTIVE}[data-bs-toggle="pill"], .${CLASS_NAME_ACTIVE}[data-bs-toggle="list"]`;
+        class Tab extends BaseComponent {
+          constructor(element) {
+            super(element);
+            this._parent = this._element.closest(SELECTOR_TAB_PANEL);
+            if (!this._parent) {
+              return;
+            }
+            this._setInitialAttributes(this._parent, this._getChildren());
+            EventHandler.on(this._element, EVENT_KEYDOWN, (event) => this._keydown(event));
+          }
+          // Getters
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          show() {
+            const innerElem = this._element;
+            if (this._elemIsActive(innerElem)) {
+              return;
+            }
+            const active = this._getActiveElem();
+            const hideEvent = active ? EventHandler.trigger(active, EVENT_HIDE, {
+              relatedTarget: innerElem
+            }) : null;
+            const showEvent = EventHandler.trigger(innerElem, EVENT_SHOW, {
+              relatedTarget: active
+            });
+            if (showEvent.defaultPrevented || hideEvent && hideEvent.defaultPrevented) {
+              return;
+            }
+            this._deactivate(active, innerElem);
+            this._activate(innerElem, active);
+          }
+          // Private
+          _activate(element, relatedElem) {
+            if (!element) {
+              return;
+            }
+            element.classList.add(CLASS_NAME_ACTIVE);
+            this._activate(SelectorEngine.getElementFromSelector(element));
+            const complete = () => {
+              if (element.getAttribute("role") !== "tab") {
+                element.classList.add(CLASS_NAME_SHOW);
+                return;
+              }
+              element.removeAttribute("tabindex");
+              element.setAttribute("aria-selected", true);
+              this._toggleDropDown(element, true);
+              EventHandler.trigger(element, EVENT_SHOWN, {
+                relatedTarget: relatedElem
+              });
+            };
+            this._queueCallback(complete, element, element.classList.contains(CLASS_NAME_FADE));
+          }
+          _deactivate(element, relatedElem) {
+            if (!element) {
+              return;
+            }
+            element.classList.remove(CLASS_NAME_ACTIVE);
+            element.blur();
+            this._deactivate(SelectorEngine.getElementFromSelector(element));
+            const complete = () => {
+              if (element.getAttribute("role") !== "tab") {
+                element.classList.remove(CLASS_NAME_SHOW);
+                return;
+              }
+              element.setAttribute("aria-selected", false);
+              element.setAttribute("tabindex", "-1");
+              this._toggleDropDown(element, false);
+              EventHandler.trigger(element, EVENT_HIDDEN, {
+                relatedTarget: relatedElem
+              });
+            };
+            this._queueCallback(complete, element, element.classList.contains(CLASS_NAME_FADE));
+          }
+          _keydown(event) {
+            if (![ARROW_LEFT_KEY, ARROW_RIGHT_KEY, ARROW_UP_KEY, ARROW_DOWN_KEY, HOME_KEY, END_KEY].includes(event.key)) {
+              return;
+            }
+            event.stopPropagation();
+            event.preventDefault();
+            const children = this._getChildren().filter((element) => !index_js.isDisabled(element));
+            let nextActiveElement;
+            if ([HOME_KEY, END_KEY].includes(event.key)) {
+              nextActiveElement = children[event.key === HOME_KEY ? 0 : children.length - 1];
+            } else {
+              const isNext = [ARROW_RIGHT_KEY, ARROW_DOWN_KEY].includes(event.key);
+              nextActiveElement = index_js.getNextActiveElement(children, event.target, isNext, true);
+            }
+            if (nextActiveElement) {
+              nextActiveElement.focus({
+                preventScroll: true
+              });
+              Tab.getOrCreateInstance(nextActiveElement).show();
+            }
+          }
+          _getChildren() {
+            return SelectorEngine.find(SELECTOR_INNER_ELEM, this._parent);
+          }
+          _getActiveElem() {
+            return this._getChildren().find((child) => this._elemIsActive(child)) || null;
+          }
+          _setInitialAttributes(parent, children) {
+            this._setAttributeIfNotExists(parent, "role", "tablist");
+            for (const child of children) {
+              this._setInitialAttributesOnChild(child);
+            }
+          }
+          _setInitialAttributesOnChild(child) {
+            child = this._getInnerElement(child);
+            const isActive = this._elemIsActive(child);
+            const outerElem = this._getOuterElement(child);
+            child.setAttribute("aria-selected", isActive);
+            if (outerElem !== child) {
+              this._setAttributeIfNotExists(outerElem, "role", "presentation");
+            }
+            if (!isActive) {
+              child.setAttribute("tabindex", "-1");
+            }
+            this._setAttributeIfNotExists(child, "role", "tab");
+            this._setInitialAttributesOnTargetPanel(child);
+          }
+          _setInitialAttributesOnTargetPanel(child) {
+            const target = SelectorEngine.getElementFromSelector(child);
+            if (!target) {
+              return;
+            }
+            this._setAttributeIfNotExists(target, "role", "tabpanel");
+            if (child.id) {
+              this._setAttributeIfNotExists(target, "aria-labelledby", `${child.id}`);
+            }
+          }
+          _toggleDropDown(element, open) {
+            const outerElem = this._getOuterElement(element);
+            if (!outerElem.classList.contains(CLASS_DROPDOWN)) {
+              return;
+            }
+            const toggle = (selector, className) => {
+              const element2 = SelectorEngine.findOne(selector, outerElem);
+              if (element2) {
+                element2.classList.toggle(className, open);
+              }
+            };
+            toggle(SELECTOR_DROPDOWN_TOGGLE, CLASS_NAME_ACTIVE);
+            toggle(SELECTOR_DROPDOWN_MENU, CLASS_NAME_SHOW);
+            outerElem.setAttribute("aria-expanded", open);
+          }
+          _setAttributeIfNotExists(element, attribute, value) {
+            if (!element.hasAttribute(attribute)) {
+              element.setAttribute(attribute, value);
+            }
+          }
+          _elemIsActive(elem) {
+            return elem.classList.contains(CLASS_NAME_ACTIVE);
+          }
+          // Try to get the inner element (usually the .nav-link)
+          _getInnerElement(elem) {
+            return elem.matches(SELECTOR_INNER_ELEM) ? elem : SelectorEngine.findOne(SELECTOR_INNER_ELEM, elem);
+          }
+          // Try to get the outer element (usually the .nav-item)
+          _getOuterElement(elem) {
+            return elem.closest(SELECTOR_OUTER) || elem;
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Tab.getOrCreateInstance(this);
+              if (typeof config !== "string") {
+                return;
+              }
+              if (data[config] === void 0 || config.startsWith("_") || config === "constructor") {
+                throw new TypeError(`No method named "${config}"`);
+              }
+              data[config]();
+            });
+          }
+        }
+        EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, function(event) {
+          if (["A", "AREA"].includes(this.tagName)) {
+            event.preventDefault();
+          }
+          if (index_js.isDisabled(this)) {
+            return;
+          }
+          Tab.getOrCreateInstance(this).show();
+        });
+        EventHandler.on(window, EVENT_LOAD_DATA_API, () => {
+          for (const element of SelectorEngine.find(SELECTOR_DATA_TOGGLE_ACTIVE)) {
+            Tab.getOrCreateInstance(element);
+          }
+        });
+        index_js.defineJQueryPlugin(Tab);
+        return Tab;
+      }));
+    }
+  });
+
+  // node_modules/bootstrap/js/dist/toast.js
+  var require_toast = __commonJS({
+    "node_modules/bootstrap/js/dist/toast.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory(require_base_component(), require_event_handler(), require_component_functions(), require_util()) : typeof define === "function" && define.amd ? define(["./base-component", "./dom/event-handler", "./util/component-functions", "./util/index"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.Toast = factory(global.BaseComponent, global.EventHandler, global.ComponentFunctions, global.Index));
+      })(exports, (function(BaseComponent, EventHandler, componentFunctions_js, index_js) {
+        "use strict";
+        const NAME = "toast";
+        const DATA_KEY = "bs.toast";
+        const EVENT_KEY = `.${DATA_KEY}`;
+        const EVENT_MOUSEOVER = `mouseover${EVENT_KEY}`;
+        const EVENT_MOUSEOUT = `mouseout${EVENT_KEY}`;
+        const EVENT_FOCUSIN = `focusin${EVENT_KEY}`;
+        const EVENT_FOCUSOUT = `focusout${EVENT_KEY}`;
+        const EVENT_HIDE = `hide${EVENT_KEY}`;
+        const EVENT_HIDDEN = `hidden${EVENT_KEY}`;
+        const EVENT_SHOW = `show${EVENT_KEY}`;
+        const EVENT_SHOWN = `shown${EVENT_KEY}`;
+        const CLASS_NAME_FADE = "fade";
+        const CLASS_NAME_HIDE = "hide";
+        const CLASS_NAME_SHOW = "show";
+        const CLASS_NAME_SHOWING = "showing";
+        const DefaultType = {
+          animation: "boolean",
+          autohide: "boolean",
+          delay: "number"
+        };
+        const Default = {
+          animation: true,
+          autohide: true,
+          delay: 5e3
+        };
+        class Toast2 extends BaseComponent {
+          constructor(element, config) {
+            super(element, config);
+            this._timeout = null;
+            this._hasMouseInteraction = false;
+            this._hasKeyboardInteraction = false;
+            this._setListeners();
+          }
+          // Getters
+          static get Default() {
+            return Default;
+          }
+          static get DefaultType() {
+            return DefaultType;
+          }
+          static get NAME() {
+            return NAME;
+          }
+          // Public
+          show() {
+            const showEvent = EventHandler.trigger(this._element, EVENT_SHOW);
+            if (showEvent.defaultPrevented) {
+              return;
+            }
+            this._clearTimeout();
+            if (this._config.animation) {
+              this._element.classList.add(CLASS_NAME_FADE);
+            }
+            const complete = () => {
+              this._element.classList.remove(CLASS_NAME_SHOWING);
+              EventHandler.trigger(this._element, EVENT_SHOWN);
+              this._maybeScheduleHide();
+            };
+            this._element.classList.remove(CLASS_NAME_HIDE);
+            index_js.reflow(this._element);
+            this._element.classList.add(CLASS_NAME_SHOW, CLASS_NAME_SHOWING);
+            this._queueCallback(complete, this._element, this._config.animation);
+          }
+          hide() {
+            if (!this.isShown()) {
+              return;
+            }
+            const hideEvent = EventHandler.trigger(this._element, EVENT_HIDE);
+            if (hideEvent.defaultPrevented) {
+              return;
+            }
+            const complete = () => {
+              this._element.classList.add(CLASS_NAME_HIDE);
+              this._element.classList.remove(CLASS_NAME_SHOWING, CLASS_NAME_SHOW);
+              EventHandler.trigger(this._element, EVENT_HIDDEN);
+            };
+            this._element.classList.add(CLASS_NAME_SHOWING);
+            this._queueCallback(complete, this._element, this._config.animation);
+          }
+          dispose() {
+            this._clearTimeout();
+            if (this.isShown()) {
+              this._element.classList.remove(CLASS_NAME_SHOW);
+            }
+            super.dispose();
+          }
+          isShown() {
+            return this._element.classList.contains(CLASS_NAME_SHOW);
+          }
+          // Private
+          _maybeScheduleHide() {
+            if (!this._config.autohide) {
+              return;
+            }
+            if (this._hasMouseInteraction || this._hasKeyboardInteraction) {
+              return;
+            }
+            this._timeout = setTimeout(() => {
+              this.hide();
+            }, this._config.delay);
+          }
+          _onInteraction(event, isInteracting) {
+            switch (event.type) {
+              case "mouseover":
+              case "mouseout": {
+                this._hasMouseInteraction = isInteracting;
+                break;
+              }
+              case "focusin":
+              case "focusout": {
+                this._hasKeyboardInteraction = isInteracting;
+                break;
+              }
+            }
+            if (isInteracting) {
+              this._clearTimeout();
+              return;
+            }
+            const nextElement = event.relatedTarget;
+            if (this._element === nextElement || this._element.contains(nextElement)) {
+              return;
+            }
+            this._maybeScheduleHide();
+          }
+          _setListeners() {
+            EventHandler.on(this._element, EVENT_MOUSEOVER, (event) => this._onInteraction(event, true));
+            EventHandler.on(this._element, EVENT_MOUSEOUT, (event) => this._onInteraction(event, false));
+            EventHandler.on(this._element, EVENT_FOCUSIN, (event) => this._onInteraction(event, true));
+            EventHandler.on(this._element, EVENT_FOCUSOUT, (event) => this._onInteraction(event, false));
+          }
+          _clearTimeout() {
+            clearTimeout(this._timeout);
+            this._timeout = null;
+          }
+          // Static
+          static jQueryInterface(config) {
+            return this.each(function() {
+              const data = Toast2.getOrCreateInstance(this, config);
+              if (typeof config === "string") {
+                if (typeof data[config] === "undefined") {
+                  throw new TypeError(`No method named "${config}"`);
+                }
+                data[config](this);
+              }
+            });
+          }
+        }
+        componentFunctions_js.enableDismissTrigger(Toast2);
+        index_js.defineJQueryPlugin(Toast2);
+        return Toast2;
+      }));
+    }
+  });
+
+  // src/js/_bootstrap.js
+  var import_alert = __toESM(require_alert());
+  var import_button = __toESM(require_button());
+  var import_carousel = __toESM(require_carousel());
+  var import_collapse = __toESM(require_collapse());
+  var import_dropdown = __toESM(require_dropdown());
+  var import_offcanvas = __toESM(require_offcanvas());
+  var import_modal = __toESM(require_modal());
+  var import_popover = __toESM(require_popover());
+  var import_scrollspy = __toESM(require_scrollspy());
+  var import_tab = __toESM(require_tab());
+
+  // src/js/_tooltip-init.js
+  var import_tooltip = __toESM(require_tooltip());
+  (() => {
+    const tooltipTriggerList = document.querySelectorAll(
+      '[data-bs-toggle="tooltip"]'
+    );
+    const tooltipList = [...tooltipTriggerList].map(
+      (tooltipTriggerEl) => new import_tooltip.default(tooltipTriggerEl)
+    );
+  })();
+
+  // src/js/_toast-init.js
+  var import_toast = __toESM(require_toast());
+  (() => {
+    document.addEventListener("DOMContentLoaded", () => {
+      const toastElList = [...document.querySelectorAll(".toast")];
+      for (const toastEl of toastElList) {
+        const toast = new import_toast.default(toastEl, { autohide: false });
+        toast.show();
+      }
+    });
+  })();
+
+  // src/js/main.script.js
+  (() => {
+    const root = document.documentElement;
+    const saved = localStorage.getItem("theme");
+    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    const apply = (t) => {
+      root.setAttribute("data-bs-theme", t);
+      document.querySelectorAll("[data-theme-toggle]").forEach((b) => {
+        b.setAttribute("aria-label", t === "dark" ? "\u5207\u6362\u5230\u6D45\u8272" : "\u5207\u6362\u5230\u6DF1\u8272");
+        b.dataset.mode = t;
+      });
+    };
+    apply(saved || preferred);
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-theme-toggle]");
+      if (!btn) return;
+      const next = root.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
+      localStorage.setItem("theme", next);
+      apply(next);
+    });
+  })();
+  (() => {
+    const init = () => {
+      const nav = document.querySelector(".xedc-nav");
+      if (!nav) return;
+      const burger = nav.querySelector("[data-menu-toggle]");
+      const sbtn = nav.querySelector("[data-search-toggle]");
+      const bar = nav.querySelector(".xedc-searchbar");
+      const setMenu = (open) => {
+        nav.classList.toggle("menu-open", open);
+        burger.setAttribute("aria-expanded", open);
+        document.body.style.overflow = open ? "hidden" : "";
+      };
+      const setSearch = (open) => {
+        nav.classList.toggle("search-open", open);
+        sbtn.setAttribute("aria-expanded", open);
+        if (open) bar.querySelector("input").focus();
+      };
+      burger.addEventListener("click", () => {
+        setSearch(false);
+        setMenu(!nav.classList.contains("menu-open"));
+      });
+      nav.querySelectorAll("[data-menu-close]").forEach((el) => el.addEventListener("click", () => setMenu(false)));
+      nav.querySelectorAll(".xedc-menu a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
+      sbtn.addEventListener("click", () => {
+        setMenu(false);
+        setSearch(!nav.classList.contains("search-open"));
+      });
+      document.addEventListener("click", (e) => {
+        if (!nav.classList.contains("search-open")) return;
+        if (bar.contains(e.target) || sbtn.contains(e.target)) return;
+        setSearch(false);
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          setMenu(false);
+          setSearch(false);
+        }
+      });
+      window.addEventListener("resize", () => {
+        if (window.innerWidth >= 992) {
+          setMenu(false);
+          setSearch(false);
+        }
+      });
+    };
+    document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init) : init();
+  })();
+})();
 /*! Bundled license information:
 
 bootstrap/js/dist/dom/data.js:
@@ -183,3 +5709,4 @@ bootstrap/js/dist/toast.js:
     * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
     *)
 */
+//# sourceMappingURL=main.script.js.map

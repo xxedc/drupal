@@ -39,8 +39,12 @@ module:
   page_cache: 0
   path: 0
   path_alias: 0
+  responsive_image: 0
   search: 0
+  search_node: 0
+  settings_tray: 0
   shortcut: 0
+  statistics: 0
   system: 0
   taxonomy: 0
   text: 0

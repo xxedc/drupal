@@ -1,0 +1,13 @@
+uuid: 83905684-1118-46bf-866e-c03437039492
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - search_node
+id: search
+label: 内容搜索页
+path: node
+weight: 0
+plugin: node_search
+configuration:
+  rankings: {  }

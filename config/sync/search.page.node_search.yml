@@ -1,0 +1,15 @@
+uuid: 9c462277-95bc-445e-8534-1e20b1787463
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - search_node
+_core:
+  default_config_hash: br_PqvONqWqTzpV2ajwoa9w-k3t7j9LqJQTjC0zmT88
+id: node_search
+label: 内容
+path: nodeggg
+weight: -10
+plugin: node_search
+configuration:
+  rankings: {  }
