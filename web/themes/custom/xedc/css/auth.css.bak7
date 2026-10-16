@@ -1,0 +1,116 @@
+/* XEDC auth — shadcn/ui 风格 */
+:root{
+  --xa-bg:#fff;--xa-fg:#09090b;--xa-muted:#71717a;--xa-muted-bg:#f4f4f5;
+  --xa-border:#e4e4e7;--xa-primary:#18181b;--xa-primary-fg:#fafafa;--xa-ring:#a1a1aa;
+  --xa-danger:#dc2626;--xa-danger-bg:#fef2f2;--xa-ok:#15803d;--xa-ok-bg:#f0fdf4;
+  --xa-warn:#b45309;--xa-warn-bg:#fffbeb;--xa-radius:8px;
+}
+.dark,[data-theme="dark"],[data-theme="midnight"],[data-bs-theme="dark"]{
+  --xa-bg:#09090b;--xa-fg:#fafafa;--xa-muted:#a1a1aa;--xa-muted-bg:#18181b;
+  --xa-border:#27272a;--xa-primary:#fafafa;--xa-primary-fg:#18181b;--xa-ring:#52525b;
+  --xa-danger:#f87171;--xa-danger-bg:#2a1215;--xa-ok:#4ade80;--xa-ok-bg:#0f2417;
+  --xa-warn:#fbbf24;--xa-warn-bg:#271c08;
+}
+
+/* 页面杂项 */
+.xedc-auth-page :is(.page-title,.block-page-title-block,.block-local-tasks-block,nav.tabs,ul.tabs,.nav-tabs,[id*="page-title"],[id*="local-tasks"]){display:none!important}
+
+/* 卡片 */
+form.xedc-auth{box-sizing:border-box;width:100%;max-width:400px;margin:16px auto 64px;padding:28px 24px 24px;background:var(--xa-bg);color:var(--xa-fg);border:1px solid var(--xa-border);border-radius:calc(var(--xa-radius) + 4px);box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:14px;line-height:1.5}
+form.xedc-auth *{box-sizing:border-box}
+.xedc-auth__head{text-align:center;margin-bottom:24px}
+.xedc-auth__brand{display:inline-flex;align-items:center;gap:8px;color:var(--xa-primary);font-weight:700;font-size:20px;letter-spacing:-.01em;text-decoration:none;margin-bottom:16px}
+.xedc-auth__brand:hover{color:var(--xa-primary)}
+.xedc-auth__title{margin:0 0 6px;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.01em;color:var(--xa-fg)}
+.xedc-auth__desc{margin:0;color:var(--xa-muted);font-size:14px}
+
+/* 表单项 */
+form.xedc-auth .form-item,form.xedc-auth .js-form-item,form.xedc-auth .form-wrapper{margin:0 0 16px}
+form.xedc-auth label,form.xedc-auth legend{display:block;margin:0 0 8px;font-size:14px;font-weight:500;color:var(--xa-fg)}
+form.xedc-auth .form-required::after,form.xedc-auth .js-form-required::after{content:" *";background:none;color:var(--xa-danger);display:inline;width:auto;height:auto;margin:0}
+form.xedc-auth :is(input[type=text],input[type=password],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=date],select,textarea){width:100%;height:40px;padding:0 12px;border:1px solid var(--xa-border);border-radius:var(--xa-radius);background:transparent;color:var(--xa-fg);font-size:14px;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:border-color .15s,box-shadow .15s;appearance:none;-webkit-appearance:none}
+form.xedc-auth textarea{height:auto;min-height:88px;padding:8px 12px}
+form.xedc-auth select{padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+form.xedc-auth :is(input,select,textarea)::placeholder{color:var(--xa-muted)}
+form.xedc-auth :is(input,select,textarea):focus{outline:none;border-color:var(--xa-ring);box-shadow:0 0 0 3px color-mix(in srgb,var(--xa-ring) 35%,transparent)}
+form.xedc-auth input[type=checkbox],form.xedc-auth input[type=radio]{accent-color:var(--xa-primary);width:16px;height:16px;margin-right:8px;vertical-align:-3px}
+form.xedc-auth .form-type-checkbox label,form.xedc-auth .form-type-radio label{display:inline;font-weight:400}
+form.xedc-auth :is(.description,.form-text,.form-item__description){margin:6px 0 0;color:var(--xa-muted);font-size:12.5px;line-height:1.5}
+form.xedc-auth fieldset{border:0;padding:0;margin:0 0 16px;min-width:0}
+form.xedc-auth details{border:1px solid var(--xa-border);border-radius:var(--xa-radius);padding:10px 12px;margin:0 0 16px}
+form.xedc-auth summary{cursor:pointer;font-weight:500}
+
+/* 字段错误 */
+form.xedc-auth :is(input,select,textarea):is(.error,.is-invalid,[aria-invalid="true"]){border-color:var(--xa-danger)}
+form.xedc-auth :is(.form-item--error-message,.invalid-feedback){display:block;margin-top:6px;color:var(--xa-danger);font-size:13px}
+
+/* 密码强度 */
+form.xedc-auth .password-strength{margin:8px 0 0;width:100%}
+form.xedc-auth .password-strength__meter{height:6px;border-radius:99px;background:var(--xa-muted-bg);overflow:hidden}
+form.xedc-auth .password-strength__indicator{height:100%;border-radius:99px}
+form.xedc-auth .password-strength__title,form.xedc-auth .password-strength__text,form.xedc-auth .password-confirm-message,form.xedc-auth .password-suggestions{font-size:12.5px;color:var(--xa-muted);margin-top:6px}
+form.xedc-auth .password-suggestions{border:1px solid var(--xa-border);border-radius:var(--xa-radius);padding:8px 12px;background:transparent}
+form.xedc-auth .password-suggestions ul{margin:4px 0 0;padding-left:18px}
+
+/* 忘记密码 / 底部链接 */
+.xedc-auth__forgot{display:block;margin:-8px 0 16px;text-align:right;font-size:13px;color:var(--xa-muted);text-decoration:none}
+.xedc-auth__forgot:hover{color:var(--xa-fg);text-decoration:underline;text-underline-offset:4px}
+.xedc-auth__foot{margin-top:20px;text-align:center;color:var(--xa-muted)}
+.xedc-auth__foot span{margin-right:4px}
+.xedc-auth__foot a{color:var(--xa-fg);font-weight:500;text-decoration:underline;text-underline-offset:4px}
+
+/* 按钮 */
+form.xedc-auth .form-actions{margin:20px 0 0}
+form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit){display:inline-flex;align-items:center;justify-content:center;width:100%;height:40px;padding:0 16px;border:1px solid var(--xa-primary);border-radius:var(--xa-radius);background:var(--xa-primary);color:var(--xa-primary-fg);font-size:14px;font-weight:500;line-height:1;cursor:pointer;transition:opacity .15s}
+form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit):hover{opacity:.9;background:var(--xa-primary);color:var(--xa-primary-fg)}
+form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit):focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--xa-ring) 45%,transparent)}
+form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit):disabled{opacity:.5;cursor:not-allowed}
+form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit)+:is(input[type=submit],button,.form-submit){margin-top:8px}
+
+/* 状态消息（Drupal 原生 messages / Radix alert） */
+:is(.xedc-auth-page,.xedc-embed) :is(.messages,.alert){position:relative;box-sizing:border-box;max-width:400px;margin:20px auto 0;padding:12px 16px;border:1px solid var(--xa-border);border-radius:var(--xa-radius);background:var(--xa-bg);color:var(--xa-fg);font-size:14px;line-height:1.5;box-shadow:none}
+:is(.xedc-auth-page,.xedc-embed) :is(.messages--error,.alert-danger){border-color:var(--xa-danger);background:var(--xa-danger-bg);color:var(--xa-danger)}
+:is(.xedc-auth-page,.xedc-embed) :is(.messages--status,.alert-success){border-color:var(--xa-ok);background:var(--xa-ok-bg);color:var(--xa-ok)}
+:is(.xedc-auth-page,.xedc-embed) :is(.messages--warning,.alert-warning){border-color:var(--xa-warn);background:var(--xa-warn-bg);color:var(--xa-warn)}
+:is(.xedc-auth-page,.xedc-embed) :is(.messages,.alert) a{color:inherit;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+:is(.xedc-auth-page,.xedc-embed) :is(.messages,.alert) :is(ul,p){margin:0}
+:is(.xedc-auth-page,.xedc-embed) :is(.messages,.alert) ul{padding-left:18px}
+
+/* 弹窗里的内嵌登录页：隐藏站点头尾，只留卡片和消息 */
+.xedc-embed :is(header,footer,nav,.navbar):not(:has([data-drupal-messages],form.xedc-auth)){display:none!important}
+.xedc-embed,.xedc-embed body{background:transparent!important;padding-top:0!important;margin:0!important;min-height:0!important}
+.xedc-embed form.xedc-auth{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none;padding:32px 24px 24px}
+.xedc-embed :is(.messages,.alert){max-width:none;margin:16px 24px 0}
+
+/* 登录弹窗 */
+.xedc-login-dialog{padding:0;border:1px solid var(--xa-border);border-radius:calc(var(--xa-radius) + 4px);background:var(--xa-bg);color:var(--xa-fg);width:min(420px,calc(100vw - 24px));max-width:none;max-height:92vh;overflow:hidden;box-shadow:0 10px 38px rgba(0,0,0,.18)}
+.xedc-login-dialog::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
+.xedc-login-dialog iframe{display:block;width:100%;height:440px;border:0;background:transparent;color-scheme:normal}
+.xedc-login-dialog__close{position:absolute;top:10px;right:10px;z-index:2;display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;border-radius:var(--xa-radius);background:transparent;color:var(--xa-muted);cursor:pointer}
+.xedc-login-dialog__close:hover{background:var(--xa-muted-bg);color:var(--xa-fg)}
+.xedc-login-dialog__close:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--xa-ring) 45%,transparent)}
+html.xedc-dialog-open{overflow:hidden}
+
+/* iPhone 上输入框 16px，避免聚焦时页面被放大 */
+@media (max-width:640px){
+  form.xedc-auth{margin:8px auto 40px;border-radius:12px}
+  form.xedc-auth :is(input[type=text],input[type=password],input[type=email],input[type=tel],input[type=url],input[type=number],select,textarea){font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  form.xedc-auth *{transition:none!important}
+}
+
+.xedc-login-dialog.is-loading iframe{visibility:hidden}
+.xedc-login-dialog.is-loading::after{content:"";position:absolute;top:50%;left:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border:2px solid var(--xa-border);border-top-color:var(--xa-primary);border-radius:50%;animation:xa-spin .7s linear infinite}
+@keyframes xa-spin{to{transform:rotate(360deg)}}
+
+/* 提交中的按钮 */
+form.xedc-auth.is-submitting .form-actions{position:relative;pointer-events:none}
+form.xedc-auth.is-submitting .form-actions :is(input[type=submit],button,.form-submit){opacity:.7}
+form.xedc-auth.is-submitting .form-actions::after{content:"";position:absolute;left:16px;top:12px;width:16px;height:16px;border:2px solid color-mix(in srgb,var(--xa-primary-fg) 30%,transparent);border-top-color:var(--xa-primary-fg);border-radius:50%;animation:xa-spin .7s linear infinite}
+
+/* 弹窗登录成功状态 */
+.xedc-login-dialog__done{display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--xa-bg);color:var(--xa-fg);font-size:15px;font-weight:500}
+.xedc-login-dialog.is-done .xedc-login-dialog__done{display:flex}
+.xedc-login-dialog.is-done iframe{visibility:hidden}
+.xedc-login-dialog__done svg{width:44px;height:44px;padding:10px;border-radius:50%;background:var(--xa-primary);color:var(--xa-primary-fg)}

@@ -1,0 +1,38 @@
+uuid: 68c65a68-5336-4d4c-bbf9-5500f383d5df
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - comment.type.content
+    - field.storage.comment.field_comment_image
+  module:
+    - image
+id: comment.content.field_comment_image
+field_name: field_comment_image
+entity_type: comment
+bundle: content
+label: 评论图像
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: 'comments/[date:custom:Y-m]'
+  file_extensions: 'png gif jpg jpeg webp'
+  max_filesize: 2mb
+  max_resolution: 1600x1600
+  min_resolution: ''
+  alt_field: false
+  alt_field_required: true
+  title_field: false
+  title_field_required: false
+  default_image:
+    uuid: ''
+    alt: ''
+    title: ''
+    width: null
+    height: null
+field_type: image

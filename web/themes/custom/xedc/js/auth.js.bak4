@@ -1,0 +1,105 @@
+/* XEDC 登录弹窗：拦截 /user/login 链接，用 <dialog> + 同源 iframe 呈现原生登录表单 */
+(function () {
+  'use strict';
+
+  var LOGIN_RE = /\/user\/login\/?$/;
+  var inEmbed = window.self !== window.top;
+  var dialog = null;
+  var frame = null;
+
+  // iframe 内的所有链接在顶层窗口打开（注册 / 找回密码 / 消息里的链接）
+  if (inEmbed) {
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]');
+      if (a && a.getAttribute('href').charAt(0) !== '#') {
+        a.target = '_top';
+      }
+    }, true);
+  }
+
+  function embedUrl(a) {
+    var u = new URL(a.href, location.href);
+    // 链接自带 destination（如评论入口）优先；否则用当前页面
+    if (!u.searchParams.get('destination')) {
+      u.searchParams.set('destination', location.pathname + location.search + location.hash);
+    }
+    u.searchParams.set('xedc_embed', '1');
+    return u.toString();
+  }
+
+  function build() {
+    if (dialog) { return; }
+    dialog = document.createElement('dialog');
+    dialog.className = 'xedc-login-dialog';
+    dialog.setAttribute('aria-label', '登录');
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'xedc-login-dialog__close';
+    close.setAttribute('aria-label', '关闭');
+    close.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+    frame = document.createElement('iframe');
+    frame.title = '登录';
+
+    dialog.appendChild(close);
+    dialog.appendChild(frame);
+    document.body.appendChild(dialog);
+
+    close.addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('click', function (e) { if (e.target === dialog) { dialog.close(); } });
+    dialog.addEventListener('close', function () {
+      frame.removeAttribute('src');
+      document.documentElement.classList.remove('xedc-dialog-open');
+    });
+    frame.addEventListener('load', onFrameLoad);
+  }
+
+  function onFrameLoad() {
+    var loc, doc;
+    try {
+      loc = frame.contentWindow.location;
+      doc = frame.contentDocument;
+    } catch (err) { return; }
+    if (!dialog.open || !loc || loc.href === 'about:blank') { return; }
+
+    var stillLogin = LOGIN_RE.test(loc.pathname) && /[?&]xedc_embed=1/.test(loc.search);
+    if (!stillLogin) {
+      // 登录成功：iframe 被重定向到了 destination，顶层窗口跳过去
+      var t = new URL(loc.href);
+      t.searchParams.delete('xedc_embed');
+      if (t.origin === location.origin && t.pathname + t.search === location.pathname + location.search) {
+        if (t.hash) { location.hash = t.hash; }
+        location.reload();
+      } else {
+        location.assign(t.toString());
+      }
+      return;
+    }
+    if (doc && doc.documentElement) {
+      var h = Math.min(doc.documentElement.scrollHeight, Math.floor(window.innerHeight * 0.92));
+      frame.style.height = h + 'px';
+    }
+  }
+
+  function open(url) {
+    build();
+    frame.style.height = '';
+    frame.src = url;
+    document.documentElement.classList.add('xedc-dialog-open');
+    dialog.showModal();
+  }
+
+  document.addEventListener('click', function (e) {
+    if (inEmbed || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
+    if (typeof HTMLDialogElement !== 'function') { return; }
+    if (document.body.classList.contains('xedc-auth-page')) { return; }
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || a.hasAttribute('data-no-modal') || (a.target && a.target !== '_self')) { return; }
+    var u;
+    try { u = new URL(a.href, location.href); } catch (err) { return; }
+    if (u.origin !== location.origin || !LOGIN_RE.test(u.pathname)) { return; }
+    e.preventDefault();
+    open(embedUrl(a));
+  });
+})();

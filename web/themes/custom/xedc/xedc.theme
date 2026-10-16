@@ -83,8 +83,56 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
   $form['pills'] = ['#type' => 'inline_template', '#template' => $tpl,
     '#context' => ['cats' => $cats, 'sorts' => $sorts], '#weight' => -10];
   foreach (['cat', 'sort_by', 'sort_order', 'actions'] as $f) {
-    if (isset($form[$f])) { $form[$f]['#access'] = FALSE; }
+    if (isset($form[$f])) { $form[$f]['#attributes']['class'][] = 'photo-hide'; }
   }
   $form['#cache']['contexts'][] = 'url.query_args:cat';
   $form['#cache']['contexts'][] = 'url.query_args:sort_by';
 }
+
+function xedc_form_comment_form_alter(array &$form, $form_state, $form_id) {
+  $form["actions"]["submit"]["#value"] = "发表评论";
+  if (isset($form["actions"]["preview"])) { $form["actions"]["preview"]["#access"] = FALSE; }
+  if (\Drupal::currentUser()->isAnonymous() && isset($form["field_comment_image"])) { $form["field_comment_image"]["#access"] = FALSE; }
+}
+
+function xedc_preprocess_node(array &$variables) {
+  $node = $variables['node'];
+  if ($node->bundle() !== 'photo' || $variables['view_mode'] !== 'full') {
+    return;
+  }
+  $st = \Drupal::entityTypeManager()->getStorage('node');
+  $created = $node->getCreatedTime();
+  $q = $st->getQuery()->accessCheck(TRUE)->condition('type', 'photo')->condition('status', 1);
+  $prev = (clone $q)->condition('created', $created, '<')->sort('created', 'DESC')->range(0, 1)->execute();
+  $next = (clone $q)->condition('created', $created, '>')->sort('created', 'ASC')->range(0, 1)->execute();
+  $variables['nav_prev'] = $prev ? $st->load(reset($prev)) : NULL;
+  $variables['nav_next'] = $next ? $st->load(reset($next)) : NULL;
+  $ids = [];
+  $ex = [$node->id()];
+  $pick = function ($extra) use ($q, &$ex) {
+    $qq = clone $q;
+    $qq->condition('nid', $ex, 'NOT IN');
+    $extra($qq);
+    $r = array_values($qq->sort('created', 'DESC')->range(0, 8)->execute());
+    return $r;
+  };
+  if ($node->hasField('field_tags') && !$node->get('field_tags')->isEmpty()) {
+    $tids = array_column($node->get('field_tags')->getValue(), 'target_id');
+    $r = $pick(function ($qq) use ($tids) { $qq->condition('field_tags', $tids, 'IN'); });
+    $ids = array_merge($ids, $r); $ex = array_merge($ex, $r);
+  }
+  if (count($ids) < 8 && $node->hasField('field_categories') && !$node->get('field_categories')->isEmpty()) {
+    $cid = $node->get('field_categories')->target_id;
+    $r = $pick(function ($qq) use ($cid) { $qq->condition('field_categories', $cid); });
+    $r = array_slice($r, 0, 8 - count($ids));
+    $ids = array_merge($ids, $r); $ex = array_merge($ex, $r);
+  }
+  if (count($ids) < 8) {
+    $r = array_slice($pick(function ($qq) {}), 0, 8 - count($ids));
+    $ids = array_merge($ids, $r);
+  }
+  $variables['related'] = $ids ? $st->loadMultiple($ids) : [];
+  $variables['#cache']['tags'][] = 'node_list:photo';
+}
+
+require_once __DIR__ . '/includes/auth.inc';

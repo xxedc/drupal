@@ -1,0 +1,5 @@
+.xedc-usermenu{position:relative;display:inline-flex}
+.xedc-usermenu__panel{position:absolute;top:calc(100% + 8px);right:0;z-index:1050;min-width:150px;padding:4px;background:var(--xa-bg);color:var(--xa-fg);border:1px solid var(--xa-border);border-radius:var(--xa-radius);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.xedc-usermenu__panel[hidden]{display:none}
+.xedc-usermenu__panel a{display:block;padding:8px 12px;border-radius:calc(var(--xa-radius) - 2px);color:inherit;font-size:14px;text-decoration:none;white-space:nowrap}
+.xedc-usermenu__panel a:hover,.xedc-usermenu__panel a:focus-visible{background:var(--xa-muted-bg);outline:none}

@@ -1,0 +1,204 @@
+<?php
+
+/**
+ * @file
+ * XEDC 登录 / 注册 / 找回密码 页面逻辑。
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+
+require_once __DIR__ . '/AuthCallbacks.php';
+
+function _xedc_auth_route(): string {
+  return (string) \Drupal::routeMatch()->getRouteName();
+}
+
+function _xedc_auth_is_auth_route(): bool {
+  $r = _xedc_auth_route();
+  return in_array($r, ['user.login', 'user.register', 'user.pass'], TRUE)
+    || str_starts_with($r, 'user.reset');
+}
+
+/**
+ * 只传递 Drupal 原生 destination（Drupal 会拒绝外部地址）。
+ */
+function _xedc_auth_dest(): array {
+  $dest = \Drupal::request()->query->get('destination');
+  return (is_string($dest) && $dest !== '') ? ['destination' => $dest] : [];
+}
+
+function _xedc_auth_wrap(array &$form, string $key, string $title, string $desc): void {
+  $form['#attributes']['class'][] = 'xedc-auth';
+  $form['#attributes']['class'][] = 'xedc-auth--' . $key;
+  $form['#cache']['contexts'][] = 'url.query_args:destination';
+  $form['#cache']['contexts'][] = 'url.query_args:xedc_embed';
+  $form['#pre_render'][] = 'Drupal\xedc\AuthCallbacks::messages';
+  $form['xedc_head'] = [
+    '#type' => 'inline_template',
+    '#weight' => -1000,
+    '#template' => <<<'TWIG'
+<div class="xedc-auth__head">
+  <a class="xedc-auth__brand" href="{{ path('<front>') }}" target="_top" aria-label="XEDC">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="currentColor"/><path d="M9.5 9.5l9 9m0-9l-9 9" style="stroke:var(--xa-bg)" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+    <span>XEDC</span>
+  </a>
+  <h1 class="xedc-auth__title">{{ title }}</h1>
+  {% if desc %}<p class="xedc-auth__desc">{{ desc }}</p>{% endif %}
+</div>
+TWIG,
+    '#context' => ['title' => $title, 'desc' => $desc],
+  ];
+}
+
+function _xedc_auth_foot(array &$form, string $text, string $label, string $route): void {
+  $form['xedc_foot'] = [
+    '#type' => 'container',
+    '#weight' => 1000,
+    '#attributes' => ['class' => ['xedc-auth__foot']],
+    'text' => ['#type' => 'html_tag', '#tag' => 'span', '#value' => $text],
+    'link' => [
+      '#type' => 'link',
+      '#title' => $label,
+      '#url' => Url::fromRoute($route, [], ['query' => _xedc_auth_dest()]),
+      '#attributes' => ['target' => '_top'],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function xedc_preprocess_html(array &$variables): void {
+  $variables['page']['#attached']['library'][] = 'xedc/xedc_auth';
+  if (_xedc_auth_is_auth_route()) {
+    $variables['attributes']['class'][] = 'xedc-auth-page';
+  }
+  if (\Drupal::request()->query->get('xedc_embed')) {
+    $variables['attributes']['class'][] = 'xedc-embed';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_login_form.
+ */
+function xedc_form_user_login_form_alter(array &$form, FormStateInterface $form_state): void {
+  if (_xedc_auth_route() !== 'user.login') {
+    return;
+  }
+  _xedc_auth_wrap($form, 'login', '登录', '');
+
+  $form['name']['#title'] = '用户名';
+  $form['name']['#description'] = '';
+  $form['name']['#maxlength'] = 254;
+  $form['name']['#attributes']['placeholder'] = '输入用户名或邮箱';
+  $form['name']['#element_validate'][] = '_xedc_auth_login_email_to_name';
+  $form['name']['#weight'] = 1;
+
+  $form['pass']['#title'] = '密码';
+  $form['pass']['#description'] = '';
+  $form['pass']['#attributes']['placeholder'] = '密码';
+  $form['pass']['#weight'] = 2;
+
+  $form['xedc_forgot'] = [
+    '#type' => 'link',
+    '#title' => '忘记密码？',
+    '#url' => Url::fromRoute('user.pass', [], ['query' => _xedc_auth_dest()]),
+    '#attributes' => ['class' => ['xedc-auth__forgot'], 'target' => '_top'],
+    '#weight' => 3,
+  ];
+
+  $form['actions']['#weight'] = 10;
+  $form['actions']['submit']['#value'] = '登录';
+  _xedc_auth_foot($form, '还没有账号？', '注册账号', 'user.register');
+
+  $form['#submit'][] = '_xedc_auth_login_submit';
+}
+
+/**
+ * 直接访问登录页（没有 destination）时回首页；有 destination 时 Drupal 原生处理。
+ */
+function _xedc_auth_login_submit(array &$form, FormStateInterface $form_state): void {
+  $request = \Drupal::request();
+  if ($request->query->get('xedc_embed')) {
+    // 弹窗登录：iframe 跳到轻量静态文件，由父窗口回到原页面。
+    $request->query->remove('destination');
+    $form_state->setRedirectUrl(Url::fromUri('base:robots.txt', ['query' => ['xedc_done' => 1]]));
+    return;
+  }
+  if (!$request->query->has('destination')) {
+    $form_state->setRedirect('<front>');
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_register_form.
+ */
+function xedc_form_user_register_form_alter(array &$form, FormStateInterface $form_state): void {
+  // 只处理前台注册页，不影响 /admin/people/create。
+  if (_xedc_auth_route() !== 'user.register') {
+    return;
+  }
+  _xedc_auth_wrap($form, 'register', '创建账号', '注册后即可评论、收藏和互动。');
+  $form['actions']['submit']['#value'] = '创建账号';
+  _xedc_auth_foot($form, '已有账号？', '登录', 'user.login');
+  $form['#submit'][] = '_xedc_auth_register_submit';
+}
+
+function _xedc_auth_register_submit(array &$form, FormStateInterface $form_state): void {
+  if (\Drupal::request()->query->has('destination')) {
+    return;
+  }
+  $redirect = $form_state->getRedirect();
+  if ($redirect instanceof Url && $redirect->isRouted() && $redirect->getRouteName() === 'entity.user.canonical') {
+    $form_state->setRedirect('<front>');
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_pass.
+ */
+function xedc_form_user_pass_alter(array &$form, FormStateInterface $form_state): void {
+  if (_xedc_auth_route() !== 'user.pass') {
+    return;
+  }
+  _xedc_auth_wrap($form, 'pass', '找回密码', '输入账号信息，我们会向账号绑定的邮箱发送重置链接。');
+  if (isset($form['name'])) {
+    $form['name']['#title'] = '用户名或邮箱';
+    $form['name']['#description'] = '可输入注册时使用的用户名，或账号绑定的邮箱地址。';
+    $form['name']['#attributes']['placeholder'] = '用户名或邮箱';
+  }
+  if (isset($form['actions']['submit'])) {
+    $form['actions']['submit']['#value'] = '发送重置链接';
+  }
+  _xedc_auth_foot($form, '想起密码了？', '返回登录', 'user.login');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_pass_reset (一次性登录链接页).
+ */
+function xedc_form_user_pass_reset_alter(array &$form, FormStateInterface $form_state): void {
+  _xedc_auth_wrap($form, 'reset', '重置密码', '点击下方按钮登录，随后请立即设置新密码。');
+}
+
+/**
+ * 登录框输入邮箱时，换成对应的用户名再交给 Drupal 原生验证。
+ */
+function _xedc_auth_login_email_to_name(array &$element, FormStateInterface $form_state, array &$complete_form): void {
+  $value = trim((string) $form_state->getValue('name'));
+  if ($value !== '' && str_contains($value, '@')) {
+    $users = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => $value]);
+    if ($users) {
+      $form_state->setValueForElement($element, reset($users)->getAccountName());
+    }
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_page_alter().
+ */
+function xedc_theme_suggestions_page_alter(array &$suggestions, array $variables): void {
+  if (_xedc_auth_route() === 'user.login' && \Drupal::request()->query->get('xedc_embed')) {
+    $suggestions[] = 'page__xedc_embed';
+  }
+}

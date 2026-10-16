@@ -1,0 +1,147 @@
+/* XEDC 登录弹窗：<dialog> + 同源 iframe 呈现原生登录表单 */
+(function () {
+  'use strict';
+
+  var LOGIN_RE = /\/user\/login\/?$/;
+  var inEmbed = window.self !== window.top;
+  var dialog = null;
+  var frame = null;
+  var pendingDest = '';
+
+  if (inEmbed) {
+    // 链接都在顶层窗口打开；提交时通知父窗口显示加载状态
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]');
+      if (a && a.getAttribute('href').charAt(0) !== '#') { a.target = '_top'; }
+    }, true);
+  }
+
+  function embedUrl(a) {
+    var u = new URL(a.href, location.href);
+    var dest = u.searchParams.get('destination');
+    if (!dest) {
+      dest = location.pathname + location.search + location.hash;
+      u.searchParams.set('destination', dest);
+    }
+    pendingDest = dest;
+    u.searchParams.set('xedc_embed', '1');
+    return u.toString();
+  }
+
+  function goBack() {
+    var t;
+    try { t = new URL(pendingDest || (location.pathname + location.search + location.hash), location.origin); }
+    catch (err) { t = new URL(location.href); }
+    if (t.origin !== location.origin) { t = new URL(location.href); }
+    if (t.pathname + t.search === location.pathname + location.search) {
+      if (t.hash) { location.hash = t.hash; }
+      location.reload();
+    } else {
+      location.assign(t.toString());
+    }
+  }
+
+  function build() {
+    if (dialog) { return; }
+    dialog = document.createElement('dialog');
+    dialog.className = 'xedc-login-dialog';
+    dialog.setAttribute('aria-label', '登录');
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'xedc-login-dialog__close';
+    close.setAttribute('aria-label', '关闭');
+    close.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+    frame = document.createElement('iframe');
+    frame.title = '登录';
+
+    dialog.appendChild(close);
+    dialog.appendChild(frame);
+    var done = document.createElement('div');
+    done.className = 'xedc-login-dialog__done';
+    done.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>登录成功</span>';
+    dialog.appendChild(done);
+    document.body.appendChild(dialog);
+
+    close.addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('click', function (e) { if (e.target === dialog) { dialog.close(); } });
+    dialog.addEventListener('close', function () {
+      frame.removeAttribute('src');
+      dialog.classList.remove('is-loading', 'is-done');
+      document.documentElement.classList.remove('xedc-dialog-open');
+    });
+    frame.addEventListener('load', onFrameLoad);
+  }
+
+  function onFrameLoad() {
+    var loc, doc;
+    try { loc = frame.contentWindow.location; doc = frame.contentDocument; } catch (err) { return; }
+    if (!dialog.open || !loc || loc.href === 'about:blank') { return; }
+
+    var stillLogin = LOGIN_RE.test(loc.pathname) && /[?&]xedc_embed=1/.test(loc.search);
+    if (!stillLogin) {
+      // 登录成功：iframe 只加载了轻量文件，父窗口直接回到原页面
+      dialog.classList.add('is-done');
+      setTimeout(goBack, 350);
+      return;
+    }
+    dialog.classList.remove('is-loading', 'is-done');
+    if (doc && doc.documentElement) {
+      frame.style.height = Math.min(doc.documentElement.scrollHeight, Math.floor(window.innerHeight * 0.92)) + 'px';
+    }
+  }
+
+  function open(url) {
+    build();
+    frame.style.height = '';
+    dialog.classList.remove('is-loading', 'is-done');
+    frame.src = url;
+    document.documentElement.classList.add('xedc-dialog-open');
+    dialog.showModal();
+  }
+
+  document.addEventListener('click', function (e) {
+    if (inEmbed || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
+    if (typeof HTMLDialogElement !== 'function') { return; }
+    if (document.body.classList.contains('xedc-auth-page')) { return; }
+    var a = e.target.closest && e.target.closest('a[href]');
+    if (!a || a.hasAttribute('data-no-modal') || (a.target && a.target !== '_self')) { return; }
+    var u;
+    try { u = new URL(a.href, location.href); } catch (err) { return; }
+    if (u.origin !== location.origin || !LOGIN_RE.test(u.pathname)) { return; }
+    e.preventDefault();
+    open(embedUrl(a));
+  });
+})();
+
+/* 提交中：按钮显示转圈并防止重复提交 */
+(function () {
+  'use strict';
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (!f.classList || !f.classList.contains('xedc-auth')) { return; }
+    if (f.classList.contains('is-submitting')) { e.preventDefault(); return; }
+    f.classList.add('is-submitting');
+    f.setAttribute('aria-busy', 'true');
+  }, true);
+  window.addEventListener('pageshow', function (e) {
+    if (!e.persisted) { return; }
+    document.querySelectorAll('form.xedc-auth.is-submitting').forEach(function (f) {
+      f.classList.remove('is-submitting');
+      f.removeAttribute('aria-busy');
+    });
+  });
+})();
+
+/* 去掉 Drupal 登录检查参数，避免它被带进退出 / 登录后的跳转地址 */
+(function () {
+  'use strict';
+  try {
+    var u = new URL(location.href);
+    if (u.searchParams.has('check_logged_in')) {
+      u.searchParams.delete('check_logged_in');
+      history.replaceState(null, '', u.pathname + u.search + u.hash);
+    }
+  } catch (err) {}
+})();

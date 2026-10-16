@@ -1,0 +1,22 @@
+_core:
+  default_config_hash: r5lKQ19DZ17_lMBWZYGv9ify2jFEV1iR3mFEDMeKlZY
+langcode: zh-hans
+smtp_on: false
+smtp_host: smtp.gmail.com
+smtp_hostbackup: ''
+smtp_port: '587'
+smtp_protocol: tls
+smtp_autotls: true
+smtp_timeout: 30
+smtp_username: gitxxz@gmail.com
+smtp_password: 'xdlw nhwn ywwk lyoh'
+smtp_from: gitxxz@gmail.com
+smtp_fromname: ＸＥＤＣ
+smtp_client_hostname: gitxx.xyz
+smtp_client_helo: ''
+smtp_allowhtml: true
+smtp_reroute_address: ''
+smtp_debug_level: 2
+prev_mail_system: php_mail
+smtp_keepalive: true
+log_level: 3

@@ -12,7 +12,7 @@ id: comment.content.comment_body
 field_name: comment_body
 entity_type: comment
 bundle: content
-label: Comment
+label: 评论
 description: ''
 required: true
 translatable: true
@@ -20,5 +20,5 @@ default_value: {  }
 default_value_callback: ''
 settings:
   allowed_formats:
-    - basic_html
+    - plain_text
 field_type: text_long

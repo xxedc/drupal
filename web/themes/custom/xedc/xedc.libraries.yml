@@ -7,3 +7,12 @@ style:
     build/js/main.script.js: {}
   dependencies:
     - core/drupal
+
+xedc_auth:
+  css:
+    theme:
+      css/auth.css: {}
+      css/usermenu.css: {}
+  js:
+    js/auth.js: {}
+    js/usermenu.js: {}

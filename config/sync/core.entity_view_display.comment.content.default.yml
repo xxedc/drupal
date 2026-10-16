@@ -5,7 +5,10 @@ dependencies:
   config:
     - comment.type.content
     - field.field.comment.content.comment_body
+    - field.field.comment.content.field_comment_image
+    - image.style.medium
   module:
+    - image
     - text
 id: comment.content.default
 targetEntityType: comment
@@ -18,6 +21,17 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: 0
+    region: content
+  field_comment_image:
+    type: image
+    label: hidden
+    settings:
+      image_link: file
+      image_style: medium
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 101
     region: content
   links:
     settings: {  }

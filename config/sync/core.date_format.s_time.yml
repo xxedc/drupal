@@ -1,0 +1,8 @@
+uuid: ef29ba79-910c-41ef-8c02-d15970927759
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: s_time
+label: 短时间
+locked: false
+pattern: 'm-d H:i'
