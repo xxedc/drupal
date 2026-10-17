@@ -1,0 +1,28 @@
+uuid: 3c8de16d-0c4f-4a9a-8308-466da5b45217
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_alias_of
+    - taxonomy.vocabulary.models
+id: taxonomy_term.models.field_alias_of
+field_name: field_alias_of
+entity_type: taxonomy_term
+bundle: models
+label: 人物名字去重
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      models: models
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: ''
+field_type: entity_reference

@@ -15,8 +15,7 @@
   <aside class="img-detail__side">
   <header class="img-detail__head">
     <h1 class="img-detail__title">{{ label }}</h1>
-    <div class="img-detail__meta">{{ author_name }} · {{ date }}</div>
-    <div class="img-detail__terms">{{ content.field_tags }}</div>
+    {% include "@xedc/node/xedc-meta.html.twig" %}
   </header>
 {{ content.field_comment }}</aside>
   {% if related %}

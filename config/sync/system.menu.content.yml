@@ -9,5 +9,5 @@ _core:
   default_config_hash: nqVwm91Uyib_rvFaNPF1MdYqHlmZ38w5rsOVVy4uWDw
 id: content
 label: 内容
-description: 'Content task links'
+description: 内容任务链接
 locked: true

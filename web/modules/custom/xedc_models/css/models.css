@@ -1,0 +1,27 @@
+.xm{--xm-b:var(--bs-border-color,#e4e4e7);--xm-m:var(--bs-secondary-color,#71717a);padding:1.5rem 0 3rem}
+.xm-head{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem}
+.xm-title{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin:0}
+.xm-sub{color:var(--xm-m);font-size:.875rem;margin:.25rem 0 0}
+.xm-sub strong{color:inherit}
+.xm-search{position:relative;width:100%;max-width:320px;margin:0}
+.xm-search svg{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--xm-m);pointer-events:none}
+.xm-search input{width:100%;height:40px;padding:0 .75rem 0 2.25rem;border:1px solid var(--xm-b);border-radius:.5rem;background:transparent;color:inherit;font-size:.875rem;outline:none;transition:border-color .15s,box-shadow .15s}
+.xm-search input:focus{border-color:#a1a1aa;box-shadow:0 0 0 3px rgba(161,161,170,.25)}
+.xm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem}
+.xm-card{display:block;border:1px solid var(--xm-b);border-radius:.75rem;overflow:hidden;text-decoration:none;color:inherit;background:var(--bs-body-bg,#fff);transition:box-shadow .2s,transform .2s}
+.xm-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);transform:translateY(-2px);color:inherit}
+.xm-card[hidden]{display:none}
+.xm-thumb{aspect-ratio:3/4;background:var(--bs-tertiary-bg,#f4f4f5)}
+.xm-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.xm-body{padding:.625rem .75rem .75rem;display:flex;flex-direction:column;gap:.375rem}
+.xm-name{font-size:.875rem;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xm-badge{align-self:flex-start;font-size:.6875rem;color:var(--xm-m);border:1px solid var(--xm-b);border-radius:999px;padding:.0625rem .5rem}
+.xm-empty{text-align:center;color:var(--xm-m);padding:3rem 0}
+@media(max-width:575.98px){
+.xm-grid{grid-template-columns:repeat(4,1fr);gap:.5rem}
+.xm-card{border-radius:.5rem}
+.xm-body{padding:.375rem .375rem .5rem;gap:.25rem}
+.xm-name{font-size:.75rem}
+.xm-badge{font-size:.625rem;padding:0 .375rem}
+.xm-search{max-width:none}
+}

@@ -12,6 +12,7 @@ module:
   colorbox: 0
   comment: 0
   config: 0
+  config_translation: 0
   contextual: 0
   ctools_entity_mask: 0
   datetime: 0
@@ -47,6 +48,9 @@ module:
   page_cache: 0
   path: 0
   path_alias: 0
+  redirect: 0
+  redirect_404: 0
+  redirect_domain: 0
   responsive_image: 0
   search: 0
   search_node: 0
@@ -66,7 +70,9 @@ module:
   views_bulk_operations: 0
   views_infinite_scroll: 0
   views_ui: 0
+  xedc_models: 0
   pathauto: 1
+  content_translation: 10
   views: 10
   standard: 1000
 theme:

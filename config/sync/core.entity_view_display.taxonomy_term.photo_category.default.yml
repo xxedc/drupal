@@ -1,0 +1,22 @@
+uuid: 6ef5da78-f8f6-4fe0-9ea2-a4a1dd8691b6
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.photo_category
+  module:
+    - text
+id: taxonomy_term.photo_category.default
+targetEntityType: taxonomy_term
+bundle: photo_category
+mode: default
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  langcode: true

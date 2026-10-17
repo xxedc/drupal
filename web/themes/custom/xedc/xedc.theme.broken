@@ -1,0 +1,255 @@
+<?php
+
+/**
+ * @file
+ * Theme functions.
+ */
+
+// Include all files from the includes directory.
+$includes_path = __DIR__ . '/includes/*.theme';
+foreach (glob($includes_path) as $file) {
+  require_once __DIR__ . '/includes/' . basename($file);
+}
+
+function _xedc_home_items_old($type, $field, $limit) {
+  $nids = \Drupal::entityQuery('node')->accessCheck(TRUE)
+    ->condition('type', $type)->condition('status', 1)
+    ->sort('created', 'DESC')->range(0, $limit)->execute();
+  $items = [];
+  foreach (\Drupal\node\Entity\Node::loadMultiple($nids) as $n) {
+    $url = '';
+    if ($n->hasField($field) && !$n->get($field)->isEmpty()) {
+      $e = $n->get($field)->entity;
+      if ($e instanceof \Drupal\media\MediaInterface) {
+        $e = $e->get('thumbnail')->entity;
+      }
+      if ($e instanceof \Drupal\file\FileInterface) {
+        $s = \Drupal\image\Entity\ImageStyle::load('large');
+        $url = $s ? $s->buildUrl($e->getFileUri()) : \Drupal::service('file_url_generator')->generateString($e->getFileUri());
+      }
+    }
+    $items[] = [
+      'title' => $n->label(),
+      'url' => $n->toUrl()->toString(),
+      'img' => $url,
+      'date' => \Drupal::service('date.formatter')->format($n->getCreatedTime(), 'custom', 'm-d'),
+    ];
+  }
+  return $items;
+}
+
+function xedc_preprocess_page(&$variables) {
+  if (\Drupal::service('path.matcher')->isFrontPage()) {
+    $variables['home_photos'] = _xedc_home_items('photo', 'field_cover_image', 5);
+    $variables['home_videos'] = _xedc_home_items('video', 'field_video_cover', 8);
+    $variables['home_articles'] = _xedc_home_items('article', 'field_cover', 6);
+    $variables['page']['#cache']['tags'][] = 'node_list';
+  }
+}
+
+function xedc_page_attachments_alter(array &$attachments) {
+  if (\Drupal::service('path.matcher')->isFrontPage()) {
+    $attachments['#cache']['tags'][] = 'node_list';
+  }
+}
+
+function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id) {
+  $view = $form_state->get('view');
+  if (!$view || $view->id() !== 'image_gallery') {
+    return;
+  }
+  $q = \Drupal::request()->query;
+  $cur = $q->get('cat');
+  $sort = $q->get('sort_by') === 'totalcount' ? 'totalcount' : 'created';
+  $mk = function ($cat, $s) {
+    $query = [];
+    if ($cat) { $query['cat'] = $cat; }
+    if ($s !== 'created') { $query['sort_by'] = $s; }
+    return \Drupal\Core\Url::fromRoute('<current>', [], ['query' => $query])->toString();
+  };
+  $cats = [['t' => '全部', 'u' => $mk(NULL, $sort), 'a' => !$cur]];
+  $st = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  foreach ($st->loadTree('photo_category') as $t) {
+    $cats[] = ['t' => $t->name, 'u' => $mk($t->tid, $sort), 'a' => $cur == $t->tid];
+  }
+  $sorts = [
+    ['t' => '最新', 'u' => $mk($cur, 'created'), 'a' => $sort === 'created'],
+    ['t' => '最热', 'u' => $mk($cur, 'totalcount'), 'a' => $sort === 'totalcount'],
+  ];
+  $tpl = '<div class="photo-bar"><nav class="photo-tabs">{% for i in cats %}';
+  $tpl .= '<a href="{{ i.u }}"{% if i.a %} class="is-active"{% endif %}>{{ i.t }}</a>{% endfor %}</nav>';
+  $tpl .= '<nav class="photo-sorts">{% for i in sorts %}';
+  $tpl .= '<a href="{{ i.u }}"{% if i.a %} class="is-active"{% endif %}>{{ i.t }}</a>{% endfor %}</nav></div>';
+  $form['pills'] = ['#type' => 'inline_template', '#template' => $tpl,
+    '#context' => ['cats' => $cats, 'sorts' => $sorts], '#weight' => -10];
+  foreach (['cat', 'sort_by', 'sort_order', 'actions'] as $f) {
+    if (isset($form[$f])) { $form[$f]['#attributes']['class'][] = 'photo-hide'; }
+  }
+  $form['#cache']['contexts'][] = 'url.query_args:cat';
+  $form['#cache']['contexts'][] = 'url.query_args:sort_by';
+}
+
+function xedc_form_comment_form_alter(array &$form, $form_state, $form_id) {
+  $form["actions"]["submit"]["#value"] = "发表评论";
+  if (isset($form["actions"]["preview"])) { $form["actions"]["preview"]["#access"] = FALSE; }
+  if (\Drupal::currentUser()->isAnonymous() && isset($form["field_comment_image"])) { $form["field_comment_image"]["#access"] = FALSE; }
+}
+
+function xedc_preprocess_node(array &$variables) {
+  $node = $variables['node'];
+  if ($node->bundle() !== 'photo' || $variables['view_mode'] !== 'full') {
+    return;
+  }
+  $st = \Drupal::entityTypeManager()->getStorage('node');
+  $created = $node->getCreatedTime();
+  $q = $st->getQuery()->accessCheck(TRUE)->condition('type', 'photo')->condition('status', 1);
+  $prev = (clone $q)->condition('created', $created, '<')->sort('created', 'DESC')->range(0, 1)->execute();
+  $next = (clone $q)->condition('created', $created, '>')->sort('created', 'ASC')->range(0, 1)->execute();
+  $variables['nav_prev'] = $prev ? $st->load(reset($prev)) : NULL;
+  $variables['nav_next'] = $next ? $st->load(reset($next)) : NULL;
+  $ids = [];
+  $ex = [$node->id()];
+  $pick = function ($extra) use ($q, &$ex) {
+    $qq = clone $q;
+    $qq->condition('nid', $ex, 'NOT IN');
+    $extra($qq);
+    $r = array_values($qq->sort('created', 'DESC')->range(0, 8)->execute());
+    return $r;
+  };
+  if ($node->hasField('field_tags') && !$node->get('field_tags')->isEmpty()) {
+    $tids = array_column($node->get('field_tags')->getValue(), 'target_id');
+    $r = $pick(function ($qq) use ($tids) { $qq->condition('field_tags', $tids, 'IN'); });
+    $ids = array_merge($ids, $r); $ex = array_merge($ex, $r);
+  }
+  if (count($ids) < 8 && $node->hasField('field_categories') && !$node->get('field_categories')->isEmpty()) {
+    $cid = $node->get('field_categories')->target_id;
+    $r = $pick(function ($qq) use ($cid) { $qq->condition('field_categories', $cid); });
+    $r = array_slice($r, 0, 8 - count($ids));
+    $ids = array_merge($ids, $r); $ex = array_merge($ex, $r);
+  }
+  if (count($ids) < 8) {
+    $r = array_slice($pick(function ($qq) {}), 0, 8 - count($ids));
+    $ids = array_merge($ids, $r);
+  }
+  $variables['related'] = $ids ? $st->loadMultiple($ids) : [];
+  $variables['#cache']['tags'][] = 'node_list:photo';
+}
+
+require_once __DIR__ . '/includes/auth.inc';
+
+/**
+ * 栏目页顶部：栏目链接（别名）+ 当前栏目的人物/标签。
+ */
+function xedc_preprocess_views_view(array &$variables) {
+  $view = $variables['view'];
+  if ($view->id() !== 'image_gallery') {
+    return;
+  }
+  $vocabs = [];
+  foreach (\Drupal\field\Entity\FieldConfig::loadMultiple() as $f) {
+    if ($f->getTargetEntityTypeId() === 'node' && $f->getName() === 'field_model') {
+      $c = \Drupal\field\Entity\FieldConfig::loadByName('node', $f->getTargetBundle(), 'field_categories');
+      if ($c) {
+        $vocabs += $c->getSetting('handler_settings')['target_bundles'] ?? [];
+      }
+    }
+  }
+  $vocab = array_key_first($vocabs);
+  if (!$vocab) {
+    return;
+  }
+
+  $arg = $view->args[0] ?? NULL;
+  $cat = NULL;
+  if ($arg && ctype_digit((string) $arg)) {
+    $t = \Drupal\taxonomy\Entity\Term::load($arg);
+    if ($t && $t->bundle() === $vocab) {
+      $cat = $t;
+    }
+  }
+
+  $cats = [['label' => '全部', 'url' => '/meitu', 'active' => !$arg]];
+  foreach (\Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vocab, 0, NULL, TRUE) as $t) {
+    $cats[] = ['label' => $t->label(), 'url' => $t->toUrl()->toString(),
+      'active' => $cat && $t->id() == $cat->id()];
+  }
+
+  $groups = [];
+  if ($cat) {
+    $nids = \Drupal::entityQuery('node')->accessCheck(TRUE)
+      ->condition('status', 1)->condition('field_categories', $cat->id())->execute();
+    $nodes = \Drupal\node\Entity\Node::loadMultiple($nids);
+    $collect = function (string $field) use ($nodes) {
+      $count = [];
+      foreach ($nodes as $n) {
+        if (!$n->hasField($field)) { continue; }
+        foreach ($n->get($field)->getValue() as $v) {
+          $count[$v['target_id']] = ($count[$v['target_id']] ?? 0) + 1;
+        }
+      }
+      $items = [];
+      foreach (\Drupal\taxonomy\Entity\Term::loadMultiple(array_keys($count)) as $t) {
+        $items[] = ['label' => $t->label(), 'url' => $t->toUrl()->toString(), 'n' => $count[$t->id()]];
+      }
+      usort($items, fn($a, $b) => $b['n'] <=> $a['n']);
+      return $items;
+    };
+    $groups = [
+      ['title' => '人物', 'items' => $collect('field_model')],
+      ['title' => '标签', 'items' => $collect('field_tags')],
+    ];
+  }
+
+  $css = <<<'CSS'
+.xedc-nav{margin:0 0 1rem}
+.xedc-nav .xedc-cats,.xedc-nav .xedc-chips{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.75rem}
+.xedc-nav .xedc-chips-title{font-size:.8rem;opacity:.6;margin-right:.25rem}
+.xedc-nav .xedc-chip{padding:.35rem .9rem;border:1px solid rgba(128,128,128,.35);border-radius:999px;font-size:.85rem;color:inherit;background:transparent;text-decoration:none;white-space:nowrap}
+.xedc-nav .xedc-chip:hover{background:rgba(128,128,128,.12)}
+.xedc-nav .xedc-chip.is-active{background:#18181b;color:#fff;border-color:#18181b}
+.xedc-nav .xedc-more{display:contents}
+.xedc-nav .xedc-more summary{cursor:pointer;list-style:none;padding:.35rem .9rem;border:1px dashed rgba(128,128,128,.5);border-radius:999px;font-size:.85rem;opacity:.7}
+.xedc-nav .xedc-more[open] summary{display:none}
+@media(max-width:640px){.xedc-nav .xedc-cats{flex-wrap:nowrap;overflow-x:auto}}
+CSS;
+
+  $chips = [
+    '#type' => 'inline_template',
+    '#weight' => -100,
+    '#template' => '<div class="xedc-nav">
+<nav class="xedc-cats">{% for c in cats %}<a class="xedc-chip{{ c.active ? " is-active" : "" }}" href="{{ c.url }}">{{ c.label }}</a>{% endfor %}</nav>
+{% for g in groups %}{% if g.items %}
+<div class="xedc-chips"><span class="xedc-chips-title">{{ g.title }}</span>
+{% for c in g.items|slice(0, 6) %}<a class="xedc-chip" href="{{ c.url }}">{{ c.label }}</a>{% endfor %}
+{% if g.items|length > 6 %}<details class="xedc-more"><summary>更多标签</summary>
+{% for c in g.items|slice(6) %}<a class="xedc-chip" href="{{ c.url }}">{{ c.label }}</a>{% endfor %}</details>{% endif %}
+</div>{% endif %}{% endfor %}</div>',
+    '#context' => ['cats' => $cats, 'groups' => $groups],
+    '#cache' => ['tags' => ['node_list', 'taxonomy_term_list']],
+    '#attached' => ['html_head' => [[['#tag' => 'style', '#value' => $css], 'xedc_chips_css']]],
+  ];
+
+  $target = !empty($variables['exposed']) ? 'exposed' : 'rows';
+  $variables[$target] = ['xedc_chips' => $chips, 'xedc_orig' => $variables[$target]];
+}
+
+function _xedc_term_title_from_path() {
+  $path = \Drupal::service('path.current')->getPath();
+  if (preg_match('#^/taxonomy/term/(\d+)$#', $path, $m)) {
+    $t = \Drupal\taxonomy\Entity\Term::load($m[1]);
+    return $t ? $t->label() : NULL;
+  }
+  return NULL;
+}
+
+function xedc_preprocess_page_title(array &$variables) {
+  if ($l = _xedc_term_title_from_path()) {
+    $variables['title'] = $l;
+  }
+}
+
+function xedc_preprocess_html(array &$variables) {
+  if ($l = _xedc_term_title_from_path()) {
+    $variables['head_title']['title'] = $l;
+  }
+}

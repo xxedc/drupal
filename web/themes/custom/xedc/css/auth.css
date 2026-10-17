@@ -125,4 +125,8 @@ form.xedc-auth .messages__wrapper{margin:0}
 .xedc-auth--register :is(.password-strength,.password-suggestions,.password-confirm-message){display:none!important}
 
 /* 重置链接确认页：自动继续时只显示标题 */
-form.xedc-auth--reset.is-auto > p,form.xedc-auth--reset.is-auto .form-actions{display:none}
+form.xedc-auth--reset.is-auto{position:relative;min-height:170px}
+form.xedc-auth--reset.is-auto > *{visibility:hidden;animation:xa-show 0s 4s forwards}
+form.xedc-auth--reset.is-auto::after{content:"";position:absolute;top:50%;left:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border:2px solid var(--xa-border);border-top-color:var(--xa-primary);border-radius:50%;animation:xa-spin .7s linear infinite,xa-hide 0s 4s forwards}
+@keyframes xa-show{to{visibility:visible}}
+@keyframes xa-hide{to{opacity:0}}

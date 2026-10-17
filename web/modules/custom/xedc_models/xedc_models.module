@@ -1,0 +1,10 @@
+<?php
+
+function xedc_models_theme() {
+  return [
+    'xedc_models_page' => [
+      'variables' => ['models' => [], 'total' => 0],
+      'template' => 'xedc-models-page',
+    ],
+  ];
+}

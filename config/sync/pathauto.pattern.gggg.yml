@@ -1,4 +1,4 @@
-uuid: 6bc81624-0a3d-4965-9645-c9838507f90c
+uuid: f4c51864-7449-4ee1-b61b-f7ff7cba7cae
 langcode: zh-hans
 status: true
 dependencies:
@@ -6,12 +6,12 @@ dependencies:
     - node.type.photo
   module:
     - node
-id: image_content
-label: 图片内容
+id: gggg
+label: gggg
 type: 'canonical_entities:node'
-pattern: '/image/[node:nid]'
+pattern: '/[node:field_categories:entity:url:path]/[node:nid]'
 selection_criteria:
-  edd40c60-0445-405a-833d-361ec795fd0a:
+  907b18be-68e0-4f88-91b4-abfd3c15920e:
     id: 'entity_bundle:node'
     negate: false
     context_mapping:

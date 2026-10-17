@@ -6,6 +6,6 @@ _core:
   default_config_hash: PWTsHiwkIfp5TW-iTBc9AhBtvbYY6wrp3MopazQ-95o
 name: 标签
 vid: tags
-description: 'Use tags to group content on similar topics into categories.'
+description: 使用标签将相似主题的内容归类到不同类别中
 weight: 0
 new_revision: false

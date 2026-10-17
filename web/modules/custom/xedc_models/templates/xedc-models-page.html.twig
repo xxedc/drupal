@@ -1,0 +1,23 @@
+<div class="xm" data-xm>
+  <header class="xm-head">
+    <div>
+      <p class="xm-sub">共 <strong data-xm-count>{{ total }}</strong> 位模特</p>
+    </div>
+    <label class="xm-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" placeholder="搜索模特名字…" data-xm-input autocomplete="off">
+    </label>
+  </header>
+  <div class="xm-grid">
+    {% for m in models %}
+      <a class="xm-card" href="{{ m.url }}" data-name="{{ m.search }}">
+        <div class="xm-thumb">{% if m.img %}<img src="{{ m.img }}" alt="{{ m.name }}" loading="lazy">{% endif %}</div>
+        <div class="xm-body">
+          <span class="xm-name">{{ m.name }}</span>
+          <span class="xm-badge">{{ m.count }} 个内容</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+  <p class="xm-empty" hidden>没有找到相关模特</p>
+</div>

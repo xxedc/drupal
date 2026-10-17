@@ -1,0 +1,9 @@
+models:
+  css:
+    theme:
+      css/models.css: {}
+  js:
+    js/models.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

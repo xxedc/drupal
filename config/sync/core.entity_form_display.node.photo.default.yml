@@ -7,6 +7,7 @@ dependencies:
     - field.field.node.photo.field_comment
     - field.field.node.photo.field_cover_image
     - field.field.node.photo.field_images
+    - field.field.node.photo.field_model
     - field.field.node.photo.field_tags
     - node.type.photo
   module:
@@ -53,6 +54,16 @@ content:
     region: content
     settings:
       media_types: {  }
+    third_party_settings: {  }
+  field_model:
+    type: entity_reference_autocomplete
+    weight: 126
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_tags:
     type: entity_reference_autocomplete

@@ -32,6 +32,10 @@ function _xedc_auth_dest(): array {
 function _xedc_auth_wrap(array &$form, string $key, string $title, string $desc): void {
   $form['#attributes']['class'][] = 'xedc-auth';
   $form['#attributes']['class'][] = 'xedc-auth--' . $key;
+  if ($key === 'reset') {
+    $form['#attributes']['class'][] = 'is-auto';
+  }
+  _xedc_auth_localize_messages();
   $form['#cache']['contexts'][] = 'url.query_args:destination';
   $form['#cache']['contexts'][] = 'url.query_args:xedc_embed';
   $form['#pre_render'][] = 'Drupal\xedc\AuthCallbacks::messages';
@@ -136,7 +140,7 @@ function _xedc_auth_login_submit(array &$form, FormStateInterface $form_state): 
  * Implements hook_form_FORM_ID_alter() for user_register_form.
  */
 function xedc_form_user_register_form_alter(array &$form, FormStateInterface $form_state): void {
-  $form['#validate'][] = '_xedc_auth_validate_password';
+  _xedc_auth_add_handler($form, 'validate', '_xedc_auth_validate_password');
   // 只处理前台注册页，不影响 /admin/people/create。
   if (_xedc_auth_route() !== 'user.register') {
     return;
@@ -172,7 +176,7 @@ function xedc_form_user_register_form_alter(array &$form, FormStateInterface $fo
   }
   $form['actions']['submit']['#value'] = '创建账号';
   _xedc_auth_foot($form, '已有账号？', '登录', 'user.login');
-  $form['#submit'][] = '_xedc_auth_register_submit';
+  _xedc_auth_add_handler($form, 'submit', '_xedc_auth_register_submit');
 }
 
 function _xedc_auth_register_submit(array &$form, FormStateInterface $form_state): void {
@@ -280,7 +284,7 @@ function _xedc_auth_validate_password(array &$form, FormStateInterface $form_sta
  * Implements hook_form_FORM_ID_alter() for user_form (用户编辑 / 重置后设置新密码).
  */
 function xedc_form_user_form_alter(array &$form, FormStateInterface $form_state): void {
-  $form['#validate'][] = '_xedc_auth_validate_password';
+  _xedc_auth_add_handler($form, 'validate', '_xedc_auth_validate_password');
   if (_xedc_auth_route() !== 'entity.user.edit_form' || !\Drupal::request()->query->has('pass-reset-token')) {
     return;
   }
@@ -300,9 +304,48 @@ function xedc_form_user_form_alter(array &$form, FormStateInterface $form_state)
     $form['account']['pass']['#after_build'][] = '_xedc_auth_pass_after_build';
   }
   $form['actions']['submit']['#value'] = '保存新密码';
-  $form['#submit'][] = '_xedc_auth_setpass_submit';
+  _xedc_auth_add_handler($form, 'submit', '_xedc_auth_setpass_submit');
 }
 
 function _xedc_auth_setpass_submit(array &$form, FormStateInterface $form_state): void {
+  $form_state->setRebuild(FALSE);
   $form_state->setRedirect('<front>');
+}
+
+/**
+ * 实体表单的按钮自带 #validate/#submit 时挂在按钮上，否则挂在表单上。
+ */
+function _xedc_auth_add_handler(array &$form, string $type, string $callback): void {
+  if (isset($form['actions']['submit']['#' . $type])) {
+    $form['actions']['submit']['#' . $type][] = $callback;
+  }
+  else {
+    $form['#' . $type][] = $callback;
+  }
+}
+
+/**
+ * 把常见的英文系统消息换成中文；空字符串表示不显示。
+ */
+function _xedc_auth_localize_messages(): void {
+  $map = [
+    'one-time login link that has either been used' => '该重置链接已被使用或已过期，请在下方重新获取。',
+    'You have used a one-time login link' => '',
+  ];
+  $messenger = \Drupal::messenger();
+  $all = $messenger->deleteAll();
+  foreach ($all as $type => $messages) {
+    foreach ($messages as $message) {
+      $text = (string) $message;
+      foreach ($map as $needle => $replacement) {
+        if (stripos($text, $needle) !== FALSE) {
+          $message = $replacement;
+          break;
+        }
+      }
+      if ((string) $message !== '') {
+        $messenger->addMessage($message, $type);
+      }
+    }
+  }
 }

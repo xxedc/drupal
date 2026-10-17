@@ -59,34 +59,88 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
     return;
   }
   $q = \Drupal::request()->query;
-  $cur = $q->get('cat');
   $sort = $q->get('sort_by') === 'totalcount' ? 'totalcount' : 'created';
-  $mk = function ($cat, $s) {
-    $query = [];
-    if ($cat) { $query['cat'] = $cat; }
-    if ($s !== 'created') { $query['sort_by'] = $s; }
-    return \Drupal\Core\Url::fromRoute('<current>', [], ['query' => $query])->toString();
-  };
-  $cats = [['t' => '全部', 'u' => $mk(NULL, $sort), 'a' => !$cur]];
-  $st = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
-  foreach ($st->loadTree('photo_category') as $t) {
-    $cats[] = ['t' => $t->name, 'u' => $mk($t->tid, $sort), 'a' => $cur == $t->tid];
+  $cur = 0;
+  if (preg_match('#^/taxonomy/term/(\d+)$#', \Drupal::service('path.current')->getPath(), $m)) {
+    $cur = (int) $m[1];
+  }
+  $sq = function ($s) { return $s !== 'created' ? ['sort_by' => $s] : []; };
+
+  // 栏目页：收集该栏目内容用到的人物和标签。
+  $models = [];
+  $tags = [];
+  $term = $cur ? \Drupal\taxonomy\Entity\Term::load($cur) : NULL;
+  $is_cat = $term && $term->bundle() === 'photo_category';
+  if ($is_cat) {
+    $nids = \Drupal::entityQuery('node')->accessCheck(TRUE)
+      ->condition('status', 1)->condition('field_categories', $cur)->execute();
+    $nodes = \Drupal\node\Entity\Node::loadMultiple($nids);
+    $collect = function ($field) use ($nodes) {
+      $count = [];
+      foreach ($nodes as $n) {
+        if (!$n->hasField($field)) { continue; }
+        foreach ($n->get($field)->getValue() as $v) {
+          $count[$v['target_id']] = ($count[$v['target_id']] ?? 0) + 1;
+        }
+      }
+      $items = [];
+      foreach (\Drupal\taxonomy\Entity\Term::loadMultiple(array_keys($count)) as $tt) {
+        $items[] = ['t' => $tt->label(), 'u' => $tt->toUrl()->toString(), 'a' => FALSE, 'n' => $count[$tt->id()]];
+      }
+      usort($items, fn($x, $y) => $y['n'] <=> $x['n']);
+      return $items;
+    };
+    $models = $collect('field_model');
+    $tags = [];
+  }
+
+  // 顶部条：栏目页且有人物 -> 人物；否则 -> 栏目。
+  $more = [];
+  if ($is_cat) {
+    $tabs = [['t' => '全部', 'u' => \Drupal\Core\Url::fromRoute('entity.taxonomy_term.canonical', ['taxonomy_term' => $cur], ['query' => $sq($sort)])->toString(), 'a' => TRUE]];
+    $tabs = array_merge($tabs, array_slice($models, 0, 6));
+    $more = array_slice($models, 6);
+  }
+  else {
+    $tabs = [['t' => '全部', 'u' => \Drupal\Core\Url::fromUserInput('/meitu', ['query' => $sq($sort)])->toString(), 'a' => !$cur]];
+    foreach (\Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree('photo_category') as $t) {
+      $tabs[] = ['t' => $t->name,
+        'u' => \Drupal\Core\Url::fromRoute('entity.taxonomy_term.canonical', ['taxonomy_term' => $t->tid], ['query' => $sq($sort)])->toString(),
+        'a' => $cur == $t->tid];
+    }
   }
   $sorts = [
-    ['t' => '最新', 'u' => $mk($cur, 'created'), 'a' => $sort === 'created'],
-    ['t' => '最热', 'u' => $mk($cur, 'totalcount'), 'a' => $sort === 'totalcount'],
+    ['t' => '最新', 'u' => \Drupal\Core\Url::fromRoute('<current>', [], ['query' => $sq('created')])->toString(), 'a' => $sort === 'created'],
+    ['t' => '最热', 'u' => \Drupal\Core\Url::fromRoute('<current>', [], ['query' => $sq('totalcount')])->toString(), 'a' => $sort === 'totalcount'],
   ];
-  $tpl = '<div class="photo-bar"><nav class="photo-tabs">{% for i in cats %}';
-  $tpl .= '<a href="{{ i.u }}"{% if i.a %} class="is-active"{% endif %}>{{ i.t }}</a>{% endfor %}</nav>';
+
+  $tpl = '<style>.photo-tabs .xedc-more{display:contents}.photo-tabs .xedc-more summary{cursor:pointer;list-style:none;white-space:nowrap;padding:.35rem .9rem;border:1px dashed rgba(128,128,128,.5);border-radius:999px;font-size:.85rem;opacity:.75}.photo-tabs .xedc-more[open] summary{display:none}</style>';
+  $tpl .= '<div class="photo-bar"><nav class="photo-tabs">{% for i in tabs %}';
+  $tpl .= '<a href="{{ i.u }}"{% if i.a %} class="is-active"{% endif %}>{{ i.t }}</a>{% endfor %}';
+  $tpl .= '{% if more %}<details class="xedc-more"><summary>更多标签</summary>{% for i in more %}<a href="{{ i.u }}">{{ i.t }}</a>{% endfor %}</details>{% endif %}</nav>';
   $tpl .= '<nav class="photo-sorts">{% for i in sorts %}';
   $tpl .= '<a href="{{ i.u }}"{% if i.a %} class="is-active"{% endif %}>{{ i.t }}</a>{% endfor %}</nav></div>';
   $form['pills'] = ['#type' => 'inline_template', '#template' => $tpl,
-    '#context' => ['cats' => $cats, 'sorts' => $sorts], '#weight' => -10];
+    '#context' => ['tabs' => $tabs, 'more' => $more, 'sorts' => $sorts], '#weight' => -10];
+
+  // 标签行（栏目页，最多 6 个，其余折叠）。
+  if ($tags) {
+    $css = '.xedc-chips{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.75rem 0}.xedc-chips-title{font-size:.8rem;opacity:.6;margin-right:.25rem}.xedc-chip{padding:.35rem .9rem;border:1px solid rgba(128,128,128,.35);border-radius:999px;font-size:.85rem;color:inherit;text-decoration:none;white-space:nowrap}.xedc-chip:hover{background:rgba(128,128,128,.12)}.xedc-chips .xedc-more{display:contents}.xedc-chips .xedc-more summary{cursor:pointer;list-style:none;padding:.35rem .9rem;border:1px dashed rgba(128,128,128,.5);border-radius:999px;font-size:.85rem;opacity:.75}.xedc-chips .xedc-more[open] summary{display:none}';
+    $t2 = '<style>' . $css . '</style><div class="xedc-chips"><span class="xedc-chips-title">标签</span>';
+    $t2 .= '{% for c in tags|slice(0, 6) %}<a class="xedc-chip" href="{{ c.u }}">{{ c.t }}</a>{% endfor %}';
+    $t2 .= '{% if tags|length > 6 %}<details class="xedc-more"><summary>更多标签</summary>';
+    $t2 .= '{% for c in tags|slice(6) %}<a class="xedc-chip" href="{{ c.u }}">{{ c.t }}</a>{% endfor %}</details>{% endif %}</div>';
+    $form['chips'] = ['#type' => 'inline_template', '#template' => $t2,
+      '#context' => ['tags' => $tags], '#weight' => -5];
+  }
+
   foreach (['cat', 'sort_by', 'sort_order', 'actions'] as $f) {
     if (isset($form[$f])) { $form[$f]['#attributes']['class'][] = 'photo-hide'; }
   }
-  $form['#cache']['contexts'][] = 'url.query_args:cat';
+  $form['#cache']['contexts'][] = 'url.path';
   $form['#cache']['contexts'][] = 'url.query_args:sort_by';
+  $form['#cache']['tags'][] = 'node_list';
+  $form['#cache']['tags'][] = 'taxonomy_term_list';
 }
 
 function xedc_form_comment_form_alter(array &$form, $form_state, $form_id) {
@@ -133,4 +187,16 @@ function xedc_preprocess_node(array &$variables) {
   }
   $variables['related'] = $ids ? $st->loadMultiple($ids) : [];
   $variables['#cache']['tags'][] = 'node_list:photo';
+}
+
+require_once __DIR__ . '/includes/auth.inc';
+
+function xedc_preprocess_page_title(array &$variables) {
+  $path = \Drupal::service('path.current')->getPath();
+  if (preg_match('#^/taxonomy/term/(\d+)$#', $path, $m)) {
+    $t = \Drupal\taxonomy\Entity\Term::load($m[1]);
+    if ($t) {
+      $variables['title'] = $t->label();
+    }
+  }
 }

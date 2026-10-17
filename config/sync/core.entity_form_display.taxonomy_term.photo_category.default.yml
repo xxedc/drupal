@@ -1,0 +1,51 @@
+uuid: bab7dd4a-8a17-43ff-97ca-ef8b586f6988
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.photo_category
+  module:
+    - path
+    - text
+id: taxonomy_term.photo_category.default
+targetEntityType: taxonomy_term
+bundle: photo_category
+mode: default
+content:
+  description:
+    type: text_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  langcode:
+    type: language_select
+    weight: 2
+    region: content
+    settings:
+      include_locked: true
+    third_party_settings: {  }
+  name:
+    type: string_textfield
+    weight: -5
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  path:
+    type: path
+    weight: 30
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 100
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+hidden: {  }

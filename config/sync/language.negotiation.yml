@@ -6,6 +6,8 @@ url:
   source: path_prefix
   prefixes:
     zh-hans: ''
+    en: en
   domains:
     zh-hans: ''
+    en: ''
 selected_langcode: site_default

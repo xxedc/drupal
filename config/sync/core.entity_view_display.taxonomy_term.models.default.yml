@@ -1,0 +1,40 @@
+uuid: 7c064026-1672-4a59-b201-cde5c92f1594
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.models.field_alias_of
+    - field.field.taxonomy_term.models.field_featured_content
+    - taxonomy.vocabulary.models
+  module:
+    - text
+id: taxonomy_term.models.default
+targetEntityType: taxonomy_term
+bundle: models
+mode: default
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_alias_of:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_featured_content:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 2
+    region: content
+hidden:
+  langcode: true

@@ -1,0 +1,7 @@
+xedc_models.page:
+  path: '/models'
+  defaults:
+    _controller: '\Drupal\xedc_models\Controller\ModelsController::page'
+    _title: '模特'
+  requirements:
+    _permission: 'access content'

@@ -1,0 +1,7 @@
+uuid: edc7d1ec-3672-4b49-afe5-9a93cd25c52f
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: taxonomy_term__photo_category
+label: '分类术语: 图片栏目'
+tags: {  }

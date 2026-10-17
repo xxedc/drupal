@@ -16,3 +16,8 @@ xedc_auth:
   js:
     js/auth.js: {}
     js/usermenu.js: {}
+
+meta:
+  css:
+    theme:
+      css/xedc-meta.css: {}

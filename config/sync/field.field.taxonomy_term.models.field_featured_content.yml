@@ -1,0 +1,29 @@
+uuid: a95ec8ff-64f0-4e3f-8510-640827b9cd07
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_featured_content
+    - node.type.photo
+    - taxonomy.vocabulary.models
+id: taxonomy_term.models.field_featured_content
+field_name: field_featured_content
+entity_type: taxonomy_term
+bundle: models
+label: 设置人物封面图标题输入
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      photo: photo
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference
