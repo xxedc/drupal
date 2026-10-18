@@ -6,5 +6,9 @@ function xedc_models_theme() {
       'variables' => ['models' => [], 'total' => 0],
       'template' => 'xedc-models-page',
     ],
+    'xedc_models_detail' => [
+      'variables' => ['items' => [], 'count' => 0, 'photos' => 0, 'avatar' => NULL, 'aliases' => []],
+      'template' => 'xedc-models-detail',
+    ],
   ];
 }

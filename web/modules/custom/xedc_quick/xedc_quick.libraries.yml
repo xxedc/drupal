@@ -1,0 +1,10 @@
+app:
+  js:
+    js/app.js: {}
+  css:
+    theme:
+      css/app.css: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/drupalSettings

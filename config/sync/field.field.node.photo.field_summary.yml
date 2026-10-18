@@ -1,0 +1,19 @@
+uuid: 000f5349-7f59-4638-99a9-909eeae2fb7b
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_summary
+    - node.type.photo
+id: node.photo.field_summary
+field_name: field_summary
+entity_type: node
+bundle: photo
+label: 内容描述
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

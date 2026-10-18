@@ -71,6 +71,8 @@ module:
   views_infinite_scroll: 0
   views_ui: 0
   xedc_models: 0
+  xedc_quick: 0
+  xedc_tags: 0
   pathauto: 1
   content_translation: 10
   views: 10

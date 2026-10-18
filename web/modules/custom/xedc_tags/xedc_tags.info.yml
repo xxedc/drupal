@@ -1,0 +1,8 @@
+name: 'XEDC Tags'
+type: module
+description: '标签详情页与全部标签页'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:taxonomy
+  - drupal:node

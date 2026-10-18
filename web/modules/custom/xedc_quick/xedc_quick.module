@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * 返回一组媒体 ID 的原图总字节数（没有记录的返回 0）。
+ */
+function xedc_quick_original_size(array $mids): int {
+  $db = \Drupal::database();
+  if (!$mids || !$db->schema()->tableExists('xedc_quick_orig')) {
+    return 0;
+  }
+  return (int) $db->query('SELECT SUM(bytes) FROM {xedc_quick_orig} WHERE mid IN (:mids[])', [':mids[]' => $mids])->fetchField();
+}

@@ -1,0 +1,7 @@
+xedc_tags.index:
+  path: '/tags'
+  defaults:
+    _controller: '\Drupal\xedc_tags\Controller\TagsController::index'
+    _title: '全部标签'
+  requirements:
+    _permission: 'access content'

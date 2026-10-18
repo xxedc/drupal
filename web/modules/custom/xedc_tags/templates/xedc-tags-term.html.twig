@@ -1,0 +1,40 @@
+<div class="xt xt-term">
+  <nav class="xt-crumb" aria-label="面包屑">
+    <ol>
+      <li><a href="{{ home_url }}">首页</a></li>
+      <li><a href="{{ index_url }}">标签</a></li>
+      <li aria-current="page">{{ term_name }}</li>
+    </ol>
+  </nav>
+
+  <header class="xt-head">
+    <div>
+      <h1 class="xt-title"><span class="xt-hash">#</span>{{ term_name }}</h1>
+      <p class="xt-sub">共 <b>{{ total }}</b> 组美图</p>
+    </div>
+    <div class="xt-seg" role="group" aria-label="排序">
+      <a href="{{ sort_urls.new }}" class="{{ sort == 'new' ? 'is-active' }}">最新</a>
+      <a href="{{ sort_urls.hot }}" class="{{ sort == 'hot' ? 'is-active' }}">最热</a>
+    </div>
+  </header>
+
+  {% if items %}
+    <ul class="xt-grid">
+      {% for i in items %}
+        <li>
+          <a class="xt-card" href="{{ i.url }}">
+            <div class="xt-media">
+              {% if i.cover %}<img src="{{ i.cover }}" alt="{{ i.title }}" loading="lazy">{% endif %}
+              {% if i.cat %}<span class="xt-badge">{{ i.cat }}</span>{% endif %}
+            </div>
+            <div class="xt-body">
+              <h2 class="xt-card-title">{{ i.title }}</h2>
+            </div>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="xt-empty">这个标签下还没有内容</div>
+  {% endif %}
+</div>

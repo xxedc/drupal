@@ -1,0 +1,20 @@
+<div class="xm xm-d">
+  <div class="xm-hero">
+    {% if avatar %}<img class="xm-avatar" src="{{ avatar }}" alt="">{% endif %}
+    <div class="xm-meta">
+      <p class="xm-stats"><strong>{{ count }}</strong> 个内容{% if photos %}<i>·</i><strong>{{ photos }}</strong> 张图片{% endif %}</p>
+      {% if aliases %}<div class="xm-alias"><span>又名</span>{% for a in aliases %}<em>{{ a }}</em>{% endfor %}</div>{% endif %}
+    </div>
+  </div>
+  <div class="xm-grid-d">
+    {% for i in items %}
+      <a class="xm-item" href="{{ i.url }}">
+        <div class="xm-pic">
+          {% if i.img %}<img src="{{ i.img }}" alt="{{ i.title }}" loading="lazy">{% endif %}
+          {% if i.photos %}<span class="xm-count"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>{{ i.photos }}</span>{% endif %}
+        </div>
+        <h3 class="xm-ttl">{{ i.title }}</h3>
+      </a>
+    {% endfor %}
+  </div>
+</div>

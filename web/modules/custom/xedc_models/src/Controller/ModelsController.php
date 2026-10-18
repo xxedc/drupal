@@ -94,12 +94,15 @@ class ModelsController extends ControllerBase {
 
     $out = [];
     foreach ($groups as $main => $g) {
+      if (!$g['nids']) {
+        continue;
+      }
       $node = isset($best[$main]) ? ($nodes[$best[$main]] ?? NULL) : NULL;
       $out[] = [
         'name' => $terms[$main],
         'count' => count($g['nids']),
         'img' => $this->cover($node),
-        'url' => Url::fromRoute('entity.taxonomy_term.canonical', ['taxonomy_term' => $main])->toString(),
+        'url' => Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $main])->toString(),
         'search' => mb_strtolower(implode(' ', array_unique($g['names']))),
       ];
     }
@@ -112,6 +115,84 @@ class ModelsController extends ControllerBase {
       '#attached' => ['library' => ['xedc_models/models']],
       '#cache' => ['tags' => ['node_list', 'taxonomy_term_list'], 'max-age' => 3600],
     ];
+  }
+
+  public function detail($taxonomy_term) {
+    if ($taxonomy_term->bundle() !== 'models') {
+      throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+    }
+    $has = $this->db->schema()->tableExists('taxonomy_term__field_alias_of');
+    $main = (int) $taxonomy_term->id();
+
+    // 访问的是别名 -> 跳到主名
+    if ($has && $taxonomy_term->hasField('field_alias_of') && !$taxonomy_term->get('field_alias_of')->isEmpty()) {
+      return $this->redirect('xedc_models.detail', ['taxonomy_term' => (int) $taxonomy_term->get('field_alias_of')->target_id]);
+    }
+
+    $tids = [$main];
+    if ($has) {
+      $ids = $this->db->select('taxonomy_term__field_alias_of', 'a')
+        ->fields('a', ['entity_id'])
+        ->condition('a.field_alias_of_target_id', $main)
+        ->condition('a.deleted', 0)
+        ->execute()->fetchCol();
+      $tids = array_merge($tids, array_map('intval', $ids));
+    }
+
+    $aliases = [];
+    foreach (\Drupal\taxonomy\Entity\Term::loadMultiple(array_diff($tids, [$main])) as $t) {
+      $aliases[] = $t->label();
+    }
+
+    $q = $this->db->select('node__field_model', 'm');
+    $q->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
+    $q->condition('n.status', 1)->condition('m.deleted', 0)->condition('m.field_model_target_id', $tids, 'IN');
+    $q->addField('n', 'nid');
+    $q->orderBy('n.created', 'DESC');
+    $nids = array_unique($q->execute()->fetchCol());
+
+    $items = [];
+    foreach (Node::loadMultiple($nids) as $node) {
+      $items[] = [
+        'title' => $node->label(),
+        'url' => $node->toUrl()->toString(),
+        'img' => $this->cover($node),
+        'photos' => $this->imageCount($node),
+      ];
+    }
+
+    return [
+      '#theme' => 'xedc_models_detail',
+      '#title' => $taxonomy_term->label(),
+      '#items' => $items,
+      '#count' => count($items),
+      '#aliases' => $aliases,
+      '#photos' => array_sum(array_column($items, 'photos')),
+      '#avatar' => $items ? $items[0]['img'] : NULL,
+      '#attached' => ['library' => ['xedc_models/models']],
+      '#cache' => ['tags' => ['node_list', 'taxonomy_term_list'], 'max-age' => 3600],
+    ];
+  }
+
+  protected function imageCount($node) {
+    $n = 0;
+    foreach ($node->getFieldDefinitions() as $name => $def) {
+      if ($name === 'field_cover_image') {
+        continue;
+      }
+      $type = $def->getType();
+      if ($type === 'image') {
+        $n += $node->get($name)->count();
+      }
+      elseif ($type === 'entity_reference' && $def->getSetting('target_type') === 'media') {
+        foreach ($node->get($name)->referencedEntities() as $m) {
+          if ($m->bundle() === 'image') {
+            $n++;
+          }
+        }
+      }
+    }
+    return $n;
   }
 
   protected function cover($node) {

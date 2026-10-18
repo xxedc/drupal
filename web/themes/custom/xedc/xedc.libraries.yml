@@ -21,3 +21,11 @@ meta:
   css:
     theme:
       css/xedc-meta.css: {}
+
+navbar:
+  version: 1.0
+  css:
+    theme:
+      css/xedc-navbar.css: {}
+  js:
+    js/xedc-navbar.js: {}

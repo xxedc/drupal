@@ -7,7 +7,7 @@ dependencies:
   module:
     - node
 id: gggg
-label: gggg
+label: 内容分类栏目url
 type: 'canonical_entities:node'
 pattern: '/[node:field_categories:entity:url:path]/[node:nid]'
 selection_criteria:

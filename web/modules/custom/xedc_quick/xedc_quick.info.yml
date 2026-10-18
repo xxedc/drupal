@@ -1,0 +1,8 @@
+name: XEDC Quick Gallery
+type: module
+description: 快速发布图集
+core_version_requirement: ^10 || ^11
+package: XEDC
+dependencies:
+  - drupal:media
+  - drupal:taxonomy

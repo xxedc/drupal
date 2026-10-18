@@ -1,0 +1,5 @@
+services:
+  xedc_tags.route_subscriber:
+    class: Drupal\xedc_tags\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }

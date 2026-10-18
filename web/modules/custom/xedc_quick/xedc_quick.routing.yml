@@ -1,0 +1,23 @@
+xedc_quick.page:
+  path: '/admin/quick-gallery'
+  defaults:
+    _controller: '\Drupal\xedc_quick\Controller\QuickController::page'
+    _title: '快速发布图集'
+  requirements:
+    _permission: 'administer nodes'
+xedc_quick.upload:
+  path: '/admin/quick-gallery/upload'
+  defaults:
+    _controller: '\Drupal\xedc_quick\Controller\QuickController::upload'
+  methods: [POST]
+  requirements:
+    _permission: 'administer nodes'
+    _csrf_request_header_token: 'TRUE'
+xedc_quick.create:
+  path: '/admin/quick-gallery/create'
+  defaults:
+    _controller: '\Drupal\xedc_quick\Controller\QuickController::createNode'
+  methods: [POST]
+  requirements:
+    _permission: 'administer nodes'
+    _csrf_request_header_token: 'TRUE'

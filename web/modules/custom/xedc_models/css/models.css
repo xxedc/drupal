@@ -25,3 +25,24 @@
 .xm-badge{font-size:.625rem;padding:0 .375rem}
 .xm-search{max-width:none}
 }
+.xm-back{display:inline-block;font-size:.875rem;color:var(--xm-m);text-decoration:none;margin-bottom:.5rem}
+.xm-back:hover{color:inherit}
+.xm-d{padding-top:.5rem}
+.xm-hero{display:flex;align-items:center;gap:.875rem;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--xm-b)}
+.xm-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;object-position:top;border:1px solid var(--xm-b);flex:none}
+.xm-stats{margin:0;font-size:.9375rem;color:var(--xm-m)}
+.xm-stats strong{color:var(--bs-body-color,#18181b);font-weight:700}
+.xm-stats i{font-style:normal;margin:0 .5rem;opacity:.5}
+.xm-alias{display:flex;flex-wrap:wrap;gap:.375rem;align-items:center;margin-top:.5rem;font-size:.75rem;color:var(--xm-m)}
+.xm-alias em{font-style:normal;border:1px solid var(--xm-b);border-radius:999px;padding:.0625rem .625rem;color:inherit}
+.xm-grid-d{display:grid;grid-template-columns:repeat(3,1fr);gap:.625rem}
+.xm-item{display:block;text-decoration:none;color:inherit}
+.xm-item:hover{color:inherit}
+.xm-pic{position:relative;aspect-ratio:3/4;border-radius:.625rem;overflow:hidden;background:var(--bs-tertiary-bg,#f4f4f5)}
+.xm-pic img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.xm-item:hover .xm-pic img{transform:scale(1.04)}
+.xm-count{position:absolute;right:.375rem;bottom:.375rem;display:inline-flex;align-items:center;gap:.25rem;padding:.125rem .5rem;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font-size:.6875rem;font-weight:600;line-height:1.4;backdrop-filter:blur(6px)}
+.xm-count svg{width:12px;height:12px}
+.xm-ttl{margin:.5rem 0 0;font-size:.75rem;font-weight:600;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(min-width:576px){.xm-grid-d{grid-template-columns:repeat(4,1fr);gap:1rem}.xm-ttl{font-size:.875rem}.xm-count{font-size:.75rem}}
+@media(min-width:992px){.xm-grid-d{grid-template-columns:repeat(5,1fr);gap:1.25rem}.xm-avatar{width:64px;height:64px}}

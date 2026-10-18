@@ -1,0 +1,49 @@
+<?php
+
+use Drupal\taxonomy\TermInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function xedc_tags_theme() {
+  return [
+    'xedc_tags_term' => [
+      'variables' => [
+        'term_name' => '',
+        'total' => 0,
+        'items' => [],
+        'sort' => 'new',
+        'sort_urls' => [],
+        'index_url' => '',
+        'home_url' => '',
+      ],
+      'template' => 'xedc-tags-term',
+    ],
+    'xedc_tags_index' => [
+      'variables' => [
+        'tags' => [],
+        'total_tags' => 0,
+        'total_items' => 0,
+        'home_url' => '',
+      ],
+      'template' => 'xedc-tags-index',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function xedc_tags_preprocess_html(array &$variables) {
+  $route = \Drupal::routeMatch();
+  $name = $route->getRouteName();
+  $is = ($name === 'xedc_tags.index');
+  if ($name === 'entity.taxonomy_term.canonical') {
+    $t = $route->getParameter('taxonomy_term');
+    $is = ($t instanceof TermInterface) && $t->bundle() === 'tags';
+  }
+  if ($is) {
+    $variables['attributes']['class'][] = 'xt-page';
+  }
+  $variables['#cache']['contexts'][] = 'route';
+}

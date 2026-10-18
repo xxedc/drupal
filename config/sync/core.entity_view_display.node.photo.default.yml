@@ -9,6 +9,7 @@ dependencies:
     - field.field.node.photo.field_cover_image
     - field.field.node.photo.field_images
     - field.field.node.photo.field_model
+    - field.field.node.photo.field_summary
     - field.field.node.photo.field_tags
     - node.type.photo
   module:
@@ -61,6 +62,13 @@ content:
       link: true
     third_party_settings: {  }
     weight: 106
+    region: content
+  field_summary:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 102
     region: content
   field_tags:
     type: entity_reference_label

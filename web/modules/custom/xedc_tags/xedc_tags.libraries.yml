@@ -1,0 +1,10 @@
+xedc_tags:
+  version: 1.0
+  css:
+    theme:
+      css/xedc-tags.css: {}
+  js:
+    js/xedc-tags.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
