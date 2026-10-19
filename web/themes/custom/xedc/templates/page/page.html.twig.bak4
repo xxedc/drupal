@@ -1,0 +1,5 @@
+{% embed 'radix:page' %}
+  {% block page_navigation %}
+    {% include '@xedc/templates/includes/xedc-header.html.twig' %}
+  {% endblock %}
+{% endembed %}

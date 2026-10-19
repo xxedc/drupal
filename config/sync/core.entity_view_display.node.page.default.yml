@@ -1,0 +1,31 @@
+uuid: 991b4aa2-ac0a-4162-b3b3-f4f49f30b2f0
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.field.node.page.field_body
+    - node.type.page
+  module:
+    - text
+    - user
+id: node.page.default
+targetEntityType: node
+bundle: page
+mode: default
+content:
+  field_body:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+  body:
+    label: hidden
+hidden:
+  langcode: true

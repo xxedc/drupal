@@ -17,6 +17,7 @@ regions:
   page_bottom: 'Page bottom'
   footer: Footer
 libraries:
+  - xedc/legal
   - xedc/style
 ckeditor5-stylesheets:
   - build/css/main.style.css

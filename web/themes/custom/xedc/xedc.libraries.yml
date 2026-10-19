@@ -29,3 +29,8 @@ navbar:
       css/xedc-navbar.css: {}
   js:
     js/xedc-navbar.js: {}
+
+legal:
+  css:
+    theme:
+      css/legal.css: {}
