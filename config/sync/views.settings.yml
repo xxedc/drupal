@@ -2,6 +2,7 @@ _core:
   default_config_hash: _XeIJp8HLFXacGTv7BbJQAA0otRUXl0XxnqovpotgYQ
 display_extenders:
   - metatag_display_extender
+  - matomo
 sql_signature: false
 ui:
   show:

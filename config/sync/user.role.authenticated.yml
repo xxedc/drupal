@@ -8,6 +8,7 @@ dependencies:
     - comment
     - file
     - filter
+    - matomo
     - media
     - search
     - system
@@ -22,6 +23,7 @@ permissions:
   - 'access content'
   - 'delete own files'
   - 'edit own comments'
+  - 'opt-in or out of matomo tracking'
   - 'post comments'
   - 'search content'
   - 'skip comment approval'

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "10a8372795b5d9bee4d4f236081969e6",
+    "content-hash": "c0d4c24fa16afe78463eabaabb502c86",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -1833,6 +1833,64 @@
             "homepage": "https://www.drupal.org/project/mailsystem",
             "support": {
                 "source": "https://git.drupalcode.org/project/mailsystem"
+            }
+        },
+        {
+            "name": "drupal/matomo",
+            "version": "dev-2.0.x",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/matomo.git",
+                "reference": "6c6fc9f3c3b9983c19040b3d2dbac03a348c9719"
+            },
+            "require": {
+                "drupal/core": "^10.3 || ^11"
+            },
+            "conflict": {
+                "drupal/csp": "<1.12"
+            },
+            "require-dev": {
+                "drupal/csp": "^1.12",
+                "drupal/facets": "^3.0",
+                "drupal/search_api": "^1.40",
+                "drupal/token": "^1.9"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "branch-alias": {
+                    "dev-2.0.x": "2.0.x-dev"
+                },
+                "drupal": {
+                    "version": "2.0.0-alpha5+3-dev",
+                    "datestamp": "1787397788",
+                    "security-coverage": {
+                        "status": "not-covered",
+                        "message": "Dev releases are not covered by Drupal security advisories."
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "c-logemann",
+                    "homepage": "https://www.drupal.org/user/218368"
+                },
+                {
+                    "name": "grimreaper",
+                    "homepage": "https://www.drupal.org/user/2388214"
+                },
+                {
+                    "name": "shelane",
+                    "homepage": "https://www.drupal.org/user/2674989"
+                }
+            ],
+            "description": "Adds Matomo javascript tracking code to all your site's pages.",
+            "homepage": "https://www.drupal.org/project/matomo",
+            "support": {
+                "source": "https://git.drupalcode.org/project/matomo"
             }
         },
         {
@@ -8000,6 +8058,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "drupal/mailsystem": 20,
+        "drupal/matomo": 20,
         "drupal/redirect": 20,
         "drupal/smtp": 20,
         "drupal/twig_tweak": 15

@@ -24,6 +24,7 @@
         "drupal/easy_breadcrumb": "^2.0",
         "drupal/gin": "^5.0",
         "drupal/mailsystem": "4.x-dev@dev",
+        "drupal/matomo": "2.0.x-dev@dev",
         "drupal/metatag": "^2.2",
         "drupal/pathauto": "^1.15",
         "drupal/radix": "^6.0",
