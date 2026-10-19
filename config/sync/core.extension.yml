@@ -54,7 +54,6 @@ module:
   responsive_image: 0
   search: 0
   search_node: 0
-  settings_tray: 0
   shortcut: 0
   smtp: 0
   statistics: 0
@@ -83,4 +82,5 @@ theme:
   default_admin: 0
   radix: 0
   xedc: 0
+  gin: 0
 profile: standard

@@ -10,3 +10,11 @@ function xedc_quick_original_size(array $mids): int {
   }
   return (int) $db->query('SELECT SUM(bytes) FROM {xedc_quick_orig} WHERE mid IN (:mids[])', [':mids[]' => $mids])->fetchField();
 }
+
+function xedc_quick_original_sizes(array $mids): array {
+  $db = \Drupal::database();
+  if (!$mids || !$db->schema()->tableExists('xedc_quick_orig')) {
+    return [];
+  }
+  return $db->query('SELECT mid, bytes FROM {xedc_quick_orig} WHERE mid IN (:mids[])', [':mids[]' => $mids])->fetchAllKeyed();
+}

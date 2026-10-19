@@ -84,7 +84,7 @@ header, .navbar {
 }
 
 /* ===== xedc 导航 ===== */
-header:not(.xedc-nav) { position: static; z-index: auto; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 0; }
+header:not(.xedc-nav):not(.xn) { position: static; z-index: auto; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 0; }
 
 nav.xedc-nav { position: sticky; top: 0; z-index: 1050; border-bottom: 1px solid var(--bs-border-color); }
 nav.xedc-nav::before {

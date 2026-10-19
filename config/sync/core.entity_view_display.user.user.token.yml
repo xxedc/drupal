@@ -8,12 +8,7 @@ dependencies:
     - image.style.thumbnail
   module:
     - image
-    - layout_builder
     - user
-third_party_settings:
-  layout_builder:
-    enabled: false
-    allow_custom: false
 _core:
   default_config_hash: SULWJMy7nHcntPqaIZ7FlQPf_XzIiC5tnUCKattDCEI
 id: user.user.token

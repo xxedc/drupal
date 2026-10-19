@@ -212,7 +212,8 @@ function _xedc_add_meta(array &$variables) {
   }
   $node = $variables['node'];
   $files = [];
-  $collect = function ($e) use (&$files) {
+  $mediaOf = [];
+  $collect = function ($e) use (&$files, &$mediaOf) {
     if ($e instanceof \Drupal\file\FileInterface) {
       $files[$e->id()] = $e;
     }
@@ -222,6 +223,7 @@ function _xedc_add_meta(array &$variables) {
         foreach ($e->get($sf)->referencedEntities() as $f) {
           if ($f instanceof \Drupal\file\FileInterface) {
             $files[$f->id()] = $f;
+            $mediaOf[$f->id()] = $e->id();
           }
         }
       }
@@ -234,15 +236,17 @@ function _xedc_add_meta(array &$variables) {
       }
     }
   }
+  $orig = function_exists('xedc_quick_original_sizes') ? xedc_quick_original_sizes(array_values(array_unique($mediaOf))) : [];
   $size = 0;
-  foreach ($files as $f) {
-    $size += (int) $f->getSize();
+  foreach ($files as $fid => $f) {
+    $mid = $mediaOf[$fid] ?? NULL;
+    $size += ($mid && !empty($orig[$mid])) ? (int) $orig[$mid] : (int) $f->getSize();
   }
   $terms = function ($field) use ($node) {
     $out = [];
     if ($node->hasField($field) && !$node->get($field)->isEmpty()) {
       foreach ($node->get($field)->referencedEntities() as $t) {
-        $out[] = ['label' => $t->label(), 'url' => $t->toUrl()->toString()];
+        $out[] = ['label' => $t->label(), 'url' => $field === 'field_model' ? \Drupal\Core\Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $t->id()])->toString() : $t->toUrl()->toString()];
       }
     }
     return $out;

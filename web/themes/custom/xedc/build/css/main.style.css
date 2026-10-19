@@ -12484,7 +12484,7 @@ header,
     padding-bottom: 0.5rem;
   }
 }
-header:not(.xedc-nav) {
+header:not(.xedc-nav):not(.xn) {
   position: static;
   z-index: auto;
   background: none;
@@ -13304,9 +13304,7 @@ html[data-bs-theme=dark] .xedc-view-photos .views-field-field-cover-image img {
 }
 .xedc-view-photos > :has(.photo-bar) {
   position: -webkit-sticky;
-  position: sticky;
-  top: calc(3.5rem + 1px);
-  z-index: 1020;
+  position:static;
   padding: 0.5rem 0;
   margin-bottom: 0.75rem;
   background: color-mix(in srgb, var(--bs-body-bg) 88%, transparent);

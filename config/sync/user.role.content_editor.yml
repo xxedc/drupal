@@ -5,9 +5,7 @@ dependencies:
   config:
     - taxonomy.vocabulary.tags
   module:
-    - contextual
     - file
-    - navigation
     - node
     - path
     - system
@@ -21,9 +19,7 @@ is_admin: false
 permissions:
   - 'access administration pages'
   - 'access content overview'
-  - 'access contextual links'
   - 'access files overview'
-  - 'access navigation'
   - 'administer url aliases'
   - 'create terms in tags'
   - 'create url aliases'

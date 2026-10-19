@@ -66,11 +66,19 @@ class TagsController extends ControllerBase {
       throw new NotFoundHttpException();
     }
     if ($term->bundle() !== self::VOCAB) {
+      if ($term->bundle() === 'models') {
+        return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $term->id()])->toString(), 301);
+      }
       $route = $route_match->getRouteObject();
       $vid = $route->getDefault('_xt_view_id');
       if ($vid) {
-        return \Drupal::classResolver(ViewPageController::class)
-          ->handle($vid, $route->getDefault('_xt_display_id'), $route_match);
+        $view = \Drupal\views\Views::getView($vid);
+        if ($view) {
+          $build = $view->buildRenderable($route->getDefault('_xt_display_id') ?: 'default', [$term->id()]);
+          if ($build) {
+            return $build;
+          }
+        }
       }
       return $this->entityTypeManager()->getViewBuilder('taxonomy_term')->view($term, 'full');
     }
