@@ -151,6 +151,7 @@ function xedc_form_comment_form_alter(array &$form, $form_state, $form_id) {
 }
 
 function xedc_preprocess_node(array &$variables) {
+  _xedc_vd_preprocess($variables);
   _xedc_add_meta($variables);
   $node = $variables['node'];
   if ($node->bundle() !== 'photo' || $variables['view_mode'] !== 'full') {
@@ -304,4 +305,85 @@ function xedc_nav_build(array &$variables) {
   $variables['#cache']['tags'][] = 'config:system.menu.main';
   $variables['#cache']['tags'][] = 'taxonomy_term_list:photo_category';
   $variables['#cache']['contexts'][] = 'user.roles:authenticated';
+}
+
+function _xedc_vd_file_url($entity) {
+  if (!$entity) return '';
+  if ($entity->getEntityTypeId() === 'media') {
+    $fid = $entity->getSource()->getSourceFieldValue($entity);
+    $entity = \Drupal\file\Entity\File::load($fid);
+  }
+  if (!$entity || !method_exists($entity, 'getFileUri')) return '';
+  return \Drupal::service('file_url_generator')->generateString($entity->getFileUri());
+}
+
+function _xedc_vd_preprocess(array &$variables) {
+  $node = $variables['node'];
+  if ($node->bundle() !== 'video' || $variables['view_mode'] !== 'full') return;
+  $vd = ['cover' => '', 'type' => '', 'src' => '', 'mime' => ''];
+  if ($node->hasField('field_video_cover') && !$node->get('field_video_cover')->isEmpty()) {
+    $vd['cover'] = _xedc_vd_file_url($node->get('field_video_cover')->entity);
+  }
+  $src = '';
+  if ($node->hasField('field_video_file') && !$node->get('field_video_file')->isEmpty()) {
+    $e = $node->get('field_video_file')->entity;
+    $src = _xedc_vd_file_url($e);
+    if ($e && $e->getEntityTypeId() === 'file') $vd['mime'] = $e->getMimeType();
+  }
+  if (!$src && $node->hasField('field_video_url') && !$node->get('field_video_url')->isEmpty()) {
+    $item = $node->get('field_video_url')->first();
+    $src = trim((string) ($item->uri ?? $item->value ?? ''));
+    $src = preg_replace('#^(internal:|base:)#', '', $src);
+  }
+  if ($src) {
+    if (preg_match('#youtube\.com/watch\?v=([\w-]+)#', $src, $m) || preg_match('#youtu\.be/([\w-]+)#', $src, $m)) {
+      $vd['type'] = 'iframe'; $vd['src'] = 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=1';
+    } elseif (preg_match('#bilibili\.com/video/(BV\w+)#', $src, $m)) {
+      $vd['type'] = 'iframe'; $vd['src'] = 'https://player.bilibili.com/player.html?autoplay=1&bvid=' . $m[1];
+    } elseif (preg_match('#\.m3u8(\?.*)?$#i', $src)) {
+      $vd['type'] = 'hls'; $vd['src'] = $src;
+    } elseif (preg_match('#\.(mp4|webm|ogg|mov)(\?.*)?$#i', $src) || $vd['mime']) {
+      $vd['type'] = 'video'; $vd['src'] = $src;
+    } else {
+      $vd['type'] = 'iframe'; $vd['src'] = $src;
+    }
+  }
+
+  $cur = $node->id();
+  $base = function () use ($cur) {
+    return \Drupal::entityQuery('node')->accessCheck(TRUE)->condition('type', 'video')->condition('status', 1)->condition('nid', $cur, '<>')->sort('created', 'DESC');
+  };
+  $rel = [];
+  if ($node->hasField('field_categories') && !$node->get('field_categories')->isEmpty()) {
+    $tids = array_column($node->get('field_categories')->getValue(), 'target_id');
+    $rel = array_values($base()->condition('field_categories', $tids, 'IN')->range(0, 5)->execute());
+  }
+  if (count($rel) < 5) {
+    $more = $base();
+    if ($rel) $more->condition('nid', $rel, 'NOT IN');
+    $rel = array_merge($rel, array_values($more->range(0, 5 - count($rel))->execute()));
+  }
+  $variables['vd_related'] = _xedc_vd_cards($rel);
+  $variables['vd_latest'] = _xedc_vd_cards(array_values($base()->range(0, 6)->execute()));
+  $cats = [];
+  foreach (\Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree('video_category', 0, 1, TRUE) as $t) {
+    $cats[] = ['name' => $t->label(), 'tid' => $t->id()];
+  }
+  $variables['vd_cats'] = $cats;
+  $variables['vd_cache'] = ['#cache' => ['tags' => ['node_list', 'taxonomy_term_list']]];
+  $variables['vd'] = $vd;
+}
+
+function _xedc_vd_cards(array $nids) {
+  $out = [];
+  if (!$nids) return $out;
+  foreach (\Drupal\node\Entity\Node::loadMultiple($nids) as $n) {
+    $cover = '';
+    if ($n->hasField('field_video_cover') && !$n->get('field_video_cover')->isEmpty()) {
+      $cover = _xedc_vd_file_url($n->get('field_video_cover')->entity);
+    }
+    $d = $n->hasField('field_duration') ? (int) $n->get('field_duration')->value : 0;
+    $out[] = ['title' => $n->label(), 'url' => $n->toUrl()->toString(), 'cover' => $cover, 'dur' => $d ? sprintf('%d:%02d', intdiv($d, 60), $d % 60) : ''];
+  }
+  return $out;
 }

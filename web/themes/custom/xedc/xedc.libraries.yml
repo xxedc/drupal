@@ -34,3 +34,8 @@ legal:
   css:
     theme:
       css/legal.css: {}
+
+video-detail:
+  css:
+    theme:
+      css/video-detail.css: {}

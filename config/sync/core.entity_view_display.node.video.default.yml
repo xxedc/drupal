@@ -4,6 +4,9 @@ status: true
 dependencies:
   config:
     - field.field.node.video.field_body
+    - field.field.node.video.field_categories
+    - field.field.node.video.field_duration
+    - field.field.node.video.field_tags
     - field.field.node.video.field_video_cover
     - field.field.node.video.field_video_file
     - field.field.node.video.field_video_url
@@ -21,6 +24,31 @@ content:
     type: text_default
     label: above
     settings: {  }
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  field_categories:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_duration:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: inline
+    settings:
+      link: true
     third_party_settings: {  }
     weight: 104
     region: content

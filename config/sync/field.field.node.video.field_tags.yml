@@ -1,0 +1,29 @@
+uuid: 7ce3f406-89a3-4bae-974c-f02684f26bb0
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_tags
+    - node.type.video
+    - taxonomy.vocabulary.tags
+id: node.video.field_tags
+field_name: field_tags
+entity_type: node
+bundle: video
+label: 标签
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      tags: tags
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: tags
+field_type: entity_reference

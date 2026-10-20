@@ -1,0 +1,29 @@
+uuid: bda56129-0457-4d12-b5ff-7b8936b484cc
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_categories
+    - node.type.video
+    - taxonomy.vocabulary.video_category
+id: node.video.field_categories
+field_name: field_categories
+entity_type: node
+bundle: video
+label: 视频分类栏目
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      video_category: video_category
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: article_category
+field_type: entity_reference

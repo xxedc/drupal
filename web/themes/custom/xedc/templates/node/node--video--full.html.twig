@@ -1,0 +1,93 @@
+{{ attach_library('xedc/video-detail') }}
+{{ vd_cache }}
+{% set cover = vd.cover %}
+{% set dur = node.field_duration.value %}
+{% set author = node.owner.entity.displayname.value %}
+<div class="vd-wrap">
+  <div class="vd-layout">
+    <article{{ attributes.addClass('vd') }}>
+      <div class="vd-player">
+        {% if vd.type == 'video' %}
+          <video controls playsinline preload="metadata"{% if cover %} poster="{{ cover }}"{% endif %}><source src="{{ vd.src }}"{% if vd.mime %} type="{{ vd.mime }}"{% endif %}></video>
+        {% elseif vd.type == 'hls' %}
+          <video id="vd-hls" controls playsinline data-src="{{ vd.src }}"{% if cover %} poster="{{ cover }}"{% endif %}></video>
+          <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+          <script>(function(){var v=document.getElementById('vd-hls'),u=v.dataset.src;if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=u}else if(window.Hls&&Hls.isSupported()){var h=new Hls();h.loadSource(u);h.attachMedia(v)}})();</script>
+        {% elseif vd.type == 'iframe' %}
+          <div class="vd-click" data-embed="{{ vd.src }}">
+            {% if cover %}<img src="{{ cover }}" alt="{{ label }}">{% endif %}
+            <button type="button" class="vd-play" aria-label="播放">▶</button>
+          </div>
+          <script>document.querySelector('.vd-click').addEventListener('click',function(){var i=document.createElement('iframe');i.src=this.dataset.embed;i.allow='autoplay; fullscreen';i.allowFullscreen=true;this.replaceWith(i)});</script>
+        {% elseif cover %}
+          <img src="{{ cover }}" alt="{{ label }}">
+        {% endif %}
+      </div>
+
+      <div class="vd-card">
+        <h1 class="vd-title">{{ label }}</h1>
+        <div class="vd-meta">
+          <span>{{ node.createdtime|date('Y-m-d') }}</span>
+          {% if dur %}<span>·</span><span>{{ '%d:%02d'|format(dur // 60, dur % 60) }}</span>{% endif %}
+          {% if node.field_views.value is not empty %}<span>·</span><span>{{ node.field_views.value }} 次播放</span>{% endif %}
+          {% if author %}<span>·</span><span>{{ author }}</span>{% endif %}
+        </div>
+        {% if node.field_categories|length or node.field_tags|length %}
+        <div class="vd-badges">
+          {% for item in node.field_categories %}
+            <a class="vd-badge vd-badge--primary" href="{{ path('entity.taxonomy_term.canonical', {'taxonomy_term': item.target_id}) }}">{{ item.entity.label }}</a>
+          {% endfor %}
+          {% for item in node.field_tags %}
+            <a class="vd-badge" href="{{ path('entity.taxonomy_term.canonical', {'taxonomy_term': item.target_id}) }}">#{{ item.entity.label }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if content.field_body|render|trim %}
+        <div class="vd-sep"></div>
+        <div class="vd-body">{{ content.field_body }}</div>
+        {% endif %}
+      </div>
+    </article>
+
+    <aside class="vd-side">
+      {% if vd_latest %}
+      <div class="vd-panel">
+        <h3>最新视频</h3>
+        {% for v in vd_latest %}
+        <a class="vd-mini" href="{{ v.url }}">
+          <span class="th">{% if v.cover %}<img src="{{ v.cover }}" alt="" loading="lazy">{% endif %}</span>
+          <span class="tt">{{ v.title }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if vd_cats %}
+      <div class="vd-panel">
+        <h3>分类栏目</h3>
+        <div class="vd-badges" style="margin:0">
+          {% for c in vd_cats %}
+            <a class="vd-badge" href="{{ path('entity.taxonomy_term.canonical', {'taxonomy_term': c.tid}) }}">{{ c.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+
+  {% if vd_related %}
+  <section class="vd-related">
+    <h2>相关推荐</h2>
+    <div class="vd-grid">
+      {% for v in vd_related %}
+      <a class="vd-item" href="{{ v.url }}">
+        <span class="th">
+          {% if v.cover %}<img src="{{ v.cover }}" alt="" loading="lazy">{% endif %}
+          <i class="pi"></i>{% if v.dur %}<em>{{ v.dur }}</em>{% endif %}
+        </span>
+        <span class="tt">{{ v.title }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>

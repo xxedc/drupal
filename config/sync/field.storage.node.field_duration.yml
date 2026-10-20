@@ -1,0 +1,20 @@
+uuid: 3b7644e3-e7d8-47cf-92f5-fe6a0c8e844a
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_duration
+field_name: field_duration
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
