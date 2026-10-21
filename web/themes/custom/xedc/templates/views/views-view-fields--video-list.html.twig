@@ -1,0 +1,15 @@
+{{ attach_library('xedc/video_list') }}
+{% set url = path('entity.node.canonical', {'node': row._entity.id}) %}
+<article class="vcard">
+  <a class="vcard__thumb" href="{{ url }}">
+    {{ fields.field_video_cover.content }}
+    {% if fields.field_duration.content|render|striptags|trim %}
+      <span class="vcard__dur">{{ fields.field_duration.content }}</span>
+    {% endif %}
+  </a>
+  <div class="vcard__body">
+    <div class="vcard__cat">{{ fields.field_categories.content }}</div>
+    <h3 class="vcard__title"><a href="{{ url }}">{{ fields.title.content|render|striptags }}</a></h3>
+    <div class="vcard__tags">{{ fields.field_tags.content }}</div>
+  </div>
+</article>

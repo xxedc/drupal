@@ -1,18 +1,22 @@
 {{ attach_library('xedc/video-detail') }}
+{{ attach_library('xedc/video-player') }}
 {{ vd_cache }}
 {% set cover = vd.cover %}
 {% set dur = node.field_duration.value %}
 {% set author = node.owner.entity.displayname.value %}
 <div class="vd-wrap">
+  <nav class="vd-crumb">
+    <a href="{{ path('<front>') }}">首页</a><span class="sp">/</span>
+    {% if node.field_categories.0.entity %}<a href="{{ path('entity.taxonomy_term.canonical', {'taxonomy_term': node.field_categories.0.target_id}) }}">{{ node.field_categories.0.entity.label }}</a><span class="sp">/</span>{% endif %}
+    <span class="cur">{{ label }}</span>
+  </nav>
   <div class="vd-layout">
     <article{{ attributes.addClass('vd') }}>
       <div class="vd-player">
-        {% if vd.type == 'video' %}
-          <video controls playsinline preload="metadata"{% if cover %} poster="{{ cover }}"{% endif %}><source src="{{ vd.src }}"{% if vd.mime %} type="{{ vd.mime }}"{% endif %}></video>
-        {% elseif vd.type == 'hls' %}
-          <video id="vd-hls" controls playsinline data-src="{{ vd.src }}"{% if cover %} poster="{{ cover }}"{% endif %}></video>
-          <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-          <script>(function(){var v=document.getElementById('vd-hls'),u=v.dataset.src;if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=u}else if(window.Hls&&Hls.isSupported()){var h=new Hls();h.loadSource(u);h.attachMedia(v)}})();</script>
+        {% if vd.type == 'video' or vd.type == 'hls' %}
+          <video class="vd-video" playsinline preload="metadata"{% if cover %} poster="{{ cover }}" data-poster="{{ cover }}"{% endif %}{% if vd.type == 'hls' %} data-hls="{{ vd.src }}"{% endif %}>
+            {% if vd.type == 'video' %}<source src="{{ vd.src }}"{% if vd.mime %} type="{{ vd.mime }}"{% endif %}>{% endif %}
+          </video>
         {% elseif vd.type == 'iframe' %}
           <div class="vd-click" data-embed="{{ vd.src }}">
             {% if cover %}<img src="{{ cover }}" alt="{{ label }}">{% endif %}

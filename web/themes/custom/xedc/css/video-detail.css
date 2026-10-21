@@ -104,3 +104,17 @@ body:has(.vd-wrap) .vd-wrap{
   body:has(.vd-wrap) .vd-wrap{margin:.75rem auto 2rem!important;padding:0 .625rem!important}
   .vd-wrap .vd-title{font-size:1.0625rem!important}
 }
+
+/* 面包屑 */
+body:has(.vd-wrap) :not(body)[class*="breadcrumb"]{display:none!important}
+.vd-crumb{display:flex;align-items:center;gap:.5rem;margin:0 0 1rem;font-size:.8125rem;color:#71717a;min-width:0}
+.vd-crumb a{color:#52525b;text-decoration:none;white-space:nowrap}
+.vd-crumb a:hover{color:#18181b}
+.vd-crumb .sp{color:#d4d4d8}
+.vd-crumb .cur{color:#18181b;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Plyr 播放器 */
+.vd-player .plyr{position:absolute;inset:0;width:100%;height:100%;--plyr-color-main:#8b5cf6;--plyr-control-radius:8px;--plyr-font-family:inherit}
+.vd-player .plyr__video-wrapper{height:100%;background:#000}
+.vd-player .plyr--video{border-radius:0}
+@media (max-width:640px){.vd-crumb{margin-bottom:.75rem}}

@@ -39,3 +39,17 @@ video-detail:
   css:
     theme:
       css/video-detail.css: {}
+
+video-player:
+  css:
+    theme:
+      css/plyr.css: {}
+  js:
+    js/hls.min.js: { minified: true }
+    js/plyr.min.js: { minified: true }
+    js/video-detail.js: {}
+
+video_list:
+  css:
+    theme:
+      css/video-list.css: {}
