@@ -336,10 +336,19 @@ function _xedc_vd_preprocess(array &$variables) {
     $src = preg_replace('#^(internal:|base:)#', '', $src);
   }
   if ($src) {
-    if (preg_match('#youtube\.com/watch\?v=([\w-]+)#', $src, $m) || preg_match('#youtu\.be/([\w-]+)#', $src, $m)) {
-      $vd['type'] = 'iframe'; $vd['src'] = 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=1';
+    if (preg_match('#youtube\.com/shorts/([\w-]+)#', $src, $m)) {
+      $vd['type'] = 'iframe'; $vd['src'] = 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+      $variables['attributes']->addClass('vd-tall');
+    } elseif (preg_match('#(?:x|twitter)\.com/[\w]+/status/(\d+)#', $src, $m)) {
+      $vd['type'] = 'iframe'; $vd['src'] = 'https://platform.twitter.com/embed/Tweet.html?id=' . $m[1];
+      $variables['attributes']->addClass('vd-tall');
+    } elseif (preg_match('#instagram\.com/(?:p|reel|reels|tv)/([\w-]+)#', $src, $m)) {
+      $vd['type'] = 'iframe'; $vd['src'] = 'https://www.instagram.com/p/' . $m[1] . '/embed';
+      $variables['attributes']->addClass('vd-tall');
+    } elseif (preg_match('#youtube\.com/watch\?v=([\w-]+)#', $src, $m) || preg_match('#youtu\.be/([\w-]+)#', $src, $m)) {
+      $vd['type'] = 'iframe'; $vd['src'] = 'https://www.youtube.com/embed/' . $m[1] . '?autoplay=1&rel=0&playsinline=1&modestbranding=1';
     } elseif (preg_match('#bilibili\.com/video/(BV\w+)#', $src, $m)) {
-      $vd['type'] = 'iframe'; $vd['src'] = 'https://player.bilibili.com/player.html?autoplay=1&bvid=' . $m[1];
+      $vd['type'] = 'iframe'; $vd['src'] = 'https://player.bilibili.com/player.html?autoplay=1&rel=0&playsinline=1&modestbranding=1&bvid=' . $m[1];
     } elseif (preg_match('#\.m3u8(\?.*)?$#i', $src)) {
       $vd['type'] = 'hls'; $vd['src'] = $src;
     } elseif (preg_match('#\.(mp4|webm|ogg|mov)(\?.*)?$#i', $src) || $vd['mime']) {

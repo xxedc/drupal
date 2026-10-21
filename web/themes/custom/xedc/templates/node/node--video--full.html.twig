@@ -22,7 +22,7 @@
             {% if cover %}<img src="{{ cover }}" alt="{{ label }}">{% endif %}
             <button type="button" class="vd-play" aria-label="播放">▶</button>
           </div>
-          <script>document.querySelector('.vd-click').addEventListener('click',function(){var i=document.createElement('iframe');i.src=this.dataset.embed;i.allow='autoplay; fullscreen';i.allowFullscreen=true;this.replaceWith(i)});</script>
+          <script>document.querySelector('.vd-click').addEventListener('click',function(){var i=document.createElement('iframe');i.src=this.dataset.embed;i.allow='autoplay; fullscreen';i.allowFullscreen=true;i.referrerPolicy='strict-origin-when-cross-origin';this.replaceWith(i)});</script>
         {% elseif cover %}
           <img src="{{ cover }}" alt="{{ label }}">
         {% endif %}

@@ -21,17 +21,7 @@ register_pending_approval_admin:
   body: "[user:display-name] 申请了一个帐户。\r\n\r\n[user:edit-url]"
 status_activated:
   subject: 'Account details for [user:display-name] at [site:name]'
-  body: |-
-    [user:display-name],
-
-    Your account at [site:name] has been activated.
-
-    You will be able to log in to [site:login-url] in the future using:
-
-    username: [user:name]
-    password: your password.
-
-    -- [site:name] team
+  body: "[user:display-name],\r\n\r\nYour account at [site:name] has been activated.\r\n\r\nYou will be able to log in to [site:login-url] in the future using:\r\n\r\nusername: [user:name]\r\npassword: your password.\r\n\r\n-- [site:name] team"
 status_blocked:
   subject: '帐号信息 [user:display-name] 在 [site:name] (已冻结)'
   body: "[user:display-name]，\r\n\r\n您在网站 [site:name] 的帐号已被冻结。\r\n\r\n--  [site:name] 团队"

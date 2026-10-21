@@ -1,0 +1,15 @@
+uuid: 942a0081-3b8f-413b-9447-5ea28c5f155f
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - content_translation
+    - user
+third_party_settings:
+  content_translation:
+    enabled: true
+id: user.user
+target_entity_type_id: user
+target_bundle: user
+default_langcode: site_default
+language_alterable: false

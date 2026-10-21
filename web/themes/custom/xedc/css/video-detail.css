@@ -118,3 +118,6 @@ body:has(.vd-wrap) :not(body)[class*="breadcrumb"]{display:none!important}
 .vd-player .plyr__video-wrapper{height:100%;background:#000}
 .vd-player .plyr--video{border-radius:0}
 @media (max-width:640px){.vd-crumb{margin-bottom:.75rem}}
+
+/* 竖屏嵌入（Shorts / X / Instagram） */
+.vd-tall .vd-player{aspect-ratio:auto;height:min(720px,85vh);max-width:480px;margin:0 auto}
