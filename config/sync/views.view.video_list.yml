@@ -7,10 +7,13 @@ dependencies:
     - field.storage.node.field_duration
     - field.storage.node.field_tags
     - field.storage.node.field_video_cover
+    - image.style.video_cover
     - node.type.video
+    - taxonomy.vocabulary.video_category
   module:
     - media
     - node
+    - taxonomy
     - user
 id: video_list
 label: 视频列表页
@@ -128,7 +131,7 @@ display:
           type: media_thumbnail
           settings:
             image_link: ''
-            image_style: ''
+            image_style: video_cover
             image_loading:
               attribute: lazy
           group_column: target_id
@@ -150,7 +153,7 @@ display:
           admin_label: ''
           plugin_id: field
           label: ''
-          exclude: false
+          exclude: true
           alter:
             alter_text: false
             text: ''
@@ -194,7 +197,7 @@ display:
           type: number_integer
           settings:
             thousand_separator: ''
-            prefix_suffix: true
+            prefix_suffix: false
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -367,7 +370,18 @@ display:
       cache:
         type: tag
         options: {  }
-      empty: {  }
+      empty:
+        area_text_custom:
+          id: area_text_custom
+          table: views
+          field: area_text_custom
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: text_custom
+          empty: true
+          content: 暂无视频
+          tokenize: false
       sorts:
         created:
           id: created
@@ -385,7 +399,46 @@ display:
             field_identifier: ''
           exposed: false
           granularity: second
-      arguments: {  }
+      arguments:
+        field_categories_target_id:
+          id: field_categories_target_id
+          table: node__field_categories
+          field: field_categories_target_id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: numeric
+          default_action: ignore
+          exception:
+            value: all
+            title_enable: false
+            title: All
+          title_enable: true
+          title: '{{ arguments.field_categories_target_id }}'
+          default_argument_type: fixed
+          default_argument_options:
+            argument: ''
+          summary_options:
+            base_path: ''
+            count: true
+            override: false
+            items_per_page: 25
+          summary:
+            sort_order: asc
+            number_of_records: 0
+            format: default_summary
+          specify_validation: true
+          validate:
+            type: 'entity:taxonomy_term'
+            fail: 'not found'
+          validate_options:
+            bundles:
+              video_category: video_category
+            access: true
+            operation: view
+            multiple: 0
+          break_phrase: false
+          not: false
       filters:
         status:
           id: status
@@ -420,7 +473,18 @@ display:
           replica: false
           query_tags: {  }
       relationships: {  }
-      header: {  }
+      css_class: ''
+      header:
+        result:
+          id: result
+          table: views
+          field: result
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: result
+          empty: false
+          content: '共 @total 个视频'
       footer: {  }
       display_extenders: {  }
     cache_metadata:
@@ -428,6 +492,7 @@ display:
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
+        - url
         - url.query_args
         - 'user.node_grants:view'
         - user.permissions
@@ -449,6 +514,7 @@ display:
       contexts:
         - 'languages:language_content'
         - 'languages:language_interface'
+        - url
         - url.query_args
         - 'user.node_grants:view'
         - user.permissions

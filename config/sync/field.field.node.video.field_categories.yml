@@ -25,5 +25,5 @@ settings:
       field: name
       direction: asc
     auto_create: true
-    auto_create_bundle: article_category
+    auto_create_bundle: video_category
 field_type: entity_reference

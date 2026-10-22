@@ -1,0 +1,50 @@
+:root{--sr-bg:#fff;--sr-fg:#09090b;--sr-muted:#71717a;--sr-border:#e4e4e7;--sr-accent:#f4f4f5;--sr-primary:#18181b}
+[data-bs-theme="dark"],[data-theme="dark"],.dark{--sr-bg:#09090b;--sr-fg:#fafafa;--sr-muted:#a1a1aa;--sr-border:#27272a;--sr-accent:#18181b;--sr-primary:#fafafa}
+
+/* 页面标题 + 关键词高亮 */
+mark,.sr-kw{background:rgb(250 204 21/.38);color:inherit;padding:0 2px;border-radius:3px;font-weight:700}
+
+/* 搜索条：类型下拉 + 输入框 + 按钮 */
+form.search-form .container-inline{display:flex;gap:8px;align-items:stretch;margin:0}
+form.search-form .container-inline>*{margin:0}
+form.search-form .form-item{display:block;margin:0}
+form.search-form .form-item-keys{flex:1;min-width:0}
+form.search-form label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+form.search-form select{height:44px;padding:0 28px 0 12px;border:1px solid var(--sr-border);border-radius:10px;background-color:var(--sr-bg);color:var(--sr-fg);font-size:14px;font-weight:500;outline:0;width:auto}
+form.search-form input[type=search],form.search-form input[type=text]{width:100%;height:44px;padding:0 14px;border:1px solid var(--sr-border);border-radius:10px;background:var(--sr-bg);color:var(--sr-fg);font-size:15px;outline:0}
+form.search-form input[type=search]:focus,form.search-form input[type=text]:focus,form.search-form select:focus{border-color:var(--sr-primary);box-shadow:0 0 0 3px rgb(113 113 122/.18)}
+form.search-form .form-submit{height:44px;margin:0;padding:0 20px;border:0;border-radius:10px;background:var(--sr-primary);color:var(--sr-bg);font-size:14px;font-weight:600;cursor:pointer}
+form.search-form .form-submit:hover{opacity:.88}
+a[href*="/search/node/help"],a[href*="search/help"]{display:none}
+h2:has(+ .item-list),h2:has(+ ol.sr-grid){display:none}
+
+/* 结果网格 */
+.sr-grid,.search-results{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.sr-grid>li,.search-results>li{margin:0;padding:0;list-style:none}
+.sr-card{display:block;border:1px solid var(--sr-border);border-radius:12px;overflow:hidden;background:var(--sr-bg);color:var(--sr-fg);text-decoration:none;transition:border-color .15s,box-shadow .15s,transform .15s}
+.sr-card:hover{border-color:#d4d4d8;box-shadow:0 6px 18px rgb(0 0 0/.08);transform:translateY(-2px);color:var(--sr-fg)}
+.sr-cover{position:relative;aspect-ratio:3/4;background:var(--sr-accent);overflow:hidden}
+.sr-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.sr-card:hover .sr-cover img{transform:scale(1.04)}
+.sr-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--sr-muted);font-size:15px;font-weight:500}
+.sr-type{position:absolute;left:8px;top:8px;padding:2px 8px;border-radius:999px;background:rgb(255 255 255/.92);color:#18181b;font-size:11px;font-weight:600;line-height:18px;backdrop-filter:blur(4px);box-shadow:0 1px 2px rgb(0 0 0/.12)}
+.sr-play{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgb(0 0 0/.55)}
+.sr-play::after{content:"";position:absolute;left:18px;top:13px;border-left:13px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent}
+.sr-dur{position:absolute;right:8px;bottom:8px;padding:1px 6px;border-radius:4px;background:rgb(0 0 0/.65);color:#fff;font-size:11px;line-height:18px}
+.sr-title{padding:10px 12px 12px;font-size:14px;line-height:1.5;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all;min-height:calc(1.5em*2 + 22px)}
+
+/* 分页居中 */
+.pager,nav.pager{margin-top:28px}
+
+/* 手机：2 列 */
+@media (max-width:640px){
+  .sr-grid,.search-results{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .sr-card{border-radius:10px}
+  .sr-title{padding:8px 10px 10px;font-size:13px;min-height:calc(1.5em*2 + 18px)}
+  .sr-play{transform:scale(.8)}
+  form.search-form .container-inline{flex-wrap:wrap}
+  form.search-form select{width:84px}
+  form.search-form .form-item-keys{flex:1 1 0}
+  form.search-form .form-actions{flex:1 1 100%}
+  form.search-form .form-submit{width:100%}
+}

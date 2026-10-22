@@ -53,3 +53,8 @@ video_list:
   css:
     theme:
       css/video-list.css: {}
+
+search-page:
+  css:
+    theme:
+      css/search.css: {}

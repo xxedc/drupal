@@ -396,3 +396,4 @@ function _xedc_vd_cards(array $nids) {
   }
   return $out;
 }
+
