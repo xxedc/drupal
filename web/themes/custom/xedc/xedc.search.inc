@@ -1,0 +1,104 @@
+<?php
+
+function xedc_search_type_map(): array {
+  return ['photo' => '美图', 'video' => '视频', 'article' => '文章'];
+}
+
+function xedc_search_parse_keys(): array {
+  $keys = (string) \Drupal::request()->query->get('keys', '');
+  if ($keys === '') {
+    $p = \Drupal::routeMatch()->getRawParameters()->all();
+    $keys = (string) ($p['keys'] ?? '');
+  }
+  $active = '';
+  if (preg_match('/(?:^|\s)type:([^\s]+)/u', $keys, $m)) { $active = $m[1]; }
+  $base = trim(preg_replace('/(?:^|\s)type:[^\s]+/u', '', $keys));
+  return [$base, $active];
+}
+
+function xedc_search_highlight(string $text, string $keys) {
+  $words = array_filter(array_map(fn($w) => trim($w, '"'), preg_split('/\s+/u', $keys)));
+  if (!$words) { return htmlspecialchars($text, ENT_QUOTES); }
+  $re = '/(' . implode('|', array_map(fn($w) => preg_quote($w, '/'), $words)) . ')/iu';
+  $out = '';
+  foreach (preg_split($re, $text, -1, PREG_SPLIT_DELIM_CAPTURE) as $i => $p) {
+    $e = htmlspecialchars($p, ENT_QUOTES);
+    $out .= ($i % 2) ? '<mark>' . $e . '</mark>' : $e;
+  }
+  return \Drupal\Core\Render\Markup::create($out);
+}
+
+function xedc_search_cover_url($node): string {
+  foreach (['field_cover_image', 'field_video_cover', 'field_image', 'field_images'] as $f) {
+    if (!$node->hasField($f) || $node->get($f)->isEmpty()) { continue; }
+    $e = $node->get($f)->entity;
+    if ($e && $e->getEntityTypeId() === 'media') { $e = $e->get('thumbnail')->entity; }
+    if ($e && $e->getEntityTypeId() === 'file') {
+      $uri = $e->getFileUri();
+      $style = \Drupal\image\Entity\ImageStyle::load('medium');
+      return $style ? $style->buildUrl($uri) : \Drupal::service('file_url_generator')->generateString($uri);
+    }
+  }
+  return '';
+}
+
+function xedc_search_find_node(array $v) {
+  $n = $v['result']['node'] ?? NULL;
+  if ($n instanceof \Drupal\node\NodeInterface) { return $n; }
+  $path = parse_url((string) ($v['url'] ?? ''), PHP_URL_PATH);
+  if (!$path) { return NULL; }
+  $u = \Drupal::service('path.validator')->getUrlIfValid(trim($path, '/'));
+  if ($u && $u->isRouted()) {
+    $id = $u->getRouteParameters()['node'] ?? NULL;
+    if ($id) { return \Drupal\node\Entity\Node::load($id); }
+  }
+  return NULL;
+}
+
+function xedc_preprocess_search_result(array &$variables) {
+  $node = xedc_search_find_node($variables);
+  if (!$node) { return; }
+  $b = $node->bundle();
+  $map = xedc_search_type_map();
+  $dur = '';
+  if ($b === 'video' && $node->hasField('field_duration') && !$node->get('field_duration')->isEmpty()) {
+    $d = $node->get('field_duration')->value;
+    $dur = is_numeric($d) ? gmdate((int) $d >= 3600 ? 'H:i:s' : 'i:s', (int) $d) : (string) $d;
+  }
+  [$base] = xedc_search_parse_keys();
+  $variables['sr'] = [
+    'type' => $b,
+    'type_label' => $map[$b] ?? $node->type->entity->label(),
+    'cover' => xedc_search_cover_url($node),
+    'duration' => $dur,
+    'title_html' => xedc_search_highlight((string) $node->label(), $base),
+  ];
+}
+
+function xedc_preprocess_item_list__search_results(array &$variables) {
+  $variables['attributes']['class'][] = 'sr-grid';
+  $variables['title'] = NULL;
+}
+
+function xedc_form_search_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  $form['#attached']['library'][] = 'xedc/search-page';
+  [$base, $active] = xedc_search_parse_keys();
+  if (isset($form['basic']['keys'])) { $form['basic']['keys']['#default_value'] = $base; }
+  $form['basic']['xtype'] = [
+    '#type' => 'select',
+    '#title' => '类型',
+    '#title_display' => 'invisible',
+    '#options' => ['' => '全部'] + xedc_search_type_map(),
+    '#default_value' => $active,
+    '#weight' => -10,
+  ];
+  unset($form['help_link'], $form['basic']['help_link']);
+  $form['#validate'][] = 'xedc_search_form_validate';
+}
+
+function xedc_search_form_validate(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  $k = trim(preg_replace('/(?:^|\s)type:\S+/u', '', (string) $form_state->getValue('keys')));
+  $t = (string) $form_state->getValue('xtype');
+  if ($t !== '' && $k !== '') { $k .= ' type:' . $t; }
+  $form_state->setValue('keys', $k);
+}

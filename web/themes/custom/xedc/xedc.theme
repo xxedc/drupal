@@ -397,3 +397,4 @@ function _xedc_vd_cards(array $nids) {
   return $out;
 }
 
+require_once __DIR__ . '/xedc.search.inc';
