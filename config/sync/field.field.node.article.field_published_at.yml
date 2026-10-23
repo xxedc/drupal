@@ -1,0 +1,21 @@
+uuid: c7d4a1ba-a460-4a51-941d-ad349a0fcd3d
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_published_at
+    - node.type.article
+  module:
+    - datetime
+id: node.article.field_published_at
+field_name: field_published_at
+entity_type: node
+bundle: article
+label: 发布时间
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

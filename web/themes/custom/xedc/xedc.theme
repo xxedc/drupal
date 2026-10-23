@@ -398,3 +398,54 @@ function _xedc_vd_cards(array $nids) {
 }
 
 require_once __DIR__ . '/xedc.search.inc';
+
+/**
+ * 文章列表卡片数据。
+ */
+function xedc_preprocess_node__article__teaser(array &$variables): void {
+  $node = $variables['node'];
+  $gen = \Drupal::service('file_url_generator');
+
+  // 封面
+  $variables['xa_cover'] = '';
+  if (!$node->get('field_cover')->isEmpty()) {
+    $media = $node->get('field_cover')->entity;
+    $file = ($media && $media->hasField('field_media_image')) ? $media->get('field_media_image')->entity : NULL;
+    if ($file) {
+      $uri = $file->getFileUri();
+      $style = \Drupal\image\Entity\ImageStyle::load('xa_cover');
+      $url = $style ? $style->buildUrl($uri) : $gen->generateAbsoluteString($uri);
+      $variables['xa_cover'] = $gen->transformRelative($url);
+    }
+  }
+
+  // 摘要（为空时截取正文前 120 字）+ 阅读时长
+  $body = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $node->get('field_body')->value)));
+  $summary = trim((string) $node->get('field_summary')->value);
+  $variables['xa_summary'] = $summary !== '' ? $summary : mb_substr($body, 0, 120);
+  $variables['xa_read'] = max(1, (int) ceil(mb_strlen(str_replace(' ', '', $body)) / 400));
+
+  // 分类（点击后在列表页筛选）
+  $variables['xa_cat'] = NULL;
+  if ($term = $node->get('field_categories')->entity) {
+    $variables['xa_cat'] = [
+      'name' => $term->label(),
+      'url' => \Drupal\Core\Url::fromUserInput('/articles', ['query' => ['cat' => $term->id()]])->toString(),
+    ];
+  }
+
+  // 标签，最多 3 个
+  $tags = [];
+  foreach (array_slice($node->get('field_tags')->referencedEntities(), 0, 3) as $t) {
+    $tags[] = ['name' => $t->label(), 'url' => $t->toUrl()->toString()];
+  }
+  $variables['xa_tags'] = $tags;
+
+  // 来源 / 日期 / 阅读量
+  $variables['xa_source'] = (string) $node->get('field_source')->value;
+  $item = $node->get('field_published_at')->first();
+  $ts = ($item && $item->date) ? $item->date->getTimestamp() : $node->getCreatedTime();
+  $variables['xa_date'] = \Drupal::service('date.formatter')->format($ts, 'custom', 'Y-m-d');
+  $n = (int) $node->get('field_views')->value;
+  $variables['xa_views'] = $n >= 10000 ? round($n / 10000, 1) . '万' : $n;
+}

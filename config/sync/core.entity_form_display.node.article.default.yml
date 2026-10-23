@@ -3,15 +3,19 @@ langcode: zh-hans
 status: true
 dependencies:
   config:
+    - field.field.node.article.field_author
     - field.field.node.article.field_body
     - field.field.node.article.field_categories
     - field.field.node.article.field_cover
+    - field.field.node.article.field_published_at
     - field.field.node.article.field_source
     - field.field.node.article.field_source_url
     - field.field.node.article.field_summary
     - field.field.node.article.field_tags
+    - field.field.node.article.field_views
     - node.type.article
   module:
+    - datetime
     - link
     - media_library
     - path
@@ -26,6 +30,14 @@ content:
     weight: 10
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_author:
+    type: string_textfield
+    weight: 128
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_body:
     type: text_textarea
@@ -51,6 +63,12 @@ content:
     region: content
     settings:
       media_types: {  }
+    third_party_settings: {  }
+  field_published_at:
+    type: datetime_default
+    weight: 127
+    region: content
+    settings: {  }
     third_party_settings: {  }
   field_source:
     type: string_textfield
@@ -84,6 +102,13 @@ content:
       match_operator: CONTAINS
       match_limit: 10
       size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_views:
+    type: number
+    weight: 129
+    region: content
+    settings:
       placeholder: ''
     third_party_settings: {  }
   langcode:
@@ -123,6 +148,11 @@ content:
       match_limit: 10
       size: 60
       placeholder: ''
+    third_party_settings: {  }
+  url_redirects:
+    weight: 50
+    region: content
+    settings: {  }
     third_party_settings: {  }
 hidden:
   promote: true

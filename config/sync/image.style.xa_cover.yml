@@ -1,0 +1,21 @@
+uuid: 999e8752-482d-4751-bead-570be4aac83e
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: xa_cover
+label: 'XA 封面 400x300'
+effects:
+  fecdd538-fafe-461c-9819-65d1b054b953:
+    uuid: fecdd538-fafe-461c-9819-65d1b054b953
+    id: image_scale_and_crop
+    weight: 1
+    data:
+      width: 400
+      height: 300
+      anchor: center-center
+  0e966fcf-318b-4157-a319-4b72fdf524d4:
+    uuid: 0e966fcf-318b-4157-a319-4b72fdf524d4
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp

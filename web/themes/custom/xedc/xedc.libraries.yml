@@ -58,3 +58,9 @@ search-page:
   css:
     theme:
       css/search.css: {}
+
+article-list:
+  css:
+    theme:
+      css/tokens.css: {}
+      css/article-list.css: {}

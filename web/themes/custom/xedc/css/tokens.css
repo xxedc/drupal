@@ -1,0 +1,22 @@
+.xa{
+  --background:#fff;
+  --foreground:#09090b;
+  --muted:#f4f4f5;
+  --muted-foreground:#71717a;
+  --border:#e4e4e7;
+  --primary:#18181b;
+  --primary-foreground:#fafafa;
+  --radius:.5rem;
+  --ring:#a1a1aa;
+  background:var(--background);
+  color:var(--foreground);
+  font-family:ui-sans-serif,system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.xa *{box-sizing:border-box}
+.xa a{color:inherit;text-decoration:none}
+.xa-container{max-width:72rem;margin:0 auto;padding:0 1rem}
+.xa-badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.125rem .625rem;font-size:.75rem;font-weight:500;line-height:1.25rem;border:1px solid transparent}
+.xa-badge--secondary{background:var(--muted);color:var(--foreground)}
+.xa-badge--outline{border-color:var(--border);color:var(--muted-foreground)}
+.xa-muted{color:var(--muted-foreground)}

@@ -1,0 +1,20 @@
+uuid: eb1f8b1b-d450-41c4-bfbd-28ba5b9e275a
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_views
+field_name: field_views
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
