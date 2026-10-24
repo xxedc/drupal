@@ -3,11 +3,30 @@ langcode: zh-hans
 status: true
 dependencies:
   config:
+    - media.type.audio
+    - media.type.document
+    - media.type.image
+    - media.type.remote_video
+    - media.type.video
+    - node.type.article
+    - node.type.photo
+    - node.type.video
     - taxonomy.vocabulary.tags
   module:
+    - content_translation
+    - contextual
+    - easy_breadcrumb
     - file
+    - layout_builder
+    - mailsystem
+    - matomo
+    - media
+    - metatag
+    - navigation
     - node
     - path
+    - pathauto
+    - redirect_404
     - system
     - taxonomy
 _core:
@@ -19,13 +38,63 @@ is_admin: false
 permissions:
   - 'access administration pages'
   - 'access content overview'
+  - 'access contextual links'
   - 'access files overview'
+  - 'access navigation'
+  - 'add js snippets for matomo'
+  - 'administer content translation'
+  - 'administer content types'
+  - 'administer easy breadcrumb'
+  - 'administer meta tags'
+  - 'administer node published status'
+  - 'administer nodes'
+  - 'administer pathauto'
   - 'administer url aliases'
+  - administer_mailsystem
+  - 'bulk delete aliases'
+  - 'bulk update aliases'
+  - 'bypass node access'
+  - 'configure any layout'
+  - 'configure navigation layout'
+  - 'create and edit custom blocks'
+  - 'create article content'
+  - 'create content translations'
+  - 'create document media'
+  - 'create image media'
+  - 'create photo content'
+  - 'create remote_video media'
   - 'create terms in tags'
   - 'create url aliases'
+  - 'create video content'
+  - 'create video media'
+  - 'delete any article content'
+  - 'delete any audio media'
+  - 'delete any document media'
+  - 'delete any image media'
+  - 'delete any photo content'
+  - 'delete any remote_video media'
+  - 'delete any video content'
+  - 'delete any video media'
+  - 'delete content translations'
+  - 'delete own article content'
+  - 'delete own audio media'
+  - 'delete own document media'
   - 'delete own files'
+  - 'delete own image media'
+  - 'delete own photo content'
+  - 'delete own remote_video media'
+  - 'delete own video media'
+  - 'edit any audio media'
+  - 'edit any document media'
+  - 'edit any image media'
+  - 'edit any video media'
   - 'edit terms in tags'
+  - 'ignore 404 requests'
+  - 'notify of path changes'
   - 'revert all revisions'
+  - 'translate editable entities'
+  - 'translate user'
+  - 'update content translations'
   - 'view all revisions'
   - 'view own unpublished content'
   - 'view the administration theme'

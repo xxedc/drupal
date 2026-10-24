@@ -1,0 +1,20 @@
+<article{{ attributes.addClass('xa-card') }}>
+  <div class="xa-card__body">
+    <div class="xa-card__top">
+      {% if xa_cat %}<a class="xa-badge xa-badge--secondary" href="{{ xa_cat.url }}">{{ xa_cat.name }}</a>{% endif %}
+      <span class="xa-card__info">
+        {% if xa_source %}<span>{{ xa_source }}</span>{% endif %}
+        <span>{{ xa_date }}</span>
+      </span>
+    </div>
+    <h2 class="xa-card__title"><a href="{{ url }}">{{ node.label }}</a></h2>
+    {% if xa_summary %}<p class="xa-card__summary">{{ xa_summary }}</p>{% endif %}
+    <div class="xa-card__foot">
+      {% for t in xa_tags %}<a class="xa-badge xa-badge--outline" href="{{ t.url }}">{{ t.name }}</a>{% endfor %}
+      <span class="xa-card__stats">{{ xa_views }} 阅读 · {{ xa_read }} 分钟</span>
+    </div>
+  </div>
+  {% if xa_cover %}
+    <div class="xa-card__cover"><img src="{{ xa_cover }}" alt="{{ node.label }}" width="400" height="300" loading="lazy"></div>
+  {% endif %}
+</article>

@@ -449,3 +449,114 @@ function xedc_preprocess_node__article__teaser(array &$variables): void {
   $n = (int) $node->get('field_views')->value;
   $variables['xa_views'] = $n >= 10000 ? round($n / 10000, 1) . '万' : $n;
 }
+
+/**
+ * 文章列表页：分类胶囊 + 搜索框数据。
+ */
+function xedc_preprocess_views_view__article_list(array &$variables): void {
+  $req = \Drupal::request()->query;
+  $active = (int) $req->get('cat');
+  $chips = [['name' => '全部', 'url' => '/articles', 'active' => !$active]];
+  $tree = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree('article_category');
+  foreach ($tree as $t) {
+    $chips[] = ['name' => $t->name, 'url' => '/articles?cat=' . $t->tid, 'active' => $active === (int) $t->tid];
+  }
+  $variables['xa_chips'] = $chips;
+  $variables['xa_cat'] = $active ?: '';
+  $variables['xa_q'] = (string) $req->get('q', '');
+  $variables['xa_side'] = xedc_xa_side();
+  $variables['xa_pager'] = xedc_xa_pager($variables['view']);
+}
+
+/**
+ * 文章列表侧栏：分类(带数量)、热门文章、热门标签。
+ */
+function xedc_xa_side(): array {
+  $db = \Drupal::database();
+  $active = (int) \Drupal::request()->query->get('cat');
+
+  $count_by = function (string $field) use ($db): array {
+    $col = $field . '_target_id';
+    $q = $db->select('node__' . $field, 'f');
+    $q->innerJoin('node_field_data', 'n', 'n.nid = f.entity_id AND n.vid = f.revision_id');
+    $q->condition('n.status', 1)->condition('n.type', 'article')->condition('f.deleted', 0);
+    $q->addField('f', $col, 'tid');
+    $q->addExpression('COUNT(DISTINCT n.nid)', 'cnt');
+    $q->groupBy('f.' . $col);
+    return $q->execute()->fetchAllKeyed();
+  };
+
+  // 分类
+  $total = (int) \Drupal::entityQuery('node')->accessCheck(TRUE)
+    ->condition('type', 'article')->condition('status', 1)->count()->execute();
+  $cats = [['name' => '全部', 'url' => '/articles', 'count' => $total, 'active' => !$active]];
+  $cc = $count_by('field_categories');
+  $tree = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree('article_category');
+  foreach ($tree as $t) {
+    if (empty($cc[$t->tid]) && $active !== (int) $t->tid) { continue; }
+    $cats[] = ['name' => $t->name, 'url' => '/articles?cat=' . $t->tid,
+      'count' => (int) ($cc[$t->tid] ?? 0), 'active' => $active === (int) $t->tid];
+  }
+
+  // 热门文章
+  $ids = \Drupal::entityQuery('node')->accessCheck(TRUE)
+    ->condition('type', 'article')->condition('status', 1)
+    ->sort('field_views', 'DESC')->sort('created', 'DESC')->range(0, 5)->execute();
+  $nodes = \Drupal\node\Entity\Node::loadMultiple($ids);
+  $hot = [];
+  foreach ($ids as $id) {
+    if (isset($nodes[$id])) {
+      $hot[] = ['title' => $nodes[$id]->label(), 'url' => $nodes[$id]->toUrl()->toString()];
+    }
+  }
+
+  // 热门标签
+  $tc = $count_by('field_tags');
+  arsort($tc);
+  $tids = array_slice(array_keys($tc), 0, 12);
+  $terms = \Drupal\taxonomy\Entity\Term::loadMultiple($tids);
+  $tags = [];
+  foreach ($tids as $id) {
+    if (isset($terms[$id])) {
+      $tags[] = ['name' => $terms[$id]->label(), 'url' => $terms[$id]->toUrl()->toString()];
+    }
+  }
+
+  return ['cats' => $cats, 'hot' => $hot, 'tags' => $tags];
+}
+
+/**
+ * 文章列表分页数据。
+ */
+function xedc_xa_pager($view): array {
+  $pager = $view->pager;
+  $per = (int) $pager->getItemsPerPage();
+  $total = (int) $pager->getTotalItems();
+  if ($per < 1 || $total <= $per) {
+    return [];
+  }
+  $last = (int) ceil($total / $per);
+  $cur = (int) $pager->getCurrentPage() + 1;
+  $q = \Drupal::request()->query->all();
+  unset($q['page']);
+  $href = function (int $n) use ($q) {
+    $p = $q + ($n > 1 ? ['page' => $n - 1] : []);
+    return '/articles' . ($p ? '?' . http_build_query($p) : '');
+  };
+  $win = array_unique(array_filter([1, $cur - 1, $cur, $cur + 1, $last], fn($n) => $n >= 1 && $n <= $last));
+  sort($win);
+  $items = [];
+  $prev = 0;
+  foreach ($win as $n) {
+    if ($prev && $n - $prev > 1) {
+      $items[] = ['gap' => TRUE];
+    }
+    $items[] = ['n' => $n, 'url' => $href($n), 'active' => $n === $cur];
+    $prev = $n;
+  }
+  return [
+    'items' => $items, 'cur' => $cur, 'last' => $last,
+    'prev' => $cur > 1 ? $href($cur - 1) : '',
+    'next' => $cur < $last ? $href($cur + 1) : '',
+  ];
+}
