@@ -1,0 +1,95 @@
+uuid: 1ebe0ee0-00dc-4da2-88c3-1e512b88d784
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - node.type.article
+    - node.type.photo
+    - node.type.video
+  module:
+    - content_moderation
+id: xedc_editorial
+label: 'XEDC 会员投稿审核'
+type: content_moderation
+type_settings:
+  states:
+    changes_requested:
+      label: 退回修改
+      weight: -3
+      published: false
+      default_revision: false
+    draft:
+      label: 草稿
+      weight: -10
+      published: false
+      default_revision: false
+    needs_review:
+      label: 待审核
+      weight: -5
+      published: false
+      default_revision: false
+    published:
+      label: 已发布
+      weight: 10
+      published: true
+      default_revision: true
+    rejected:
+      label: 已拒绝
+      weight: 0
+      published: false
+      default_revision: false
+  transitions:
+    approve:
+      label: 审核通过
+      from:
+        - needs_review
+      to: published
+      weight: 5
+    create_new_draft:
+      label: 创建新草稿
+      from:
+        - published
+      to: draft
+      weight: 6
+    reject:
+      label: 拒绝
+      from:
+        - needs_review
+      to: rejected
+      weight: 4
+    request_changes:
+      label: 退回修改
+      from:
+        - needs_review
+      to: changes_requested
+      weight: 3
+    resubmit_for_review:
+      label: 重新提交审核
+      from:
+        - changes_requested
+      to: needs_review
+      weight: 1
+    save_draft:
+      label: 保存草稿
+      from:
+        - draft
+      to: draft
+      weight: 7
+    submit_for_review:
+      label: 提交审核
+      from:
+        - draft
+      to: needs_review
+      weight: 0
+    withdraw:
+      label: 撤回待审
+      from:
+        - needs_review
+      to: draft
+      weight: 2
+  entity_types:
+    node:
+      - article
+      - photo
+      - video
+  default_moderation_state: draft

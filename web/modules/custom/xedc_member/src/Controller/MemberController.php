@@ -1,0 +1,713 @@
+<?php
+
+namespace Drupal\xedc_member\Controller;
+
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\File\FileUrlGeneratorInterface;
+use Drupal\Core\Url;
+use Drupal\comment\CommentInterface;
+use Drupal\file\FileInterface;
+use Drupal\image\Entity\ImageStyle;
+use Drupal\media\MediaInterface;
+use Drupal\node\NodeInterface;
+use Drupal\user\UserInterface;
+use Drupal\xedc_member\Form\FavoriteToggleForm;
+use Drupal\xedc_member\Form\HistoryDeleteForm;
+use Drupal\xedc_member\Form\HistorySettingsForm;
+use Drupal\xedc_member\Form\ProfileForm;
+use Drupal\xedc_member\Service\FavoriteManager;
+use Drupal\xedc_member\Service\HistoryManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+/**
+ * Controller for the XEDC member center.
+ */
+class MemberController extends ControllerBase {
+
+  /**
+   * Constructs a MemberController.
+   */
+  public function __construct(
+    protected FavoriteManager $favoriteManager,
+    protected HistoryManager $historyManager,
+    protected FileUrlGeneratorInterface $fileUrlGenerator,
+    protected DateFormatterInterface $dateFormatter,
+    protected RequestStack $requestStack,
+  ) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('xedc_member.favorite_manager'),
+      $container->get('xedc_member.history_manager'),
+      $container->get('file_url_generator'),
+      $container->get('date.formatter'),
+      $container->get('request_stack')
+    );
+  }
+
+  /**
+   * Member center overview.
+   */
+  public function overview() {
+    $account = $this->loadAccount();
+    $uid = (int) $account->id();
+
+    $recent_favorites = [];
+    foreach ($this->favoriteManager->getRecentRows($uid, 4) as $row) {
+      $node = $this->entityTypeManager()->getStorage('node')->load($row->entity_id);
+      if ($node instanceof NodeInterface && $node->access('view')) {
+        $recent_favorites[] = $this->favoriteCard($node);
+      }
+    }
+
+    $content = [
+      '#theme' => 'xedc_member_overview',
+      '#account' => $this->accountData($account),
+      '#stats' => [
+        'favorites' => $this->favoriteManager->countVisible($uid),
+        'history' => $this->historyManager->countVisible($uid),
+        'comments' => $this->commentCount($uid),
+        'submissions' => $this->submissionCount($uid),
+      ],
+      '#recent_favorites' => $recent_favorites,
+      '#urls' => $this->memberUrls(),
+    ];
+
+    return $this->shell('overview', $content);
+  }
+
+  /**
+   * Member favorites list.
+   */
+  public function favorites() {
+    $account = $this->loadAccount();
+    $uid = (int) $account->id();
+    $request = $this->requestStack->getCurrentRequest();
+    $type = $request ? $request->query->get('type') : NULL;
+    $type = is_string($type) && in_array($type, FavoriteManager::ALLOWED_BUNDLES, TRUE) ? $type : NULL;
+
+    $cards = [];
+    foreach ($this->favoriteManager->getFavoriteRows($uid, $type) as $row) {
+      $node = $this->entityTypeManager()->getStorage('node')->load($row->entity_id);
+      if (!$node instanceof NodeInterface || !$node->access('view')) {
+        continue;
+      }
+      $remove_form = $this->formBuilder()->getForm(FavoriteToggleForm::class, (int) $node->id(), 'list');
+      $cards[] = $this->favoriteCard($node, $remove_form);
+    }
+
+    $content = [
+      '#theme' => 'xedc_member_favorites',
+      '#cards' => $cards,
+      '#filters' => $this->favoriteFilters($type),
+      '#total' => $this->favoriteManager->countVisible($uid, $type),
+      '#pager' => ['#type' => 'pager'],
+      '#empty' => $type ? $this->t('这个分类还没有收藏内容。') : $this->t('还没有收藏任何内容。'),
+    ];
+
+    return $this->shell('favorites', $content);
+  }
+
+  /**
+   * Member browsing history.
+   */
+  public function history() {
+    $account = $this->loadAccount();
+    $uid = (int) $account->id();
+    $request = $this->requestStack->getCurrentRequest();
+    $type = $request ? $request->query->get('type') : NULL;
+    $type = is_string($type) && in_array($type, HistoryManager::ALLOWED_BUNDLES, TRUE) ? $type : NULL;
+
+    $items = [];
+    foreach ($this->historyManager->getHistoryRows($uid, $type) as $row) {
+      $node = $this->entityTypeManager()->getStorage('node')->load($row->entity_id);
+      if (!$node instanceof NodeInterface || !$node->access('view')) {
+        continue;
+      }
+      $delete_form = $this->formBuilder()->getForm(HistoryDeleteForm::class, (int) $node->id());
+      $items[] = $this->historyCard($node, $row, $delete_form);
+    }
+
+    $content = [
+      '#theme' => 'xedc_member_history',
+      '#items' => $items,
+      '#filters' => $this->historyFilters($type),
+      '#total' => $this->historyManager->countVisible($uid, $type),
+      '#pager' => ['#type' => 'pager'],
+      '#enabled' => $this->historyManager->isEnabled($uid),
+      '#urls' => $this->memberUrls(),
+      '#empty' => $type ? $this->t('这个分类还没有浏览记录。') : $this->t('还没有浏览记录。'),
+    ];
+
+    return $this->shell('history', $content);
+  }
+
+  /**
+   * Comments written by the current member.
+   */
+  public function comments() {
+    $account = $this->loadAccount();
+    $uid = (int) $account->id();
+    $storage = $this->entityTypeManager()->getStorage('comment');
+
+    $query = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uid', $uid)
+      ->sort('created', 'DESC')
+      ->pager(20);
+    $cids = $query->execute();
+    $comments = $storage->loadMultiple($cids);
+
+    $items = [];
+    foreach ($comments as $comment) {
+      if ($comment instanceof CommentInterface) {
+        $items[] = $this->commentCard($comment);
+      }
+    }
+
+    $count = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uid', $uid)
+      ->count()
+      ->execute();
+
+    $content = [
+      '#theme' => 'xedc_member_comments',
+      '#items' => $items,
+      '#total' => (int) $count,
+      '#pager' => ['#type' => 'pager'],
+      '#empty' => $this->t('还没有发表评论。'),
+    ];
+
+    return $this->shell('comments', $content);
+  }
+
+  /**
+   * Submissions owned by the current member.
+   */
+  public function submissions() {
+    $account = $this->loadAccount();
+    $uid = (int) $account->id();
+    $storage = $this->entityTypeManager()->getStorage('node');
+
+    $query = $storage->getQuery()
+      ->accessCheck(TRUE)
+      ->condition('uid', $uid)
+      ->condition('type', FavoriteManager::ALLOWED_BUNDLES, 'IN')
+      ->sort('changed', 'DESC')
+      ->pager(20);
+    $nids = $query->execute();
+    $nodes = $storage->loadMultiple($nids);
+
+    $items = [];
+    foreach ($nodes as $node) {
+      if (!$node instanceof NodeInterface) {
+        continue;
+      }
+      $latest = $this->latestRevision($node);
+      $items[] = $this->submissionCard($latest, $this->moderationState($latest));
+    }
+
+    $count = $storage->getQuery()
+      ->accessCheck(TRUE)
+      ->condition('uid', $uid)
+      ->condition('type', FavoriteManager::ALLOWED_BUNDLES, 'IN')
+      ->count()
+      ->execute();
+
+    $content = [
+      '#theme' => 'xedc_member_submissions',
+      '#items' => $items,
+      '#total' => (int) $count,
+      '#pager' => ['#type' => 'pager'],
+      '#urls' => $this->memberUrls(),
+      '#create_links' => $this->submissionCreateLinks(),
+      '#empty' => $this->t('还没有投稿。'),
+    ];
+
+    return $this->shell('submissions', $content);
+  }
+
+  /**
+   * Placeholder pages for later phases.
+   */
+  public function placeholder(string $section = 'comments') {
+    $sections = [
+      'comments' => [
+        'heading' => $this->t('我的评论'),
+        'description' => $this->t('这里会显示你发表的评论和审核状态。'),
+        'note' => $this->t('评论管理将在后续阶段接入，目前先保留入口。'),
+      ],
+      'submissions' => [
+        'heading' => $this->t('我的投稿'),
+        'description' => $this->t('这里会显示你的投稿、草稿和审核状态。'),
+        'note' => $this->t('投稿与审核将在后续阶段接入，目前先保留入口。'),
+      ],
+    ];
+
+    if (!isset($sections[$section])) {
+      throw new NotFoundHttpException();
+    }
+
+    $content = [
+      '#theme' => 'xedc_member_placeholder',
+    ] + $sections[$section];
+
+    return $this->shell($section, $content);
+  }
+
+  /**
+   * Account settings page.
+   */
+  public function settings() {
+    $account = $this->loadAccount();
+    $content = [
+      '#theme' => 'xedc_member_settings',
+      '#account' => $this->accountData($account),
+      '#urls' => $this->memberUrls(),
+      '#history_form' => $this->formBuilder()->getForm(HistorySettingsForm::class),
+    ];
+
+    return $this->shell('settings', $content);
+  }
+
+  /**
+   * Member profile page.
+   */
+  public function profile() {
+    $account = $this->loadAccount();
+    $content = [
+      '#theme' => 'xedc_member_profile',
+      '#account' => $this->accountData($account),
+      '#avatar' => $this->avatar($account),
+      '#form' => $this->formBuilder()->getForm(ProfileForm::class),
+      '#urls' => $this->memberUrls(),
+    ];
+
+    return $this->shell('profile', $content);
+  }
+
+  /**
+   * Account security page.
+   */
+  public function security() {
+    $account = $this->loadAccount();
+    $content = [
+      '#theme' => 'xedc_member_security',
+      '#account' => $this->accountData($account),
+      '#avatar' => $this->avatar($account),
+      '#form' => $this->entityFormBuilder()->getForm($account, 'default'),
+      '#urls' => $this->memberUrls(),
+    ];
+
+    return $this->shell('security', $content);
+  }
+
+  /**
+   * Builds the shared member center shell.
+   */
+  protected function shell(string $active, array $content): array {
+    $account = $this->loadAccount();
+    $urls = $this->memberUrls();
+
+    $nav = [
+      ['key' => 'overview', 'label' => $this->t('概览'), 'url' => $urls['overview']],
+      ['key' => 'favorites', 'label' => $this->t('我的收藏'), 'url' => $urls['favorites']],
+      ['key' => 'history', 'label' => $this->t('浏览历史'), 'url' => $urls['history']],
+      ['key' => 'comments', 'label' => $this->t('我的评论'), 'url' => $urls['comments']],
+      ['key' => 'submissions', 'label' => $this->t('我的投稿'), 'url' => $urls['submissions']],
+      ['key' => 'profile', 'label' => $this->t('个人资料'), 'url' => $urls['profile']],
+      ['key' => 'security', 'label' => $this->t('账户安全'), 'url' => $urls['security']],
+      ['key' => 'settings', 'label' => $this->t('账号设置'), 'url' => $urls['settings']],
+    ];
+
+    return [
+      '#theme' => 'xedc_member_shell',
+      '#account' => $this->accountData($account),
+      '#avatar' => $this->avatar($account),
+      '#nav' => $nav,
+      '#active' => $active,
+      '#urls' => $urls,
+      '#content' => $content,
+      '#attached' => [
+        'library' => ['xedc_member/member'],
+      ],
+      '#cache' => [
+        'contexts' => ['user'],
+        'max-age' => 0,
+      ],
+    ];
+  }
+
+  /**
+   * Loads the current user entity.
+   */
+  protected function loadAccount(): UserInterface {
+    $account = $this->entityTypeManager()->getStorage('user')->load($this->currentUser()->id());
+    if (!$account instanceof UserInterface) {
+      throw new AccessDeniedHttpException();
+    }
+    return $account;
+  }
+
+  /**
+   * Builds account display data.
+   */
+  protected function accountData(UserInterface $account): array {
+    $username = $account->getAccountName();
+    $nickname = '';
+    if ($account->hasField('field_xedc_nickname') && !$account->get('field_xedc_nickname')->isEmpty()) {
+      $nickname = (string) $account->get('field_xedc_nickname')->value;
+    }
+    $name = $nickname !== '' ? $nickname : $username;
+    $last_login = (int) $account->getLastLoginTime();
+    return [
+      'name' => $name,
+      'username' => $username,
+      'nickname' => $nickname,
+      'mail' => $account->getEmail() ?: $this->t('未设置邮箱'),
+      'initial' => $name !== '' ? mb_substr($name, 0, 1) : '?',
+      'member_since' => $this->dateFormatter->format($account->getCreatedTime(), 'custom', 'Y-m-d'),
+      'last_login' => $last_login > 0 ? $this->dateFormatter->format($last_login, 'custom', 'Y-m-d H:i') : $this->t('尚未登录'),
+    ];
+  }
+
+  /**
+   * Builds the user avatar render array.
+   */
+  protected function avatar(UserInterface $account): array {
+    if ($account->get('user_picture')->isEmpty()) {
+      return [];
+    }
+    return $account->get('user_picture')->view([
+      'label' => 'hidden',
+      'type' => 'image',
+      'settings' => [
+        'image_style' => 'thumbnail',
+        'image_link' => '',
+        'image_loading' => ['attribute' => 'lazy'],
+      ],
+    ]);
+  }
+
+  /**
+   * Builds the member center URLs.
+   */
+  protected function memberUrls(): array {
+    return [
+      'overview' => Url::fromRoute('xedc_member.overview')->toString(),
+      'favorites' => Url::fromRoute('xedc_member.favorites')->toString(),
+      'history' => Url::fromRoute('xedc_member.history')->toString(),
+      'history_clear' => Url::fromRoute('xedc_member.history_clear')->toString(),
+      'comments' => Url::fromRoute('xedc_member.comments')->toString(),
+      'submissions' => Url::fromRoute('xedc_member.submissions')->toString(),
+      'profile' => Url::fromRoute('xedc_member.profile')->toString(),
+      'security' => Url::fromRoute('xedc_member.security')->toString(),
+      'settings' => Url::fromRoute('xedc_member.settings')->toString(),
+      'logout' => Url::fromRoute('user.logout')->toString(),
+      'login' => Url::fromRoute('user.login')->toString(),
+    ];
+  }
+
+  /**
+   * Builds favorite filter tabs.
+   */
+  protected function favoriteFilters(?string $active): array {
+    $filters = [
+      [
+        'key' => 'all',
+        'label' => $this->t('全部'),
+        'url' => Url::fromRoute('xedc_member.favorites')->toString(),
+        'active' => $active === NULL,
+      ],
+    ];
+    foreach (FavoriteManager::ALLOWED_BUNDLES as $bundle) {
+      $filters[] = [
+        'key' => $bundle,
+        'label' => $this->typeLabel($bundle),
+        'url' => Url::fromRoute('xedc_member.favorites', [], ['query' => ['type' => $bundle]])->toString(),
+        'active' => $active === $bundle,
+      ];
+    }
+    return $filters;
+  }
+
+  /**
+   * Builds history filter tabs.
+   */
+  protected function historyFilters(?string $active): array {
+    $filters = [
+      [
+        'key' => 'all',
+        'label' => $this->t('全部'),
+        'url' => Url::fromRoute('xedc_member.history')->toString(),
+        'active' => $active === NULL,
+      ],
+    ];
+    foreach (HistoryManager::ALLOWED_BUNDLES as $bundle) {
+      $filters[] = [
+        'key' => $bundle,
+        'label' => $this->typeLabel($bundle),
+        'url' => Url::fromRoute('xedc_member.history', [], ['query' => ['type' => $bundle]])->toString(),
+        'active' => $active === $bundle,
+      ];
+    }
+    return $filters;
+  }
+
+  /**
+   * Builds a favorite card.
+   */
+  protected function favoriteCard(NodeInterface $node, ?array $remove_form = NULL): array {
+    return [
+      'nid' => (int) $node->id(),
+      'title' => $node->label(),
+      'url' => $node->toUrl()->toString(),
+      'type' => $node->bundle(),
+      'type_label' => $this->typeLabel($node->bundle()),
+      'cover' => $this->coverImage($node),
+      'date' => $this->dateFormatter->format($node->getCreatedTime(), 'custom', 'Y-m-d'),
+      'remove_form' => $remove_form,
+    ];
+  }
+
+  /**
+   * Builds a history card.
+   */
+  protected function historyCard(NodeInterface $node, object $row, ?array $delete_form = NULL): array {
+    return [
+      'card_id' => 'xedc-member-history-' . $node->id(),
+      'nid' => (int) $node->id(),
+      'title' => $node->label(),
+      'url' => $node->toUrl()->toString(),
+      'type' => $node->bundle(),
+      'type_label' => $this->typeLabel($node->bundle()),
+      'cover' => $this->coverImage($node),
+      'date' => $this->dateFormatter->format((int) $row->last_viewed, 'custom', 'Y-m-d H:i'),
+      'meta' => $this->t('浏览 @count 次', ['@count' => (int) $row->view_count]),
+      'remove_form' => $delete_form,
+    ];
+  }
+
+  /**
+   * Builds a comment card.
+   */
+  protected function commentCard(CommentInterface $comment): array {
+    $parent = $comment->getCommentedEntity();
+    $parent_title = $this->t('内容不可用或已下架');
+    $parent_url = '';
+    $parent_accessible = FALSE;
+    if ($parent instanceof NodeInterface && $parent->access('view')) {
+      $parent_title = $parent->label();
+      $parent_url = $parent->toUrl()->toString();
+      $parent_accessible = TRUE;
+    }
+
+    $edit_url = '';
+    if ($comment->access('update')) {
+      $edit_url = Url::fromRoute('entity.comment.edit_form', ['comment' => $comment->id()], [
+        'query' => ['destination' => Url::fromRoute('xedc_member.comments')->toString()],
+      ])->toString();
+    }
+
+    $comment_url = '';
+    if ($parent_accessible && $comment->isPublished()) {
+      $comment_url = $parent->toUrl()->setOption('fragment', 'comment-' . $comment->id())->toString();
+    }
+
+    return [
+      'cid' => (int) $comment->id(),
+      'subject' => $comment->getSubject(),
+      'body' => $comment->get('comment_body')->view(['label' => 'hidden']),
+      'created' => $this->dateFormatter->format($comment->getCreatedTime(), 'custom', 'Y-m-d H:i'),
+      'status_id' => $comment->isPublished() ? 'published' : 'pending',
+      'status_label' => $comment->isPublished() ? $this->t('已发布') : $this->t('待审核'),
+      'parent_title' => $parent_title,
+      'parent_url' => $parent_url,
+      'edit_url' => $edit_url,
+      'comment_url' => $comment_url,
+    ];
+  }
+
+  /**
+   * Builds a submission card.
+   */
+  protected function submissionCard(NodeInterface $node, array $state): array {
+    $review_note = '';
+    if ($node->hasField('revision_log') && in_array($state['id'], ['changes_requested', 'rejected'], TRUE)) {
+      $review_note = (string) $node->get('revision_log')->value;
+    }
+
+    $edit_url = Url::fromRoute('entity.node.edit_form', ['node' => $node->id()], [
+      'query' => ['destination' => Url::fromRoute('xedc_member.submissions')->toString()],
+    ])->toString();
+    $view_url = $node->isPublished() ? $node->toUrl()->toString() : '';
+
+    return [
+      'nid' => (int) $node->id(),
+      'title' => $node->label(),
+      'type' => $node->bundle(),
+      'type_label' => $this->typeLabel($node->bundle()),
+      'state_id' => $state['id'],
+      'state_label' => $state['label'],
+      'is_published' => $node->isPublished(),
+      'changed' => $this->dateFormatter->format($node->getChangedTime(), 'custom', 'Y-m-d H:i'),
+      'review_note' => $review_note,
+      'edit_url' => $edit_url,
+      'view_url' => $view_url,
+    ];
+  }
+
+  /**
+   * Loads the latest node revision.
+   */
+  protected function latestRevision(NodeInterface $node): NodeInterface {
+    $storage = $this->entityTypeManager()->getStorage('node');
+    $latest_id = $storage->getLatestRevisionId($node->id());
+    if ($latest_id) {
+      $latest = $storage->loadRevision($latest_id);
+      if ($latest instanceof NodeInterface) {
+        return $latest;
+      }
+    }
+    return $node;
+  }
+
+  /**
+   * Resolves moderation state ID, label and published status.
+   */
+  protected function moderationState(NodeInterface $node): array {
+    $state_id = $node->hasField('moderation_state') ? (string) $node->get('moderation_state')->value : '';
+    if ($state_id === '') {
+      $state_id = $node->isPublished() ? 'published' : 'draft';
+    }
+    $label = $state_id;
+    if (\Drupal::hasService('content_moderation.moderation_information')) {
+      try {
+        $workflow = \Drupal::service('content_moderation.moderation_information')->getWorkflowForEntity($node);
+        if ($workflow) {
+          $state = $workflow->getTypePlugin()->getState($state_id);
+          if ($state) {
+            $label = $state->label();
+          }
+        }
+      }
+      catch (\Throwable $e) {
+        // Keep the machine state as fallback.
+      }
+    }
+    return [
+      'id' => $state_id,
+      'label' => $label,
+      'published' => $node->isPublished(),
+    ];
+  }
+
+  /**
+   * Builds new submission links.
+   */
+  protected function submissionCreateLinks(): array {
+    return [
+      [
+        'label' => $this->t('投稿美图'),
+        'url' => Url::fromRoute('node.add', ['node_type' => 'photo'])->toString(),
+      ],
+      [
+        'label' => $this->t('投稿视频'),
+        'url' => Url::fromRoute('node.add', ['node_type' => 'video'])->toString(),
+      ],
+      [
+        'label' => $this->t('投稿文章'),
+        'url' => Url::fromRoute('node.add', ['node_type' => 'article'])->toString(),
+      ],
+    ];
+  }
+
+  /**
+   * Resolves a content type label.
+   */
+  protected function typeLabel(string $bundle) {
+    return match ($bundle) {
+      'photo' => $this->t('美图'),
+      'video' => $this->t('视频'),
+      'article' => $this->t('文章'),
+      default => $this->t('内容'),
+    };
+  }
+
+  /**
+   * Resolves responsive cover image data for a node.
+   */
+  protected function coverImage(NodeInterface $node): array {
+    $field = match ($node->bundle()) {
+      'photo' => 'field_cover_image',
+      'video' => 'field_video_cover',
+      'article' => 'field_cover',
+      default => NULL,
+    };
+
+    if ($field === NULL || !$node->hasField($field) || $node->get($field)->isEmpty()) {
+      return [];
+    }
+
+    $media = $node->get($field)->entity;
+    if (!$media instanceof MediaInterface) {
+      return [];
+    }
+
+    $source = $media->getSource()->getConfiguration()['source_field'] ?? NULL;
+    if (!$source || !$media->hasField($source) || $media->get($source)->isEmpty()) {
+      return [];
+    }
+
+    $file = $media->get($source)->entity;
+    if (!$file instanceof FileInterface) {
+      return [];
+    }
+
+    $small = ImageStyle::load('max_650x650') ?: ImageStyle::load('medium');
+    $large = ImageStyle::load('max_1300x1300') ?: $small;
+    $uri = $file->getFileUri();
+    $src = $small ? $small->buildUrl($uri) : $this->fileUrlGenerator->generateString($uri);
+    $src_2x = $large ? $large->buildUrl($uri) : $src;
+    $src = $this->fileUrlGenerator->transformRelative($src);
+    $src_2x = $this->fileUrlGenerator->transformRelative($src_2x);
+
+    return [
+      'src' => $src,
+      'srcset' => $src_2x !== $src ? $src . ' 1x, ' . $src_2x . ' 2x' : '',
+      'alt' => $node->label(),
+    ];
+  }
+
+  /**
+   * Counts the current user's comments.
+   */
+  protected function commentCount(int $uid): int {
+    return (int) $this->entityTypeManager()->getStorage('comment')->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uid', $uid)
+      ->count()
+      ->execute();
+  }
+
+  /**
+   * Counts the current user's submissions.
+   */
+  protected function submissionCount(int $uid): int {
+    return (int) $this->entityTypeManager()->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('uid', $uid)
+      ->condition('type', FavoriteManager::ALLOWED_BUNDLES, 'IN')
+      ->count()
+      ->execute();
+  }
+
+}

@@ -1,0 +1,19 @@
+uuid: 9bbeb60d-4de7-48c2-988a-7fa354a62028
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - user
+id: user.field_xedc_bio
+field_name: field_xedc_bio
+entity_type: user
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

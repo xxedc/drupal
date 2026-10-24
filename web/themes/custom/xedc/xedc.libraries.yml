@@ -64,3 +64,11 @@ article-list:
     theme:
       css/tokens.css: {}
       css/article-list.css: {}
+
+article-detail:
+  css:
+    theme:
+      css/tokens.css: {}
+      css/article-detail.css: {}
+  js:
+    js/article-detail.js: {}

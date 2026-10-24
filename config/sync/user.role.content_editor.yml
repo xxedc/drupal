@@ -12,7 +12,10 @@ dependencies:
     - node.type.photo
     - node.type.video
     - taxonomy.vocabulary.tags
+    - workflows.workflow.xedc_editorial
   module:
+    - comment
+    - content_moderation
     - content_translation
     - contextual
     - easy_breadcrumb
@@ -42,6 +45,7 @@ permissions:
   - 'access files overview'
   - 'access navigation'
   - 'add js snippets for matomo'
+  - 'administer comments'
   - 'administer content translation'
   - 'administer content types'
   - 'administer easy breadcrumb'
@@ -95,6 +99,12 @@ permissions:
   - 'translate editable entities'
   - 'translate user'
   - 'update content translations'
+  - 'use xedc_editorial transition approve'
+  - 'use xedc_editorial transition create_new_draft'
+  - 'use xedc_editorial transition reject'
+  - 'use xedc_editorial transition request_changes'
   - 'view all revisions'
+  - 'view any unpublished content'
+  - 'view latest version'
   - 'view own unpublished content'
   - 'view the administration theme'

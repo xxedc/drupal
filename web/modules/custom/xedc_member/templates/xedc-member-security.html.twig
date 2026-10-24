@@ -1,0 +1,23 @@
+<header class="xm-head">
+  <div>
+    <h1 class="xm-title">账户安全</h1>
+    <p class="xm-sub">修改邮箱或密码需要验证当前密码。</p>
+  </div>
+  <a class="xm-btn" href="{{ urls.profile }}">返回个人资料</a>
+</header>
+
+<div class="xm-security">
+  <section class="xm-panel">
+    <div class="xm-panel__head">
+      <h2>账户信息</h2>
+    </div>
+    <dl class="xm-account">
+      <div><dt>用户名</dt><dd>{{ account.username }}</dd></div>
+      <div><dt>邮箱</dt><dd>{{ account.mail }}</dd></div>
+      <div><dt>注册时间</dt><dd>{{ account.member_since }}</dd></div>
+      <div><dt>最近登录</dt><dd>{{ account.last_login }}</dd></div>
+    </dl>
+    <p class="xm-note">邮箱和密码修改沿用 Drupal 核心账户表单。修改邮箱或密码时必须填写当前密码；邮箱变更遵循站点现有的账户验证机制。</p>
+    {{ form }}
+  </section>
+</div>

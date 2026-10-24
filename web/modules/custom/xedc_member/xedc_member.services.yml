@@ -1,0 +1,22 @@
+services:
+  xedc_member.favorite_manager:
+    class: Drupal\xedc_member\Service\FavoriteManager
+    arguments:
+      - '@database'
+      - '@datetime.time'
+
+  xedc_member.history_manager:
+    class: Drupal\xedc_member\Service\HistoryManager
+    arguments:
+      - '@database'
+      - '@datetime.time'
+      - '@user.data'
+
+  xedc_member.history_subscriber:
+    class: Drupal\xedc_member\EventSubscriber\HistorySubscriber
+    arguments:
+      - '@xedc_member.history_manager'
+      - '@current_route_match'
+      - '@current_user'
+    tags:
+      - { name: event_subscriber }

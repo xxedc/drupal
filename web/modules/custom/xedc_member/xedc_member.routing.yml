@@ -1,0 +1,89 @@
+xedc_member.overview:
+  path: '/member'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::overview'
+    _title: '会员中心'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.favorites:
+  path: '/member/favorites'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::favorites'
+    _title: '我的收藏'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.history:
+  path: '/member/history'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::history'
+    _title: '浏览历史'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.history_clear:
+  path: '/member/history/clear'
+  defaults:
+    _form: '\Drupal\xedc_member\Form\HistoryClearForm'
+    _title: '清空浏览历史'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.comments:
+  path: '/member/comments'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::comments'
+    _title: '我的评论'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.submissions:
+  path: '/member/submissions'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::submissions'
+    _title: '我的投稿'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.settings:
+  path: '/member/settings'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::settings'
+    _title: '账号设置'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.profile:
+  path: '/member/profile'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::profile'
+    _title: '个人资料'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE
+
+xedc_member.security:
+  path: '/member/security'
+  defaults:
+    _controller: '\Drupal\xedc_member\Controller\MemberController::security'
+    _title: '账户安全'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  options:
+    no_cache: TRUE

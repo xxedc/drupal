@@ -1,0 +1,380 @@
+<?php
+
+/**
+ * @file
+ * XEDC member center hooks.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+use Drupal\xedc_member\Form\FavoriteToggleForm;
+use Drupal\xedc_member\Service\FavoriteManager;
+
+/**
+ * Implements hook_theme().
+ */
+function xedc_member_theme($existing, $type, $theme, $path) {
+  return [
+    'xedc_member_shell' => [
+      'variables' => [
+        'account' => [],
+        'avatar' => [],
+        'nav' => [],
+        'active' => '',
+        'urls' => [],
+        'content' => [],
+      ],
+      'template' => 'xedc-member-shell',
+    ],
+    'xedc_member_overview' => [
+      'variables' => [
+        'account' => [],
+        'stats' => [],
+        'recent_favorites' => [],
+        'urls' => [],
+      ],
+      'template' => 'xedc-member-overview',
+    ],
+    'xedc_member_favorites' => [
+      'variables' => [
+        'cards' => [],
+        'filters' => [],
+        'total' => 0,
+        'pager' => [],
+        'empty' => '',
+      ],
+      'template' => 'xedc-member-favorites',
+    ],
+    'xedc_member_placeholder' => [
+      'variables' => [
+        'heading' => '',
+        'description' => '',
+        'note' => '',
+      ],
+      'template' => 'xedc-member-placeholder',
+    ],
+    'xedc_member_settings' => [
+      'variables' => [
+        'account' => [],
+        'urls' => [],
+        'history_form' => [],
+      ],
+      'template' => 'xedc-member-settings',
+    ],
+    'xedc_member_history' => [
+      'variables' => [
+        'items' => [],
+        'filters' => [],
+        'total' => 0,
+        'pager' => [],
+        'enabled' => TRUE,
+        'urls' => [],
+        'empty' => '',
+      ],
+      'template' => 'xedc-member-history',
+    ],
+    'xedc_member_profile' => [
+      'variables' => [
+        'account' => [],
+        'avatar' => [],
+        'form' => [],
+        'urls' => [],
+      ],
+      'template' => 'xedc-member-profile',
+    ],
+    'xedc_member_security' => [
+      'variables' => [
+        'account' => [],
+        'avatar' => [],
+        'form' => [],
+        'urls' => [],
+      ],
+      'template' => 'xedc-member-security',
+    ],
+    'xedc_member_comments' => [
+      'variables' => [
+        'items' => [],
+        'total' => 0,
+        'pager' => [],
+        'empty' => '',
+      ],
+      'template' => 'xedc-member-comments',
+    ],
+    'xedc_member_submissions' => [
+      'variables' => [
+        'items' => [],
+        'total' => 0,
+        'pager' => [],
+        'urls' => [],
+        'create_links' => [],
+        'empty' => '',
+      ],
+      'template' => 'xedc-member-submissions',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_form_node_form_alter().
+ */
+function xedc_member_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  $current_user = \Drupal::currentUser();
+  if ($current_user->hasPermission('administer nodes')) {
+    return;
+  }
+  if (!\Drupal::moduleHandler()->moduleExists('content_moderation')) {
+    return;
+  }
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof \Drupal\Core\Entity\EntityFormInterface) {
+    return;
+  }
+  $node = $form_object->getEntity();
+  if (!$node instanceof NodeInterface || !in_array($node->bundle(), FavoriteManager::ALLOWED_BUNDLES, TRUE)) {
+    return;
+  }
+
+  foreach (['advanced', 'options', 'status', 'uid', 'created', 'revision_log', 'path', 'menu', 'field_views', 'field_published_at', 'field_show_cover'] as $key) {
+    if (isset($form[$key])) {
+      $form[$key]['#access'] = FALSE;
+    }
+  }
+  $form['#attributes']['class'][] = 'xm-submission-form';
+}
+
+/**
+ * Implements hook_form_alter() for member media forms and comment notices.
+ */
+function xedc_member_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  $media_forms = [
+    'media_image_add_form',
+    'media_image_edit_form',
+    'media_video_add_form',
+    'media_video_edit_form',
+  ];
+  if (in_array($form_id, $media_forms, TRUE) && !\Drupal::currentUser()->hasPermission('administer media')) {
+    foreach (['status', 'uid', 'created', 'revision', 'revision_log_message', 'path', 'menu'] as $key) {
+      if (isset($form[$key])) {
+        $form[$key]['#access'] = FALSE;
+      }
+    }
+    if (in_array($form_id, ['media_video_add_form', 'media_video_edit_form'], TRUE) && isset($form['field_media_video_file']['widget'][0])) {
+      $form['field_media_video_file']['widget'][0]['#element_validate'][] = 'xedc_member_validate_video_mime';
+    }
+  }
+  if ($form_id === 'media_library_add_form_upload'
+    && !\Drupal::currentUser()->hasPermission('administer media')
+    && isset($form['container']['upload']['#upload_validators']['FileExtension']['extensions'])
+    && str_contains($form['container']['upload']['#upload_validators']['FileExtension']['extensions'], 'mp4')) {
+    $form['container']['upload']['#element_validate'][] = 'xedc_member_validate_video_mime';
+  }
+
+  $form_object = $form_state->getFormObject();
+  if ($form_object instanceof \Drupal\comment\CommentForm
+    && !\Drupal::currentUser()->hasPermission('skip comment approval')
+    && !\Drupal::currentUser()->hasPermission('administer comments')) {
+    $form['xedc_member_comment_notice'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'div',
+      '#value' => t('评论提交后需要审核，审核通过后才会公开展示。'),
+      '#attributes' => ['class' => ['xm-notice']],
+      '#weight' => -50,
+    ];
+  }
+}
+
+/**
+ * Validates that an uploaded MP4 file really contains MP4 video data.
+ */
+function xedc_member_validate_video_mime(array &$element, FormStateInterface $form_state) {
+  $value = $element['#value'] ?? [];
+  $fids = [];
+  $collect = function ($item, $key = NULL) use (&$collect, &$fids) {
+    if ($key === 'display') {
+      return;
+    }
+    if (is_array($item)) {
+      foreach ($item as $child_key => $child) {
+        $collect($child, $child_key);
+      }
+    }
+    elseif (is_numeric($item)) {
+      $fids[] = (int) $item;
+    }
+  };
+  $collect($value);
+  $allowed = ['video/mp4', 'application/mp4', 'video/x-m4v'];
+  foreach (array_unique($fids) as $fid) {
+    $file = \Drupal\file\Entity\File::load($fid);
+    if (!$file) {
+      continue;
+    }
+    $realpath = \Drupal::service('file_system')->realpath($file->getFileUri());
+    if (!$realpath || !is_file($realpath)) {
+      continue;
+    }
+    $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($realpath);
+    if (!in_array($mime, $allowed, TRUE)) {
+      $form_state->setError($element, t('上传的视频不是有效的 MP4 文件。'));
+      return;
+    }
+  }
+}
+
+/**
+ * Implements hook_form_user_form_alter().
+ */
+function xedc_member_form_user_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  if (\Drupal::routeMatch()->getRouteName() !== 'xedc_member.security') {
+    return;
+  }
+
+  // Keep only the email/password parts of the core account form on this page.
+  $form['account']['name']['#access'] = FALSE;
+  if (isset($form['timezone'])) {
+    $form['timezone']['#access'] = FALSE;
+  }
+  if (isset($form['language'])) {
+    $form['language']['#access'] = FALSE;
+  }
+  if (isset($form['user_picture'])) {
+    $form['user_picture']['#access'] = FALSE;
+  }
+  if (isset($form['roles'])) {
+    $form['roles']['#access'] = FALSE;
+  }
+  if (isset($form['actions']['delete'])) {
+    $form['actions']['delete']['#access'] = FALSE;
+  }
+  if (isset($form['actions']['submit'])) {
+    $form['actions']['submit']['#value'] = t('保存账户安全设置');
+    $form['actions']['submit']['#submit'][] = 'xedc_member_user_form_redirect';
+  }
+  $form['#attributes']['class'][] = 'xm-security-form';
+}
+
+/**
+ * Redirects the embedded core account form back to the member center.
+ */
+function xedc_member_user_form_redirect(array &$form, FormStateInterface $form_state) {
+  $form_state->setRedirect('xedc_member.security');
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function xedc_member_preprocess_page(array &$variables) {
+  $variables['#cache']['contexts'][] = 'user.roles:authenticated';
+  if (\Drupal::currentUser()->isAuthenticated()) {
+    $variables['member_center_url'] = Url::fromRoute('xedc_member.overview')->toString();
+  }
+}
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function xedc_member_preprocess_html(array &$variables) {
+  $route = \Drupal::routeMatch()->getRouteName();
+  if (is_string($route) && str_starts_with($route, 'xedc_member.')) {
+    $variables['attributes']['class'][] = 'xm-page';
+    if ($route === 'xedc_member.history_clear') {
+      $variables['attributes']['class'][] = 'xm-page--confirm';
+    }
+  }
+  $variables['#cache']['contexts'][] = 'route';
+}
+
+/**
+ * Implements hook_page_attachments_alter().
+ */
+function xedc_member_page_attachments_alter(array &$attachments) {
+  $route = \Drupal::routeMatch()->getRouteName();
+  $private_routes = [
+    'user.page',
+    'user.edit',
+    'entity.user.canonical',
+    'entity.user.edit_form',
+  ];
+  $is_member = is_string($route) && str_starts_with($route, 'xedc_member.');
+  if ($is_member || in_array($route, $private_routes, TRUE)) {
+    $attachments['#attached']['html_head'][] = [
+      [
+        '#tag' => 'meta',
+        '#attributes' => [
+          'name' => 'robots',
+          'content' => 'noindex, nofollow, noarchive',
+        ],
+      ],
+      'xedc_member_robots',
+    ];
+    $attachments['#cache']['contexts'][] = 'route';
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function xedc_member_preprocess_node(array &$variables) {
+  $node = $variables['node'] ?? NULL;
+  if (!$node instanceof NodeInterface || ($variables['view_mode'] ?? '') !== 'full') {
+    return;
+  }
+  if (!in_array($node->bundle(), FavoriteManager::ALLOWED_BUNDLES, TRUE) || !$node->isPublished()) {
+    return;
+  }
+
+  $account = \Drupal::currentUser();
+  if ($account->isAuthenticated()) {
+    $variables['xedc_member_favorite'] = \Drupal::formBuilder()->getForm(
+      FavoriteToggleForm::class,
+      (int) $node->id(),
+      'detail'
+    );
+  }
+  else {
+    $variables['xedc_member_favorite'] = [
+      '#type' => 'link',
+      '#title' => t('登录后收藏'),
+      '#url' => Url::fromRoute('user.login', [], [
+        'query' => ['destination' => \Drupal::request()->getRequestUri()],
+      ]),
+      '#attributes' => [
+        'class' => ['xedc-favorite-login'],
+      ],
+    ];
+  }
+
+  $variables['#attached']['library'][] = 'xedc_member/member';
+  $variables['#cache']['contexts'][] = 'user';
+  $variables['#cache']['tags'][] = 'node:' . $node->id();
+}
+
+/**
+ * Implements hook_cron().
+ */
+function xedc_member_cron() {
+  $deleted = \Drupal::service('xedc_member.history_manager')->purgeExpired();
+  if ($deleted > 0) {
+    \Drupal::logger('xedc_member')->notice('Purged @count expired browsing history rows.', [
+      '@count' => $deleted,
+    ]);
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function xedc_member_entity_delete(EntityInterface $entity) {
+  $favorite_manager = \Drupal::service('xedc_member.favorite_manager');
+  $history_manager = \Drupal::service('xedc_member.history_manager');
+  if ($entity->getEntityTypeId() === 'node') {
+    $favorite_manager->deleteForEntity('node', (int) $entity->id());
+    $history_manager->deleteForEntity('node', (int) $entity->id());
+  }
+  elseif ($entity->getEntityTypeId() === 'user') {
+    $favorite_manager->deleteForUser((int) $entity->id());
+    $history_manager->deleteForUser((int) $entity->id());
+  }
+}

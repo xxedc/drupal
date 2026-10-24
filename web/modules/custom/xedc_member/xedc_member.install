@@ -1,0 +1,516 @@
+<?php
+
+/**
+ * @file
+ * Install, uninstall and schema hooks for XEDC Member.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function xedc_member_schema() {
+  return [
+    'xedc_member_favorite' => xedc_member_favorite_schema(),
+    'xedc_member_history' => xedc_member_history_schema(),
+  ];
+}
+
+/**
+ * Returns the favorite table schema.
+ */
+function xedc_member_favorite_schema() {
+  return [
+    'description' => 'Stores member favorites for content entities.',
+    'fields' => [
+      'fid' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'entity_type' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'node',
+      ],
+      'entity_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'bundle' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['fid'],
+    'unique keys' => [
+      'uid_entity' => ['uid', 'entity_type', 'entity_id'],
+    ],
+    'indexes' => [
+      'uid_created' => ['uid', 'created'],
+      'entity' => ['entity_type', 'entity_id'],
+    ],
+  ];
+}
+
+/**
+ * Returns the history table schema.
+ */
+function xedc_member_history_schema() {
+  return [
+    'description' => 'Stores member browsing history for content entities.',
+    'fields' => [
+      'hid' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'entity_type' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'node',
+      ],
+      'entity_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'bundle' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'first_viewed' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'last_viewed' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ],
+      'view_count' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ],
+    ],
+    'primary key' => ['hid'],
+    'unique keys' => [
+      'uid_entity' => ['uid', 'entity_type', 'entity_id'],
+    ],
+    'indexes' => [
+      'uid_last_viewed' => ['uid', 'last_viewed'],
+      'entity' => ['entity_type', 'entity_id'],
+      'last_viewed' => ['last_viewed'],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_install().
+ */
+function xedc_member_install() {
+  xedc_member_create_profile_fields();
+  xedc_member_create_editorial_workflow();
+  xedc_member_grant_submission_permissions();
+  xedc_member_apply_comment_moderation_policy();
+  xedc_member_apply_media_upload_limits();
+  xedc_member_update_moderated_content_view();
+}
+
+/**
+ * Makes the core moderated content view aware of the XEDC workflow.
+ */
+function xedc_member_update_10006() {
+  xedc_member_update_moderated_content_view();
+  return t('Updated the moderated content view for the XEDC editorial workflow.');
+}
+
+/**
+ * Updates moderation state filters on the moderated content view.
+ */
+function xedc_member_update_moderated_content_view() {
+  $view = \Drupal\views\Entity\View::load('moderated_content');
+  if (!$view) {
+    return;
+  }
+  $displays = $view->get('display');
+  $filters = $displays['default']['display_options']['filters'] ?? [];
+  if (isset($filters['moderation_state'])) {
+    $filters['moderation_state']['value'] = [
+      'editorial-draft' => 'editorial-draft',
+      'editorial-archived' => 'editorial-archived',
+      'xedc_editorial-draft' => 'xedc_editorial-draft',
+      'xedc_editorial-needs_review' => 'xedc_editorial-needs_review',
+      'xedc_editorial-changes_requested' => 'xedc_editorial-changes_requested',
+      'xedc_editorial-rejected' => 'xedc_editorial-rejected',
+    ];
+  }
+  if (isset($filters['moderation_state_1'])) {
+    $filters['moderation_state_1']['value'] = [
+      'editorial-published' => 'editorial-published',
+      'xedc_editorial-published' => 'xedc_editorial-published',
+    ];
+  }
+  $displays['default']['display_options']['filters'] = $filters;
+  $view->set('display', $displays);
+  $view->save();
+}
+
+/**
+ * Allows members to save new or edited drafts without submitting them.
+ */
+function xedc_member_update_10008() {
+  $workflow = \Drupal\workflows\Entity\Workflow::load('xedc_editorial');
+  if ($workflow) {
+    $plugin = $workflow->getTypePlugin();
+    if (!$plugin->hasTransitionFromStateToState('draft', 'draft')) {
+      $plugin->addTransition('save_draft', '保存草稿', ['draft'], 'draft');
+      $workflow->save();
+    }
+  }
+  $role = \Drupal\user\Entity\Role::load('authenticated');
+  if ($role && !$role->hasPermission('use xedc_editorial transition save_draft')) {
+    $role->grantPermission('use xedc_editorial transition save_draft');
+    $role->save();
+  }
+  return t('Added the save-draft transition for member submissions.');
+}
+
+/**
+ * Reapplies the moderated content view filters after the 10006 path fix.
+ */
+function xedc_member_update_10007() {
+  xedc_member_update_moderated_content_view();
+  return t('Reapplied the moderated content view filters.');
+}
+
+/**
+ * Removes automatic comment approval from member roles.
+ */
+function xedc_member_update_10004() {
+  xedc_member_apply_comment_moderation_policy();
+  return t('Enabled comment moderation for member and anonymous comments.');
+}
+
+/**
+ * Applies media upload size limits for member submissions.
+ */
+function xedc_member_update_10005() {
+  xedc_member_apply_media_upload_limits();
+  return t('Applied image and video media upload size limits.');
+}
+
+/**
+ * Requires comments to be approved before they are publicly visible.
+ */
+function xedc_member_apply_comment_moderation_policy() {
+  foreach (['anonymous', 'authenticated'] as $rid) {
+    $role = \Drupal\user\Entity\Role::load($rid);
+    if ($role && $role->hasPermission('skip comment approval')) {
+      $role->revokePermission('skip comment approval');
+      $role->save();
+    }
+  }
+}
+
+/**
+ * Applies upload limits to the media image and video source fields.
+ */
+function xedc_member_apply_media_upload_limits() {
+  $limits = [
+    ['media', 'image', 'field_media_image', '10 MB'],
+    ['media', 'video', 'field_media_video_file', '200 MB'],
+  ];
+  foreach ($limits as [$entity_type, $bundle, $field_name, $max_filesize]) {
+    $field = \Drupal\field\Entity\FieldConfig::loadByName($entity_type, $bundle, $field_name);
+    if ($field && $field->getSetting('max_filesize') !== $max_filesize) {
+      $field->setSetting('max_filesize', $max_filesize);
+      $field->save();
+    }
+  }
+}
+
+/**
+ * Creates the editorial workflow and grants member/reviewer permissions.
+ */
+function xedc_member_update_10003() {
+  if (!\Drupal::moduleHandler()->moduleExists('workflows') || !\Drupal::moduleHandler()->moduleExists('content_moderation')) {
+    throw new \Drupal\Core\Utility\UpdateException('Enable the Workflows and Content Moderation modules before running this update.');
+  }
+  xedc_member_create_editorial_workflow();
+  xedc_member_grant_submission_permissions();
+  return t('Configured the XEDC member submission workflow and permissions.');
+}
+
+/**
+ * Creates the XEDC editorial workflow if it does not exist.
+ */
+function xedc_member_create_editorial_workflow() {
+  if (!\Drupal::moduleHandler()->moduleExists('workflows') || !\Drupal::moduleHandler()->moduleExists('content_moderation')) {
+    return;
+  }
+  if (\Drupal\workflows\Entity\Workflow::load('xedc_editorial')) {
+    return;
+  }
+
+  $workflow = \Drupal\workflows\Entity\Workflow::create([
+    'id' => 'xedc_editorial',
+    'label' => 'XEDC 会员投稿审核',
+    'type' => 'content_moderation',
+    'type_settings' => [
+      'states' => [
+        'draft' => [
+          'label' => '草稿',
+          'weight' => -10,
+          'published' => FALSE,
+          'default_revision' => FALSE,
+        ],
+        'needs_review' => [
+          'label' => '待审核',
+          'weight' => -5,
+          'published' => FALSE,
+          'default_revision' => FALSE,
+        ],
+        'changes_requested' => [
+          'label' => '退回修改',
+          'weight' => -3,
+          'published' => FALSE,
+          'default_revision' => FALSE,
+        ],
+        'rejected' => [
+          'label' => '已拒绝',
+          'weight' => 0,
+          'published' => FALSE,
+          'default_revision' => FALSE,
+        ],
+        'published' => [
+          'label' => '已发布',
+          'weight' => 10,
+          'published' => TRUE,
+          'default_revision' => TRUE,
+        ],
+      ],
+      'transitions' => [
+        'submit_for_review' => [
+          'label' => '提交审核',
+          'from' => ['draft'],
+          'to' => 'needs_review',
+          'weight' => 0,
+        ],
+        'resubmit_for_review' => [
+          'label' => '重新提交审核',
+          'from' => ['changes_requested'],
+          'to' => 'needs_review',
+          'weight' => 1,
+        ],
+        'withdraw' => [
+          'label' => '撤回待审',
+          'from' => ['needs_review'],
+          'to' => 'draft',
+          'weight' => 2,
+        ],
+        'request_changes' => [
+          'label' => '退回修改',
+          'from' => ['needs_review'],
+          'to' => 'changes_requested',
+          'weight' => 3,
+        ],
+        'reject' => [
+          'label' => '拒绝',
+          'from' => ['needs_review'],
+          'to' => 'rejected',
+          'weight' => 4,
+        ],
+        'approve' => [
+          'label' => '审核通过',
+          'from' => ['needs_review'],
+          'to' => 'published',
+          'weight' => 5,
+        ],
+        'create_new_draft' => [
+          'label' => '创建新草稿',
+          'from' => ['published'],
+          'to' => 'draft',
+          'weight' => 6,
+        ],
+      ],
+      'entity_types' => [
+        'node' => ['article', 'photo', 'video'],
+      ],
+      'default_moderation_state' => 'draft',
+    ],
+  ]);
+  $workflow->save();
+}
+
+/**
+ * Grants member submission and reviewer permissions.
+ */
+function xedc_member_grant_submission_permissions() {
+  if (!\Drupal::moduleHandler()->moduleExists('content_moderation')) {
+    return;
+  }
+
+  $member_permissions = [
+    'create article content',
+    'create photo content',
+    'create video content',
+    'edit own article content',
+    'edit own photo content',
+    'edit own video content',
+    'delete own article content',
+    'delete own photo content',
+    'delete own video content',
+    'view own unpublished content',
+    'view latest version',
+    'create image media',
+    'create video media',
+    'edit own image media',
+    'edit own video media',
+    'delete own image media',
+    'delete own video media',
+    'use xedc_editorial transition submit_for_review',
+    'use xedc_editorial transition resubmit_for_review',
+    'use xedc_editorial transition withdraw',
+  ];
+  $reviewer_permissions = [
+    'view any unpublished content',
+    'view latest version',
+    'administer comments',
+    'use xedc_editorial transition approve',
+    'use xedc_editorial transition request_changes',
+    'use xedc_editorial transition reject',
+    'use xedc_editorial transition create_new_draft',
+  ];
+
+  $member = \Drupal\user\Entity\Role::load('authenticated');
+  if ($member) {
+    foreach ($member_permissions as $permission) {
+      $member->grantPermission($permission);
+    }
+    $member->save();
+  }
+  $reviewer = \Drupal\user\Entity\Role::load('content_editor');
+  if ($reviewer) {
+    foreach ($reviewer_permissions as $permission) {
+      $reviewer->grantPermission($permission);
+    }
+    $reviewer->save();
+  }
+}
+
+/**
+ * Creates the profile nickname and bio fields for existing installations.
+ */
+function xedc_member_update_10002() {
+  xedc_member_create_profile_fields();
+  return t('Created the member profile nickname and bio fields.');
+}
+
+/**
+ * Creates the nickname and bio fields on the user entity.
+ */
+function xedc_member_create_profile_fields() {
+  $fields = [
+    'field_xedc_nickname' => [
+      'type' => 'string',
+      'label' => '昵称',
+      'description' => '会员中心显示的昵称，留空时使用用户名。',
+      'settings' => ['max_length' => 64],
+    ],
+    'field_xedc_bio' => [
+      'type' => 'string_long',
+      'label' => '个人简介',
+      'description' => '会员中心显示的个人简介，最多 500 字。',
+      'settings' => [],
+    ],
+  ];
+
+  foreach ($fields as $field_name => $definition) {
+    if (!\Drupal\field\Entity\FieldStorageConfig::loadByName('user', $field_name)) {
+      \Drupal\field\Entity\FieldStorageConfig::create([
+        'field_name' => $field_name,
+        'entity_type' => 'user',
+        'type' => $definition['type'],
+        'cardinality' => 1,
+        'translatable' => FALSE,
+        'settings' => $definition['settings'],
+      ])->save();
+    }
+    if (!\Drupal\field\Entity\FieldConfig::loadByName('user', 'user', $field_name)) {
+      \Drupal\field\Entity\FieldConfig::create([
+        'field_name' => $field_name,
+        'entity_type' => 'user',
+        'bundle' => 'user',
+        'label' => $definition['label'],
+        'description' => $definition['description'],
+        'required' => FALSE,
+      ])->save();
+    }
+  }
+}
+
+/**
+ * Creates the browsing history table for existing installations.
+ */
+function xedc_member_update_10001() {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('xedc_member_history')) {
+    $table = xedc_member_history_schema();
+    unset($table['description']);
+    $schema->createTable('xedc_member_history', $table);
+  }
+  return t('Created the xedc_member_history table.');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function xedc_member_uninstall() {
+  foreach (['field_xedc_nickname', 'field_xedc_bio'] as $field_name) {
+    $field = \Drupal\field\Entity\FieldConfig::loadByName('user', 'user', $field_name);
+    if ($field) {
+      $field->delete();
+    }
+    $storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('user', $field_name);
+    if ($storage) {
+      $storage->delete();
+    }
+  }
+
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('xedc_member_history')) {
+    $schema->dropTable('xedc_member_history');
+  }
+  if ($schema->tableExists('xedc_member_favorite')) {
+    $schema->dropTable('xedc_member_favorite');
+  }
+}

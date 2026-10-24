@@ -22,6 +22,5 @@ permissions:
   - 'edit own comments'
   - 'post comments'
   - 'search content'
-  - 'skip comment approval'
   - 'use text format restricted_html'
   - 'view media'

@@ -560,3 +560,222 @@ function xedc_xa_pager($view): array {
     'next' => $cur < $last ? $href($cur + 1) : '',
   ];
 }
+
+/**
+ * 文章详情页数据。
+ */
+function xedc_xa_detail_v1_unused(array &$variables): void {
+  $node = $variables['node'];
+  $gen = \Drupal::service('file_url_generator');
+  $fmt = \Drupal::service('date.formatter');
+
+  // 封面
+  $variables['xa_cover'] = '';
+  if (!$node->get('field_cover')->isEmpty()) {
+    $media = $node->get('field_cover')->entity;
+    $file = ($media && $media->hasField('field_media_image')) ? $media->get('field_media_image')->entity : NULL;
+    if ($file) {
+      $style = \Drupal\image\Entity\ImageStyle::load('xa_hero');
+      $url = $style ? $style->buildUrl($file->getFileUri()) : $gen->generateAbsoluteString($file->getFileUri());
+      $variables['xa_cover'] = $gen->transformRelative($url);
+    }
+  }
+
+  // 正文（无标签）+ 阅读时长
+  $plain = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $node->get('field_body')->value)));
+  $variables['xa_read'] = max(1, (int) ceil(mb_strlen(str_replace(' ', '', $plain)) / 400));
+  $variables['xa_body'] = $node->get('field_body')->view(['label' => 'hidden']);
+  $variables['xa_body']['#cache']['tags'][] = 'node_list';
+
+  $variables['xa_summary'] = trim((string) $node->get('field_summary')->value);
+  $variables['xa_source'] = (string) $node->get('field_source')->value;
+  $variables['xa_author'] = (string) $node->get('field_author')->value;
+
+  $item = $node->get('field_published_at')->first();
+  $ts = ($item && $item->date) ? $item->date->getTimestamp() : $node->getCreatedTime();
+  $variables['xa_date'] = $fmt->format($ts, 'custom', 'Y-m-d');
+  $n = (int) $node->get('field_views')->value;
+  $variables['xa_views'] = $n >= 10000 ? round($n / 10000, 1) . '万' : $n;
+
+  // 分类
+  $variables['xa_cat'] = NULL;
+  $tid = 0;
+  if ($term = $node->get('field_categories')->entity) {
+    $tid = (int) $term->id();
+    $variables['xa_cat'] = [
+      'name' => $term->label(),
+      'url' => \Drupal\Core\Url::fromUserInput('/articles', ['query' => ['cat' => $tid]])->toString(),
+    ];
+  }
+
+  // 标签
+  $tags = [];
+  foreach ($node->get('field_tags')->referencedEntities() as $t) {
+    $tags[] = ['name' => $t->label(), 'url' => $t->toUrl()->toString()];
+  }
+  $variables['xa_tags'] = $tags;
+
+  // 原文链接
+  $variables['xa_source_url'] = '';
+  $variables['xa_source_host'] = '';
+  if (!$node->get('field_source_url')->isEmpty()) {
+    $u = $node->get('field_source_url')->first()->getUrl()->toString();
+    $variables['xa_source_url'] = $u;
+    $variables['xa_source_host'] = (string) parse_url($u, PHP_URL_HOST);
+  }
+
+  // 相关阅读：同分类 4 篇
+  $related = [];
+  if ($tid) {
+    $ids = \Drupal::entityQuery('node')->accessCheck(TRUE)
+      ->condition('type', 'article')->condition('status', 1)
+      ->condition('field_categories.target_id', $tid)
+      ->condition('nid', $node->id(), '<>')
+      ->sort('created', 'DESC')->range(0, 4)->execute();
+    foreach (\Drupal\node\Entity\Node::loadMultiple($ids) as $r) {
+      $related[] = [
+        'title' => $r->label(),
+        'url' => $r->toUrl()->toString(),
+        'date' => $fmt->format($r->getCreatedTime(), 'custom', 'Y-m-d'),
+      ];
+    }
+  }
+  $variables['xa_related'] = $related;
+}
+
+// xa-detail-v2
+/**
+ * 文章详情页数据（v2）。
+ */
+function xedc_preprocess_node__article__full(array &$variables): void {
+  $node = $variables['node'];
+  $gen = \Drupal::service('file_url_generator');
+  $fmt = \Drupal::service('date.formatter');
+  $q = function () {
+    return \Drupal::entityQuery('node')->accessCheck(TRUE)
+      ->condition('type', 'article')->condition('status', 1);
+  };
+  $views = function ($n) {
+    $n = (int) $n;
+    return $n >= 10000 ? round($n / 10000, 1) . '万' : $n;
+  };
+  $pick = function (array $ids, callable $map) {
+    $out = [];
+    $nodes = \Drupal\node\Entity\Node::loadMultiple($ids);
+    foreach ($ids as $id) {
+      if (isset($nodes[$id])) {
+        $out[] = $map($nodes[$id]);
+      }
+    }
+    return $out;
+  };
+
+  // 封面
+  $variables['xa_cover'] = '';
+  $variables['xa_cover_width'] = 0;
+  $variables['xa_cover_height'] = 0;
+  if (!$node->get('field_cover')->isEmpty()) {
+    $media = $node->get('field_cover')->entity;
+    $file = ($media && $media->hasField('field_media_image')) ? $media->get('field_media_image')->entity : NULL;
+    if ($file) {
+      $style = \Drupal\image\Entity\ImageStyle::load('xa_hero');
+      $url = $style ? $style->buildUrl($file->getFileUri()) : $gen->generateAbsoluteString($file->getFileUri());
+      $variables['xa_cover'] = $gen->transformRelative($url);
+    }
+  }
+  // 封面显示开关 + 横竖图判断
+  $variables['xa_cover_portrait'] = FALSE;
+  if ($node->hasField('field_show_cover') && !$node->get('field_show_cover')->isEmpty() && !(int) $node->get('field_show_cover')->value) {
+    $variables['xa_cover'] = '';
+  }
+  if ($variables['xa_cover'] && ($m = $node->get('field_cover')->entity) && $m->hasField('field_media_image') && !$m->get('field_media_image')->isEmpty()) {
+    $iw = (int) $m->get('field_media_image')->width;
+    $ih = (int) $m->get('field_media_image')->height;
+    if ($iw > 0 && $ih > 0) {
+      $variables['xa_cover_width'] = $iw;
+      $variables['xa_cover_height'] = $ih;
+      $variables['xa_cover_portrait'] = $ih > $iw * 1.15;
+    }
+  }
+
+
+  // 正文：过滤器渲染 → 清除空段落 → 图片懒加载
+  $item = $node->get('field_body')->first();
+  $html = $item ? (string) check_markup((string) $item->value, $item->format ?: NULL) : '';
+  $html = preg_replace('#<p(?:\s[^>]*)?>(?:\s|&nbsp;|\x{00A0}|<br\s*/?>)*</p>#iu', '', $html) ?? $html;
+  $html = preg_replace('#<img(?![^>]*\sloading=)#i', '<img loading="lazy"', $html) ?? $html;
+  $html = preg_replace_callback('#<p(?:\s[^>]*)?>(.*?)</p>#isu', function ($m) {
+    if (preg_match('#<(img|video|iframe|audio|picture)#i', $m[1])) { return $m[0]; }
+    $t = html_entity_decode(strip_tags($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return preg_replace('/[\s\x{00A0}\x{200B}]+/u', '', $t) === '' ? '' : $m[0];
+  }, $html) ?? $html;
+  $variables['xa_body'] = [
+    '#markup' => \Drupal\Core\Render\Markup::create($html),
+    '#cache' => ['tags' => ['node_list']],
+  ];
+  $plain = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($html))));
+  $variables['xa_read'] = max(1, (int) ceil(mb_strlen(str_replace(' ', '', $plain)) / 400));
+
+  $variables['xa_summary'] = trim((string) $node->get('field_summary')->value);
+  $variables['xa_source'] = (string) $node->get('field_source')->value;
+  $variables['xa_author'] = (string) $node->get('field_author')->value;
+  $ditem = $node->get('field_published_at')->first();
+  $ts = ($ditem && $ditem->date) ? $ditem->date->getTimestamp() : $node->getCreatedTime();
+  $variables['xa_date'] = $fmt->format($ts, 'custom', 'Y-m-d');
+  $variables['xa_views'] = $views($node->get('field_views')->value);
+
+  // 分类
+  $variables['xa_cat'] = NULL;
+  $tid = 0;
+  if ($term = $node->get('field_categories')->entity) {
+    $tid = (int) $term->id();
+    $variables['xa_cat'] = [
+      'name' => $term->label(),
+      'url' => \Drupal\Core\Url::fromUserInput('/articles', ['query' => ['cat' => $tid]])->toString(),
+    ];
+  }
+
+  // 标签
+  $tags = [];
+  foreach ($node->get('field_tags')->referencedEntities() as $t) {
+    $tags[] = ['name' => $t->label(), 'url' => $t->toUrl()->toString()];
+  }
+  $variables['xa_tags'] = $tags;
+
+  // 原文链接
+  $variables['xa_source_url'] = '';
+  $variables['xa_source_host'] = '';
+  if (!$node->get('field_source_url')->isEmpty()) {
+    $u = $node->get('field_source_url')->first()->getUrl()->toString();
+    $variables['xa_source_url'] = $u;
+    $variables['xa_source_host'] = (string) parse_url($u, PHP_URL_HOST);
+  }
+
+  // 上一篇 / 下一篇
+  $created = $node->getCreatedTime();
+  $one = function (string $op, string $dir) use ($q, $created) {
+    $ids = $q()->condition('created', $created, $op)->sort('created', $dir)->range(0, 1)->execute();
+    $n = $ids ? \Drupal\node\Entity\Node::load(reset($ids)) : NULL;
+    return $n ? ['title' => $n->label(), 'url' => $n->toUrl()->toString()] : NULL;
+  };
+  $variables['xa_prev'] = $one('<', 'DESC');
+  $variables['xa_next'] = $one('>', 'ASC');
+
+  // 相关阅读（同分类 4 篇）
+  $variables['xa_related'] = [];
+  if ($tid) {
+    $ids = $q()->condition('field_categories.target_id', $tid)->condition('nid', $node->id(), '<>')
+      ->sort('created', 'DESC')->range(0, 4)->execute();
+    $variables['xa_related'] = $pick(array_values($ids), function ($n) use ($fmt) {
+      return ['title' => $n->label(), 'url' => $n->toUrl()->toString(),
+        'meta' => $fmt->format($n->getCreatedTime(), 'custom', 'Y-m-d')];
+    });
+  }
+
+  // 热门文章（阅读量前 5）
+  $ids = $q()->condition('nid', $node->id(), '<>')->sort('field_views', 'DESC')->sort('created', 'DESC')->range(0, 5)->execute();
+  $variables['xa_hot'] = $pick(array_values($ids), function ($n) use ($views) {
+    return ['title' => $n->label(), 'url' => $n->toUrl()->toString(),
+      'meta' => $views($n->get('field_views')->value) . ' 阅读'];
+  });
+}

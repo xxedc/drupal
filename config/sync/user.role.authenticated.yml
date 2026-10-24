@@ -4,12 +4,20 @@ status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - media.type.image
+    - media.type.video
+    - node.type.article
+    - node.type.photo
+    - node.type.video
+    - workflows.workflow.xedc_editorial
   module:
     - comment
+    - content_moderation
     - file
     - filter
     - matomo
     - media
+    - node
     - search
     - system
 _core:
@@ -21,11 +29,31 @@ is_admin: false
 permissions:
   - 'access comments'
   - 'access content'
+  - 'create article content'
+  - 'create image media'
+  - 'create photo content'
+  - 'create video content'
+  - 'create video media'
+  - 'delete own article content'
   - 'delete own files'
+  - 'delete own image media'
+  - 'delete own photo content'
+  - 'delete own video content'
+  - 'delete own video media'
+  - 'edit own article content'
   - 'edit own comments'
+  - 'edit own image media'
+  - 'edit own photo content'
+  - 'edit own video content'
+  - 'edit own video media'
   - 'opt-in or out of matomo tracking'
   - 'post comments'
   - 'search content'
-  - 'skip comment approval'
   - 'use text format basic_html'
+  - 'use xedc_editorial transition resubmit_for_review'
+  - 'use xedc_editorial transition save_draft'
+  - 'use xedc_editorial transition submit_for_review'
+  - 'use xedc_editorial transition withdraw'
+  - 'view latest version'
   - 'view media'
+  - 'view own unpublished content'

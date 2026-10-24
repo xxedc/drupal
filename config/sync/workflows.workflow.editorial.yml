@@ -1,0 +1,63 @@
+uuid: 3ab13a5a-374a-44e4-8d85-54de53c10177
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - content_moderation
+_core:
+  default_config_hash: T7gMMyFbTYLalxpIOnzJebvek2OW0b1RgLVE9I2y228
+id: editorial
+label: 编辑
+type: content_moderation
+type_settings:
+  states:
+    archived:
+      label: 已归档
+      weight: 5
+      published: false
+      default_revision: true
+    draft:
+      label: 草稿
+      weight: -5
+      published: false
+      default_revision: false
+    published:
+      label: 已发布
+      weight: 0
+      published: true
+      default_revision: true
+  transitions:
+    archive:
+      label: 归档
+      from:
+        - published
+      to: archived
+      weight: 2
+    archived_draft:
+      label: 恢复为草稿
+      from:
+        - archived
+      to: draft
+      weight: 3
+    archived_published:
+      label: 恢复
+      from:
+        - archived
+      to: published
+      weight: 4
+    create_new_draft:
+      label: 创建新草稿
+      from:
+        - draft
+        - published
+      to: draft
+      weight: 0
+    publish:
+      label: 发布
+      from:
+        - draft
+        - published
+      to: published
+      weight: 1
+  entity_types: {  }
+  default_moderation_state: draft

@@ -8,6 +8,7 @@ dependencies:
     - field.field.node.article.field_categories
     - field.field.node.article.field_cover
     - field.field.node.article.field_published_at
+    - field.field.node.article.field_show_cover
     - field.field.node.article.field_source
     - field.field.node.article.field_source_url
     - field.field.node.article.field_summary
@@ -65,6 +66,16 @@ content:
       format_type: medium
     third_party_settings: {  }
     weight: 107
+    region: content
+  field_show_cover:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 110
     region: content
   field_source:
     type: string

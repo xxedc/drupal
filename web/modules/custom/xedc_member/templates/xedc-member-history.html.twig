@@ -1,0 +1,42 @@
+<header class="xm-head">
+  <div>
+    <h1 class="xm-title">浏览历史</h1>
+    <p class="xm-sub">共 {{ total }} 条记录</p>
+  </div>
+  {% if total %}
+    <a class="xm-btn xm-btn--danger" href="{{ urls.history_clear }}">清空历史</a>
+  {% endif %}
+</header>
+
+{% if not enabled %}
+  <div class="xm-notice">
+    <strong>浏览历史记录已关闭</strong>
+    <span>关闭后不会记录新的浏览行为。已有记录仍会保留，可以在这里删除单条记录或清空全部。</span>
+    <a href="{{ urls.settings }}">去开启</a>
+  </div>
+{% endif %}
+
+<nav class="xm-tabs" aria-label="浏览历史筛选">
+  {% for filter in filters %}
+    <a href="{{ filter.url }}" class="xm-tab{% if filter.active %} is-active{% endif %}"{% if filter.active %} aria-current="page"{% endif %}>{{ filter.label }}</a>
+  {% endfor %}
+</nav>
+
+{% if items %}
+  <div class="xm-grid">
+    {% for card in items %}
+      {% include '@xedc_member/templates/xedc-member-card.html.twig' with {card: card} %}
+    {% endfor %}
+  </div>
+  {{ pager }}
+{% else %}
+  <div class="xm-empty">
+    <strong>{{ empty }}</strong>
+    <p>登录后访问美图、视频或文章详情页，浏览记录会出现在这里。</p>
+    <div class="xm-empty__links">
+      <a href="/meitu">看看美图</a>
+      <a href="/video">看看视频</a>
+      <a href="/articles">看看文章</a>
+    </div>
+  </div>
+{% endif %}

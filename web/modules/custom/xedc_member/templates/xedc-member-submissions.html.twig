@@ -1,0 +1,45 @@
+<header class="xm-head">
+  <div>
+    <h1 class="xm-title">我的投稿</h1>
+    <p class="xm-sub">共 {{ total }} 篇投稿</p>
+  </div>
+</header>
+
+{% if create_links %}
+  <div class="xm-submit-actions">
+    {% for link in create_links %}
+      <a class="xm-btn xm-btn--primary" href="{{ link.url }}">{{ link.label }}</a>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if items %}
+  <div class="xm-submission-list">
+    {% for item in items %}
+      <article class="xm-submission-card">
+        <div class="xm-submission-card__head">
+          <span class="xm-badge xm-badge--{{ item.state_id }}">{{ item.state_label }}</span>
+          <span class="xm-submission-card__type">{{ item.type_label }}</span>
+          <time>{{ item.changed }}</time>
+        </div>
+        <h2 class="xm-submission-card__title">{{ item.title }}</h2>
+        {% if item.review_note %}
+          <div class="xm-review-note">
+            <strong>审核意见</strong>
+            <p>{{ item.review_note }}</p>
+          </div>
+        {% endif %}
+        <div class="xm-submission-card__actions">
+          <a href="{{ item.edit_url }}">编辑 / 提交审核</a>
+          {% if item.view_url %}<a href="{{ item.view_url }}">查看已发布内容</a>{% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+  {{ pager }}
+{% else %}
+  <div class="xm-empty">
+    <strong>{{ empty }}</strong>
+    <p>投稿会先保存为草稿，提交审核后才能发布。</p>
+  </div>
+{% endif %}

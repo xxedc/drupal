@@ -1,0 +1,5 @@
+name: XA Views
+type: module
+description: 文章阅读量计数
+package: Custom
+core_version_requirement: ^10 || ^11

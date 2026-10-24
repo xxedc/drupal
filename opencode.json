@@ -1,0 +1,38 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 10000
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      "vendor/**",
+      "web/sites/default/files/**",
+      "web/sites/default/files/styles/**",
+      ".git/**"
+    ]
+  },
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "*": "allow",
+      "git reset*": "deny",
+      "git clean*": "deny",
+      "git commit*": "ask",
+      "git push*": "ask",
+      "*drush*cim*": "deny",
+      "*drush*cex*": "deny",
+      "*drush*config:import*": "deny",
+      "*drush*config:export*": "deny",
+      "*npm run build*": "allow",
+      "*composer *": "ask",
+      "*rm -rf*": "ask",
+      "*stylint-fix*": "deny",
+      "*biome:format*": "deny",
+      "*biome:lint*": "deny",
+      "*biome:check*": "deny"
+    }
+  }
+}

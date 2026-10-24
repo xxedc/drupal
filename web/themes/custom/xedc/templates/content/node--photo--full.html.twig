@@ -12,6 +12,9 @@
   <header class="img-detail__head">
     <h1 class="img-detail__title">{{ label }}</h1>
     {% include "@xedc/node/xedc-meta.html.twig" %}
+    {% if xedc_member_favorite|default('') %}
+      <div class="img-detail__fav">{{ xedc_member_favorite }}</div>
+    {% endif %}
   </header>
 {{ content.field_comment }}</aside>
   {% if related %}
@@ -20,7 +23,7 @@
       <div class="img-rel__grid">
         {% for r in related|slice(0,5) %}
         <a class="img-rel__c" href="{{ path('entity.node.canonical', {'node': r.id}) }}">
-          {% if r.field_cover_image.entity %}{{ drupal_entity('media', r.field_cover_image.target_id, 'default') }}{% endif %}
+          {% if r.field_cover_image.target_id and r.field_cover_image.entity %}{{ drupal_entity('media', r.field_cover_image.target_id, 'default') }}{% endif %}
           <span>{{ r.label }}</span>
         </a>
         {% endfor %}

@@ -1,0 +1,15 @@
+name: XEDC Member
+type: module
+description: 'XEDC member center, favorites, history, profile, comments, and member submissions.'
+package: XEDC
+core_version_requirement: ^11
+dependencies:
+  - drupal:node
+  - drupal:user
+  - drupal:comment
+  - drupal:content_moderation
+  - drupal:field
+  - drupal:workflows
+  - drupal:file
+  - drupal:image
+  - drupal:media

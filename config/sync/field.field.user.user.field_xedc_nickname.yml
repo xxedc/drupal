@@ -1,0 +1,20 @@
+uuid: 51851142-d659-4f49-954d-5bea4e0d9d5d
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.user.field_xedc_nickname
+  module:
+    - user
+id: user.user.field_xedc_nickname
+field_name: field_xedc_nickname
+entity_type: user
+bundle: user
+label: 昵称
+description: 会员中心显示的昵称，留空时使用用户名。
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

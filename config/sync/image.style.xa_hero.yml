@@ -1,0 +1,21 @@
+uuid: 67f28c81-9463-45a4-9b7f-12df5b57eefd
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: xa_hero
+label: 'XA 正文封面 宽1200'
+effects:
+  61e6b853-48d4-4e0b-8522-3581b1b96dd5:
+    uuid: 61e6b853-48d4-4e0b-8522-3581b1b96dd5
+    id: image_scale
+    weight: 1
+    data:
+      width: 1200
+      height: null
+      upscale: false
+  be45cbdd-11aa-4bf9-9256-d2a226475798:
+    uuid: be45cbdd-11aa-4bf9-9256-d2a226475798
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp

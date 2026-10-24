@@ -1,6 +1,7 @@
 {{ attach_library('xedc/navbar') }}
 {% set search_action = '/search/node' %}
 {% set search_name = 'keys' %}
+{% set account_url = member_center_url|default(path('user.page')) %}
 {% set i_search %}<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>{% endset %}
 {% set i_chev %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{% endset %}
 
@@ -45,7 +46,7 @@
         <svg class="xn-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-2.93 1.41-1.41m11.32-11.32 1.41-1.41M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41"/></svg>
       </button>
       {% if logged_in %}
-        <a class="xn-icon" href="{{ path('user.page') }}" aria-label="我的账户"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+        <a class="xn-icon" href="{{ account_url }}" aria-label="会员中心"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
       {% else %}
         <a class="xn-icon xn-only-m" href="{{ path('user.login') }}" aria-label="登录"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
         <a class="xn-text xn-only-d" href="{{ path('user.login') }}">登录</a>
@@ -103,7 +104,7 @@
   </nav>
   <div class="xn-sheet-foot">
     {% if logged_in %}
-      <a class="xn-btn xn-btn-ghost" href="{{ path('user.page') }}">我的账户</a>
+      <a class="xn-btn xn-btn-ghost" href="{{ account_url }}">会员中心</a>
       <a class="xn-btn xn-btn-primary" href="{{ path('user.logout') }}">退出</a>
     {% else %}
       <a class="xn-btn xn-btn-ghost" href="{{ path('user.login') }}">登录</a>

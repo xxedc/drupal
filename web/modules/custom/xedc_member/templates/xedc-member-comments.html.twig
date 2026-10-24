@@ -1,0 +1,40 @@
+<header class="xm-head">
+  <div>
+    <h1 class="xm-title">我的评论</h1>
+    <p class="xm-sub">共 {{ total }} 条评论</p>
+  </div>
+</header>
+
+{% if items %}
+  <div class="xm-comment-list">
+    {% for item in items %}
+      <article class="xm-comment-card">
+        <div class="xm-comment-card__head">
+          <span class="xm-badge xm-badge--{{ item.status_id }}">{{ item.status_label }}</span>
+          <time>{{ item.created }}</time>
+        </div>
+        <div class="xm-comment-card__body">{{ item.body }}</div>
+        <div class="xm-comment-card__meta">
+          {% if item.parent_url %}
+            <a href="{{ item.parent_url }}">{{ item.parent_title }}</a>
+          {% else %}
+            <span>{{ item.parent_title }}</span>
+          {% endif %}
+          <span class="xm-comment-card__actions">
+            {% if item.comment_url %}<a href="{{ item.comment_url }}">查看评论</a>{% endif %}
+            {% if item.edit_url %}<a href="{{ item.edit_url }}">编辑</a>{% endif %}
+          </span>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+  {{ pager }}
+{% else %}
+  <div class="xm-empty">
+    <strong>{{ empty }}</strong>
+    <p>你发表的美图评论会显示在这里。</p>
+    <div class="xm-empty__links">
+      <a href="/meitu">去看看美图</a>
+    </div>
+  </div>
+{% endif %}

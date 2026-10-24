@@ -4,6 +4,8 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.user.compact
+    - field.field.user.user.field_xedc_bio
+    - field.field.user.user.field_xedc_nickname
     - field.field.user.user.user_picture
     - image.style.thumbnail
   module:
@@ -28,5 +30,7 @@ content:
     weight: 0
     region: content
 hidden:
+  field_xedc_bio: true
+  field_xedc_nickname: true
   langcode: true
   member_for: true

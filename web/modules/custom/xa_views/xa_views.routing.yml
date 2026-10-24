@@ -1,0 +1,10 @@
+xa_views.hit:
+  path: '/xa/hit/{nid}'
+  defaults:
+    _controller: '\Drupal\xa_views\Controller\Hit::hit'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+    nid: '\d+'
+  options:
+    no_cache: TRUE

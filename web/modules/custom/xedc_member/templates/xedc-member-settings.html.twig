@@ -1,0 +1,48 @@
+<header class="xm-head">
+  <div>
+    <h1 class="xm-title">账号设置</h1>
+    <p class="xm-sub">管理你的个人资料、密码与登录状态。</p>
+  </div>
+</header>
+
+<section class="xm-panel">
+  <div class="xm-panel__head">
+    <h2>账户信息</h2>
+  </div>
+  <dl class="xm-account">
+    <div><dt>用户名</dt><dd>{{ account.username }}</dd></div>
+    {% if account.nickname %}<div><dt>昵称</dt><dd>{{ account.nickname }}</dd></div>{% endif %}
+    <div><dt>邮箱</dt><dd>{{ account.mail }}</dd></div>
+    <div><dt>加入时间</dt><dd>{{ account.member_since }}</dd></div>
+  </dl>
+
+  <ul class="xm-links">
+    <li>
+      <a href="{{ urls.profile }}">
+        <span><b>个人资料</b><small>修改昵称、头像和个人简介</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ urls.security }}">
+        <span><b>账户安全</b><small>修改邮箱和密码，需要验证当前密码</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ urls.logout }}">
+        <span><b>退出登录</b><small>结束当前账号的登录状态</small></span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </li>
+  </ul>
+</section>
+
+<section class="xm-panel">
+  <div class="xm-panel__head">
+    <h2>隐私与记录</h2>
+    <a href="{{ urls.history }}">查看浏览历史</a>
+  </div>
+  {{ history_form }}
+  <p class="xm-note">关闭记录后，已有历史不会自动删除；你可以在浏览历史页面删除单条记录或清空全部历史。</p>
+</section>

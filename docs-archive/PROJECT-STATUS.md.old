@@ -1,0 +1,266 @@
+# XEDC 项目状态摘要
+
+> 用途：OpenCode 新会话的项目记忆。  
+> 更新日期：2026-10-24（第四阶段复验、第五阶段配置审查、UI/UX 优化及文档整理完成）  
+> 项目根目录：`/var/www/drupal`  
+> 事实标记：`[实际]` 本次文件/Git/Drush/浏览器检查；`[报告]` 阶段报告历史记录；`[待核实]` 尚未复验或需新会话确认。
+
+## 1. 技术栈和路径
+
+- `[实际]` Drupal 11.4.11；PHP 8.5.12；主题 `web/themes/custom/xedc`；项目配置目录 `config/sync`，但运行站点实际使用 `sites/default/files/config_.../sync`（见阶段 5）。
+- `[实际]` 会员中心主模块：`web/modules/custom/xedc_member/`。
+- `[实际]` 其他自定义模块：`xedc_tags`、`xedc_models`、`xedc_quick`；`xa_views` 当前为未跟踪模块目录。
+- `[实际]` 会员中心路由：`/member`、`/member/favorites`、`/member/history`、`/member/history/clear`、`/member/comments`、`/member/submissions`、`/member/settings`、`/member/profile`、`/member/security`。
+- `[实际]` 会员中心依赖：`node`、`user`、`comment`、`content_moderation`、`workflows`、`field`、`file`、`image`、`media`；无新增贡献模块依赖。
+- `[实际]` `xedc_member`、`workflows`、`content_moderation`、`media`、`comment` 已启用；收藏表、历史表、昵称/简介字段、`xedc_editorial` 工作流存在。
+
+## 1.1 会员中心设计规范（以当前代码为准）
+
+- `[实际]` **容器与间距**：会员中心不另建容器，复用主题 Bootstrap `.container`（`max-width:1080px`，左右 padding 12px）。`.xm` 为 `width:100%`、`max-width:none`、`padding:20px 0 56px`，不再叠加水平 padding。
+- `[实际]` **PC 布局**：`.xm` 为 `232px + 28px gap + minmax(0,1fr)` 两栏；1024px 以下切为单栏。1440px 实测内容区 x=192、宽 1056；1024px 为 x=12、宽 1000；768px 为 x=12、宽 744。
+- `[实际]` **移动端**：390px 实测 x=12、宽 366；360px 为 336；320px 为 296。手机端只保留 `.container` 的 12px 边距，不额外缩进。
+- `[实际]` **封面比例/尺寸**：卡片媒体容器为 `aspect-ratio:3/4`，`object-fit:cover`；收藏/历史网格为 `repeat(auto-fill,minmax(168px,1fr))`。桌面主区约 796px 时 4 列；767px 以下 2 列；359px 以下 1 列。实测桌面卡宽约 187px、手机约 177px。
+- `[实际]` **图片清晰度**：封面使用 `max_650x650`（1x）与 `max_1300x1300`（2x）`srcset`，`loading=lazy`、`decoding=async`；不直接加载原图。实测 1x 选 `max_650x650`，2x 选 `max_1300x1300`。原图分辨率过低时仍会偏软，未批量替换或重生成。
+- `[实际]` **缺失封面**：输出 `.xm-card__ph` 类型占位，不输出破损 `<img>`。
+- `[实际]` **按钮**：主要操作为深色底白字（`xm-btn--primary`/`btn-primary`）；次要操作为白底深色文字和边框（`xm-btn`）；危险操作为红字红边（历史删除）或红底白字（清空确认）。均定义 hover、focus-visible（2px ring）和 disabled 状态。规则限定在 `.xm` / `.xm-page` / `.xm-confirm-form`，不使用全局 `button` 覆盖。
+- `[实际]` **边框与卡片**：侧栏、导航、统计、面板、账户信息、快捷链接、评论/投稿列表、空状态不再逐项使用边框盒子，改用留白、浅色表面和分隔线；收藏/历史内容卡片保留轻边框，与站点图片列表卡片一致。仅在卡片、提示、输入框和危险操作等需要区分时使用边框。
+- `[实际]` **状态色**：已发布绿色、待审核/待审琥珀色、退回橙色、拒绝红色；沿用现有 badge 语义。
+- `[实际]` **个人资料页**：230px 资料栏 + 28px 间距 + 表单；头像 104px（移动端 88px）；昵称/简介字段最大 520px；文件选择按钮和“移除”头像按钮使用次要样式；“保存个人资料”和“返回会员中心”位于同一操作行。移动端改为单列，头像/资料横向排列，表单字段全宽。
+- `[实际]` **设计变量**：继续使用主题现有 `--xa-*` / Bootstrap 变量和白色简约风格，不引入新 UI 框架；未修改主题 SCSS/JS 源文件。
+
+## 2. 第一至第五阶段摘要
+
+### 阶段 1：会员中心基础与收藏
+
+- `[报告]` 完成会员中心外壳、概览、设置、收藏列表/筛选/分页/取消收藏、详情页收藏按钮。
+- `[实际]` 位置：`src/Controller/MemberController.php`、`src/Service/FavoriteManager.php`、`src/Form/FavoriteToggleForm.php`、`templates/xedc-member-*.twig`、`css/member.css`。
+- `[实际]` 收藏表：`xedc_member_favorite`，唯一键 `(uid, entity_type, entity_id)`。
+- `[报告]` 仅登录用户；按 UID 隔离；内容访问检查；Form API CSRF；AJAX 反馈。
+- `[报告]` 阶段 1 曾未启用模块；后续阶段 3 已启用并验证。
+
+### 阶段 2：浏览历史
+
+- `[报告]` 完成 `/member/history`、类型筛选、分页、单条删除、清空、记录开关。
+- `[实际]` 记录入口：`src/EventSubscriber/HistorySubscriber.php`，监听 `kernel.request`，仅 canonical full 页面、GET、非 AJAX、已发布、有查看权限、已登录。
+- `[实际]` 数据：`src/Service/HistoryManager.php`；表 `xedc_member_history`，唯一键 `(uid, entity_type, entity_id)`。
+- `[实际]` 当前优化：`WRITE_THROTTLE = 60` 秒；`RETENTION_DAYS = 180`；`purgeExpired()`；`hook_cron()` 清理过期历史。
+- `[报告]` 开关存于 `user.data`，key `xedc_member.history_enabled`；关闭后保留旧记录。
+- `[报告]` 历史记录/删除/清空/隔离/停用后不记录已通过测试。
+
+### 阶段 3：个人资料与账户安全
+
+- `[报告]` 新增昵称/简介字段：`field_xedc_nickname`、`field_xedc_bio`；头像复用 `user_picture`。
+- `[实际]` 资料表单：`src/Form/ProfileForm.php`；头像校验 `png gif jpg jpeg webp`、2MB、`FileIsImage`；旧头像无 usage 时删除。
+- `[实际]` 路由 `/member/profile` 与 `/member/security`；安全页嵌入核心 user form，不自行存密码。
+- `[实际]` `xedc_member.install` 有 10002（资料字段）和 10003（工作流/权限）更新；另有 10001（历史表）。
+- `[报告]` 密码修改、错误当前密码拒绝、邮箱修改、头像上传/移除/大小/类型、昵称/简介长度均已测试。
+- `[报告]` 站点 `verify_mail=false`；本模块未改变或绕过；邮箱通知/验证仍需 staging 人工验收。
+- `[报告]` 数据库备份：`/var/backups/xedc-member/xedc-member-pre-stage3-20261024-145947.sql.gz`。
+
+### 阶段 4：评论、投稿和审核（已完成收尾复验）
+
+- `[实际]` `/member/comments`、`/member/submissions` 已实现并由浏览器复验；分页分别为每页 20 条，收藏/历史每页 12 条。
+- `[实际]` 会员节点表单隐藏 `status/uid/created/path/menu/revision_log/field_views/field_published_at/field_show_cover` 等；保留 `moderation_state`。
+- `[实际]` 工作流 `xedc_editorial` 适用 article/photo/video，默认 draft；2026-10-24 复验新增 `save_draft`（draft→draft），会员可在 UI 保存草稿后再提交审核。
+- `[实际]` 会员不能选择 `published`、不能批准自己的投稿；审核员可批准/退回/拒绝。
+- `[实际]` 修复 `/admin/content/moderated` 空队列：视图过滤器已包含 `xedc_editorial-*` 状态，待审投稿可显示并批准。
+- `[实际]` 评论审核策略已启用：移除 `anonymous`/`authenticated` 的 `skip comment approval`；新评论待审核，作者可在会员中心看到，审核员可批准。
+- `[实际]` 媒体安全加固：image 字段上限 10MB、video 200MB；对会员隐藏 media 的 status/uid/created/revision 字段；视频媒体表单/媒体库上传表单加入真实 MP4 MIME 校验；媒体添加表单实测伪造视频被拒。
+- `[实际]` 修复无封面关联内容导致美图详情 500：`node--photo--full.html.twig` 关联推荐增加 `target_id` 守卫。
+- `[实际]` 复验使用 Playwright/Chromium 真实浏览器测试；390px/768px 会员页面无横向溢出。
+- `[实际]` 复验备份：`/var/backups/xedc-member/xedc-member-pre-stage4-verify-20261024.sql.gz`。
+- `[实际]` 复验临时用户/节点/评论/媒体/文件已全部清理；uid 2 的 2 条收藏、22 条评论保持不变；全站评论仍为 47 条。
+
+### 阶段 5：配置同步与上线准备（审查完成，配置切换待授权）
+
+- `[实际]` 用户确认第五阶段目标为“配置同步与上线准备”；详细记录见 `MEMBER-STAGE5-REPORT.md`。
+- `[实际]` 运行站点**没有使用**项目根目录 `config/sync`：`settings.php` 第 918 行指向 `sites/default/files/config_MopvndZ.../sync`。
+- `[实际]` active config 395 项；项目 `config/sync` 385 项；运行同步目录 384 项。
+- `[实际]` active 对比运行同步目录 **24 项差异**（13 Different + 11 Only in DB）；active 对比项目 `config/sync` **22 项差异**（12 Different + 10 Only in active）。
+- `[实际]` 项目 `config/sync` 比运行同步目录新：包含 `image.style.xa_cover`，且 `views.view.article_list` 与 active 一致；但仍缺 10 项 active 配置。
+- `[实际]` 结论：不能直接 `drush cim`；推荐项目 `config/sync` 为权威源，但必须先受控导出 active config、审查并获授权，再切换 `settings.php`。
+- `[实际]` 已补充上线前检查、部署、冒烟测试、回滚步骤和遗留风险；本阶段未执行 `cim/cex`、未修改 settings.php、未部署。
+- `[实际]` 系统状态报告既有告警：Colorbox library 未安装（Error）、DOMPurify 未安装、实验管理主题、Toolbar/Navigation 重复、翻译缺失；非本阶段引入。
+
+### 阶段 5B：整体 UI/UX 优化与功能完善（完成）
+
+- `[实际]` 详细记录见 `MEMBER-STAGE5-UI-REPORT.md`；配置/上线审查仍见 `MEMBER-STAGE5-REPORT.md`。
+- `[实际]` 会员中心改为复用主题 `.container`，移除 `.xm` 的 `max-width:1120` 和水平 padding；1440/1024/768/390px 内容区 x/宽与 `/meitu` 完全一致。
+- `[实际]` 收藏/历史封面改用 `max_650x650`（1x）和 `max_1300x1300`（2x）`srcset`，卡片比例改为 3:4，不加载原图，缺失封面显示占位。
+- `[实际]` 减少侧栏、导航、统计、面板、账户信息、快捷链接、评论/投稿列表和空状态的边框/嵌套卡片；保留内容卡片轻边框。
+- `[实际]` 按钮系统修复：主要链接黑底白字、次要白底深色、危险红字/红底；修复历史删除黑色主按钮、`.js-hide` 上传按钮误显示、基础 input 选择器特异性覆盖和确认页标题缺失。
+- `[实际]` 资料页重新组织头像/资料/表单，新增取消入口、文件选择按钮样式和头像移除次要按钮；保留原字段、验证、CSRF 和访问控制。
+- `[实际]` 真实浏览器测试：4 个断点、9 个会员页面无溢出；收藏/历史 AJAX、清空历史、分页、资料保存、头像上传/移除、评论编辑、权限隔离通过。
+- `[实际]` 测试用户和临时内容已清理；未修改 `config/sync`、settings.php、数据库结构、真实用户资料；配置差异仍为 24 项。
+- `[实际]` 主题 `npm run build` 已尝试执行，但产生无关 tracked 构建产物全量差异；已从执行前备份恢复，build/ 当前无差异。会员中心 CSS 为模块独立文件。
+
+## 2.1 第五阶段 UI/UX 修改记录（实际）
+
+### 修改文件
+
+```text
+web/modules/custom/xedc_member/src/Controller/MemberController.php
+web/modules/custom/xedc_member/templates/xedc-member-card.html.twig
+web/modules/custom/xedc_member/templates/xedc-member-profile.html.twig
+web/modules/custom/xedc_member/templates/xedc-member-history.html.twig
+web/modules/custom/xedc_member/src/Form/ProfileForm.php
+web/modules/custom/xedc_member/src/Form/HistoryClearForm.php
+web/modules/custom/xedc_member/xedc_member.module
+web/modules/custom/xedc_member/css/member.css
+MEMBER-STAGE5-UI-REPORT.md（新增）
+MEMBER-STAGE5-REPORT.md（增加 UI 报告链接）
+PROJECT-STATUS.md（本文件）
+AGENTS.md（补充长期规则）
+```
+
+### 已通过的测试
+
+- `[实际]` PHP `php -l`：`xedc_member` 全部 PHP 文件通过。
+- `[实际]` Twig：11 个会员中心模板 + `node--photo--full.html.twig` 编译通过。
+- `[实际]` YAML lint：`xedc_member` 4 个 YAML 通过。
+- `[实际]` stylelint：`member.css` 0 errors。
+- `[实际]` `git diff --check` 通过。
+- `[实际]` `drush updatedb:status` 无待执行；`drush config:status` 仍为 24 项，无新增配置差异。
+- `[实际]` Playwright/Chromium：1440/1024/768/390px 下 9 个会员页面 200 且无横向溢出；会员中心 x/宽与 `/meitu` 内容区一致。
+- `[实际]` 封面 3:4、1x/2x `srcset`、不加载原图、缺失封面占位。
+- `[实际]` 收藏 AJAX 添加/移除、历史 AJAX 删除、清空历史确认与执行、分页 12/9 与 12/8。
+- `[实际]` 资料保存、头像上传/移除、取消链接、设置页历史开关、评论编辑页主按钮、匿名/会员权限隔离。
+- `[实际]` 按钮 hover、focus-visible、disabled 状态。
+
+### 尚未验证/未执行
+
+- `[待核实]` 真实手机、Safari/Firefox、暗色主题未专项验收；当前浏览器测试为 Chromium 响应式模拟。
+- `[待核实]` 管理员后台、登录/注册页未做视觉回归；会员中心规则已限定作用域，但未逐页回归。
+- `[待核实]` 主题 `npm run build` 曾执行并产生无关 tracked 构建产物全量差异，已从执行前备份恢复；当前 `build/` 无差异。会员中心 CSS 为模块独立文件，不依赖该构建。
+- `[待核实]` 未做真实设备性能、多用户并发、生产环境压测。
+- `[待核实]` 低分辨率原图无法通过样式变清晰；未批量替换原图或重生成全部图片样式。
+
+## 3. 当前 Git 未提交修改（实际）
+
+必须全部保留；不得清理、覆盖、回滚。
+
+### 已修改
+
+```text
+ M web/themes/custom/xedc/templates/content/node--photo--full.html.twig
+ M web/themes/custom/xedc/templates/includes/xedc-header.html.twig
+ M web/themes/custom/xedc/templates/node/node--video--full.html.twig
+ M web/themes/custom/xedc/xedc.libraries.yml
+ M web/themes/custom/xedc/xedc.theme
+```
+
+分类：
+
+- 会员中心相关：photo/video 模板收藏按钮、header 会员中心入口。
+- 必须保留的无关 WIP：`xedc.theme`、`xedc.libraries.yml`（文章详情等既有工作）。
+
+### 未跟踪
+
+```text
+?? AGENTS.md
+?? MEMBER-CENTER-AUDIT.md
+?? MEMBER-STAGE1-REPORT.md
+?? MEMBER-STAGE2-REPORT.md
+?? MEMBER-STAGE3-REPORT.md
+?? MEMBER-STAGE4-REPORT.md
+?? MEMBER-STAGE5-REPORT.md
+?? MEMBER-STAGE5-UI-REPORT.md
+?? PROJECT-STATUS.md
+?? opencode.json
+?? opencode.json.bak
+?? web/modules/custom/xa_views/
+?? web/modules/custom/xedc_member/
+?? web/themes/custom/xedc/css/article-detail.css
+?? web/themes/custom/xedc/js/article-detail.js
+?? web/themes/custom/xedc/templates/node/node--article--full.html.twig
+```
+
+- 会员中心新增代码全在 `web/modules/custom/xedc_member/`。
+- 文章详情模板/CSS/JS、`xa_views` 与会员中心无关，必须保留。
+- 当前分支：`main`；最近提交是备份类提交，不代表会员中心已提交。
+
+## 4. 重要风险
+
+1. `[实际]` 媒体/文件仍为 public：待审核节点对应的媒体文件可通过公开 URL 访问；复验确认匿名请求文件返回 200。彻底修复需要私有文件系统或下载控制器，属于基础设施/设计决策，尚未处理。
+2. `[实际]` 媒体大小限制已配置 image 10MB、video 200MB；但 PHP-FPM `upload_max_filesize=64M`，视频实际仍受 64MB 服务器上限限制。
+3. `[实际]` 评论审核已启用；`article`、`video` 仍没有评论字段，目前评论实际只在 `photo` 可用。
+4. `[实际]` **配置同步源不一致（上线阻塞项）**：运行站点使用 `sites/default/files/config_.../sync`，不是项目 `config/sync`；active 与运行同步目录差 24 项，与项目 sync 差 22 项。未执行 `cim/cex`，禁止直接导入。
+5. `[实际]` `user.role.content_editor` active 比运行同步目录多 57 项权限，含 `administer nodes`、`bypass node access`；不是最小权限审核角色。
+6. `[实际]` 空 `workflows.workflow.editorial` 仍存在，无适用 bundle；未删除。
+7. `[实际]` 历史 60 秒节流意味着 60 秒内重复访问不更新 `last_viewed`，是性能取舍。
+8. `[实际]` 会员中心未提供删除自己评论的入口；删除依赖核心评论管理权限，避免越权。
+9. `[实际]` 会员拥有 `view media`，可查看已发布媒体实体；媒体文件仍公开，未按作者隔离。
+10. `[实际]` 已补做移动端 390/768 浏览器测试、媒体库投稿、评论/投稿分页、收藏/历史 AJAX；未做真机、多用户并发和生产环境压测。
+11. `[实际]` 未卸载模块；卸载会删除收藏表、历史表和资料字段，工作流/角色清理未完整测试。
+12. `[实际]` 系统状态报告有既有告警（Colorbox、DOMPurify、实验管理主题、Toolbar/Navigation、翻译缺失），上线前需确认是否处理。
+13. `[实际]` 会员中心封面已改用响应式图片样式，但原始图片分辨率过低时仍会偏软；未批量替换原图或重生成全部样式。暗色主题、真实手机和 Safari/Firefox 未专项验收。
+
+## 5. 待办任务
+
+`[实际]` 第四阶段收尾复验已完成并记录在 `MEMBER-STAGE4-REPORT.md` 第 12 节。
+
+`[实际]` 第五阶段“配置同步与上线准备”的只读审查和上线/回滚清单已完成，记录在 `MEMBER-STAGE5-REPORT.md`。
+
+`[实际]` 第五阶段“整体 UI/UX 优化与功能完善”已完成，记录在 `MEMBER-STAGE5-UI-REPORT.md`。
+
+`[待授权]` 仍需要负责人决定/授权：
+
+- 是否以项目 `/var/www/drupal/config/sync` 为权威源。
+- 是否授权将 active config 受控导出并审查后更新项目 sync。
+- 是否授权修改 `$settings['config_sync_directory']` 和正式部署/回滚演练。
+- 是否处理 public 媒体文件、64MB PHP 上传上限、content_editor 权限、空 `editorial` 工作流。
+- 上线前系统状态告警是否处理（Colorbox、DOMPurify 等）。
+
+未经授权，不执行 `cim/cex`、settings.php 修改、生产配置切换、部署或数据库回滚。
+
+## 6. 安全与操作约束
+
+未经明确授权，禁止：
+
+- `git reset`、`git clean`、回滚、强制覆盖、清理未跟踪文件、提交。
+- `drush cim`、`drush cex`、配置导入/导出。
+- 模块卸载、生产数据库修改、清空数据。
+- 删除真实用户/内容/评论/收藏/历史；uid 2 的真实数据必须保留。
+- 部署、核心升级、无关重构。
+
+允许前必须先检查 `git status` 和 `AGENTS.md`；遇数据库结构变更应有备份、影响说明和回退方案。
+
+## 7. 六份阶段报告
+
+- `MEMBER-STAGE1-REPORT.md`：会员中心基础/收藏。
+- `MEMBER-STAGE2-REPORT.md`：浏览历史。
+- `MEMBER-STAGE3-REPORT.md`：启用、资料、账户安全、第三阶段补充验收、17 项配置差异分析。
+- `MEMBER-STAGE4-REPORT.md`：评论、投稿审核、配置差异、测试与遗留；**第 12 节**记录 2026-10-24 收尾复验、6 类修复、浏览器测试结果和最终风险。
+- `MEMBER-STAGE5-REPORT.md`：配置源事实核对、24 项差异审查、权威源建议、上线/回滚步骤和遗留风险。
+- `MEMBER-STAGE5-UI-REPORT.md`：会员中心间距、封面、视觉层级、按钮、资料页和响应式 UI/UX 优化。
+
+六份报告是详细历史依据；本摘要只保留结论和定位，不复制全部测试记录。
+
+## 8. 新会话启动规则
+
+1. 先读 `AGENTS.md` 和本文件 `PROJECT-STATUS.md`。
+2. 执行 `git status --short`，确认未提交修改仍在。
+3. 只处理当前任务；只有遇到具体问题时，才读取对应阶段报告或深入检查相关代码。
+4. 区分：`[实际]` 本次检查、`[报告]` 历史结论、`[待核实]` 未验证状态。
+5. 不要把报告中的“已完成/已测试”直接当成当前运行时已验证；以本摘要日期后的实际 Drush/浏览器/数据库检查为准。
+
+## 9. 摘要更新说明
+
+- `[实际]` 已确认项目根目录 `/var/www/drupal`、AGENTS.md、Git 状态、六份阶段报告和 `xedc_member` 代码文件。
+- `[实际]` 本次执行了 Drush 数据库查询、配置比较、模块/权限/工作流检查、Playwright 浏览器测试、`drush updb`（10004–10008）和测试数据清理。
+- `[实际]` 第四阶段修改了 `xedc_member.module`、`xedc_member.install`、`node--photo--full.html.twig`；第五阶段 UI 修改了 `MemberController.php`、卡片/资料/历史模板、`ProfileForm.php`、`HistoryClearForm.php`、`xedc_member.module` 和 `member.css`。
+- `[实际]` 未修改 `config/sync`、settings.php、服务器设置；未执行 `cim/cex`、部署或 Git 提交。
+- `[实际]` 配置差异为 active 对比运行同步目录 24 项、对比项目 `config/sync` 22 项。
+- `[实际]` 主题构建尝试后已恢复执行前 build 产物，当前 build/ 无差异。
+- `[实际]` 本次文档整理仅更新 `PROJECT-STATUS.md` 和 `AGENTS.md`；未修改业务代码、配置或数据库。
+
+## 10. 第四/第五阶段收尾摘要（实际）
+
+- 真实浏览器（Playwright/Chromium）完成：会员页面/noindex、分页、收藏/历史 AJAX、权限隔离、资料/头像、媒体上传、媒体库投稿、评论审核、投稿草稿/送审/批准、390/768 响应式。
+- 明确修复：评论审核策略、媒体大小/MIME/表单字段、草稿保存转换、审核队列视图过滤、无封面美图详情 500。
+- 新增数据库更新：`xedc_member_update_10004`–`10008`；`drush updb` 已执行，`updatedb:status` 无待执行。
+- 当前配置差异 24 项，未 `cim`/`cex`。
+- 测试数据已清理；真实数据核对：全站评论 47，uid 2 收藏 2、评论 22；uid 2 历史最终为 5（会话期间存在真实浏览，清理未触碰 uid 2）。
+- 第四阶段完成；第五阶段“配置同步与上线准备”审查/清单完成。
+- 第五阶段“整体 UI/UX 优化与功能完善”完成：间距、封面、视觉层级、按钮、资料页、响应式回归通过。
+- 配置源切换、受控导出、settings.php 修改和正式上线仍需负责人授权；本次停止，不直接 `cim/cex`，不进入第六阶段。
