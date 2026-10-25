@@ -1,12 +1,22 @@
-document.addEventListener('DOMContentLoaded',function(){
-  document.querySelectorAll('.term-intro').forEach(function(w){
-    var t=w.querySelector('.term-intro__text'),b=w.querySelector('.term-intro__toggle');
-    if(!t||!b)return;
-    if(t.scrollHeight<=t.clientHeight+2){b.hidden=true;return;}
-    b.addEventListener('click',function(){
-      var o=w.classList.toggle('is-open');
-      b.textContent=o?'收起':'展开';
-      b.setAttribute('aria-expanded',o);
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.term-intro').forEach(function (wrap) {
+    var text = wrap.querySelector('.term-intro__text');
+    var button = wrap.querySelector('.term-intro__toggle');
+    if (!text || !button) return;
+
+    var update = function () {
+      if (wrap.classList.contains('is-open')) return;
+      button.hidden = text.scrollHeight <= text.clientHeight + 2;
+    };
+
+    update();
+    window.addEventListener('resize', update);
+
+    button.addEventListener('click', function () {
+      var open = wrap.classList.toggle('is-open');
+      button.textContent = open ? '收起' : '展开';
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open) update();
     });
   });
 });

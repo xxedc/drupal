@@ -88,3 +88,21 @@ comment-form:
     js/comment-form.js: {}
   dependencies:
     - core/drupal
+
+term-intro:
+  version: 1.0
+  css:
+    theme:
+      css/term-intro.css: {}
+  js:
+    js/term-intro.js: {}
+  dependencies:
+    - core/drupal
+
+photo-list:
+  version: 1.0
+  css:
+    theme:
+      css/photo-list.css: {}
+  dependencies:
+    - xedc/style

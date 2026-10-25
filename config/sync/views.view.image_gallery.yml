@@ -82,7 +82,7 @@ display:
           type: media_thumbnail
           settings:
             image_link: ''
-            image_style: images_450x800
+            image_style: photo_card_640
             image_loading:
               attribute: lazy
           group_column: target_id
@@ -282,9 +282,9 @@ display:
         options:
           offset: 0
           pagination_heading_level: h4
-          items_per_page: 12
+          items_per_page: 16
           total_pages: null
-          id: 8
+          id: 0
           tags:
             next: ››
             previous: ‹‹
@@ -298,7 +298,7 @@ display:
             items_per_page_options_all_label: '- 全部 -'
             offset: false
             offset_label: 偏移量
-          quantity: 9
+          quantity: 5
       exposed_form:
         type: basic
         options:

@@ -52,6 +52,24 @@ function xedc_page_attachments_alter(array &$attachments) {
   if (\Drupal::service('path.matcher')->isFrontPage()) {
     $attachments['#cache']['tags'][] = 'node_list';
   }
+  if (!_xedc_is_photo_list_route()) {
+    return;
+  }
+
+  $page = _xedc_photo_current_page();
+  $canonical = _xedc_photo_page_url($page, TRUE);
+  if (empty($attachments['#attached']['html_head'])) {
+    return;
+  }
+  foreach ($attachments['#attached']['html_head'] as $key => $item) {
+    $name = $item[1] ?? '';
+    if ($name === 'canonical_url') {
+      $attachments['#attached']['html_head'][$key][0]['#attributes']['href'] = $canonical;
+    }
+    if ($page > 0 && $name === 'description') {
+      unset($attachments['#attached']['html_head'][$key]);
+    }
+  }
 }
 
 function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id) {
@@ -266,6 +284,309 @@ function xedc_preprocess_page_title(array &$variables) {
       $variables['title'] = $t->bundle() === 'tags' ? '' : $t->label();
     }
   }
+  if (_xedc_is_photo_list_route() && ($page = _xedc_photo_current_page()) > 0) {
+    $title = $variables['title'] ?? '';
+    if (is_string($title) || $title instanceof \Stringable) {
+      $variables['title'] = (string) $title . ' - 第 ' . ($page + 1) . ' 页';
+    }
+  }
+}
+
+/**
+ * Whether the current route renders the photo list view.
+ */
+function _xedc_is_photo_list_route(): bool {
+  static $is_photo_list = NULL;
+  if ($is_photo_list !== NULL) {
+    return $is_photo_list;
+  }
+  $route = \Drupal::routeMatch();
+  $name = $route->getRouteName();
+  $is_photo_list = in_array($name, [
+    'view.image_gallery.page_1',
+    'view.image_gallery.page_2',
+    'view.image_gallery.page_3',
+  ], TRUE);
+  if (!$is_photo_list && $name === 'entity.taxonomy_term.canonical') {
+    $route_object = $route->getRouteObject();
+    $is_photo_list = $route_object && $route_object->getDefault('_xt_view_id') === 'image_gallery';
+  }
+  return $is_photo_list;
+}
+
+/**
+ * Returns the current zero-based photo list page.
+ */
+function _xedc_photo_current_page(): int {
+  static $page = NULL;
+  if ($page !== NULL) {
+    return $page;
+  }
+  $raw = \Drupal::request()->query->get('page');
+  if (is_array($raw)) {
+    $raw = end($raw);
+  }
+  $page = is_numeric($raw) && (int) $raw > 0 ? (int) $raw : 0;
+  return $page;
+}
+
+/**
+ * Builds a clean photo list URL, ignoring sort parameters.
+ */
+function _xedc_photo_page_url(int $page, bool $absolute = FALSE): string {
+  $query = $page > 0 ? ['page' => $page] : [];
+  $url = \Drupal\Core\Url::fromUserInput(\Drupal::request()->getPathInfo(), ['query' => $query]);
+  if ($absolute) {
+    $url->setAbsolute();
+  }
+  return $url->toString();
+}
+
+/**
+ * Returns a useful category badge for a photo card.
+ */
+function _xedc_photo_card_badge(\Drupal\node\NodeInterface $node, array $hidden_tids): string {
+  if (!$node->hasField('field_categories') || $node->get('field_categories')->isEmpty()) {
+    return '';
+  }
+  foreach ($node->get('field_categories')->referencedEntities() as $term) {
+    if (!$term instanceof \Drupal\taxonomy\TermInterface || $term->bundle() !== 'photo_category') {
+      continue;
+    }
+    if (in_array((int) $term->id(), $hidden_tids, TRUE)) {
+      continue;
+    }
+    return $term->label();
+  }
+  return '';
+}
+
+/**
+ * Replaces photo list rows with semantic, linked cards.
+ */
+function _xedc_photo_build_rows(array &$variables, \Drupal\views\ViewExecutable $view, array $hidden_tids): void {
+  if (empty($view->result)) {
+    return;
+  }
+  $style = \Drupal\image\Entity\ImageStyle::load('photo_card_640');
+  $file_url = \Drupal::service('file_url_generator');
+  $date_formatter = \Drupal::service('date.formatter');
+  $rows = [];
+  $tags = ['taxonomy_term_list'];
+  $index = 0;
+
+  foreach ($view->result as $result) {
+    $node = $result->_entity ?? NULL;
+    if (!$node instanceof \Drupal\node\NodeInterface) {
+      continue;
+    }
+    $title = $node->label();
+    $url = $node->toUrl()->toString();
+    $cover_url = '';
+    $media_tags = [];
+    if ($node->hasField('field_cover_image') && !$node->get('field_cover_image')->isEmpty()) {
+      $media = $node->get('field_cover_image')->entity;
+      if ($media instanceof \Drupal\media\MediaInterface) {
+        $media_tags = $media->getCacheTags();
+        if ($media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+          $file = $media->get('field_media_image')->entity;
+          if ($file instanceof \Drupal\file\FileInterface) {
+            $uri = $file->getFileUri();
+            $cover_url = $style ? $style->buildUrl($uri) : $file_url->generateString($uri);
+          }
+        }
+      }
+    }
+    $badge = _xedc_photo_card_badge($node, $hidden_tids);
+    $date = $date_formatter->format($node->getCreatedTime(), 'custom', 'Y-m-d');
+    $eager = $index < 2;
+    $html = '<div class="views-row"><a class="photo-card-link" href="' . \Drupal\Component\Utility\Html::escape($url) . '">';
+    $html .= '<div class="views-field views-field-field-cover-image"><div class="field-content">';
+    if ($cover_url) {
+      $html .= '<img src="' . \Drupal\Component\Utility\Html::escape($cover_url) . '" width="640" height="1138" alt="' . \Drupal\Component\Utility\Html::escape($title) . '" loading="' . ($eager ? 'eager' : 'lazy') . '"' . ($eager ? ' fetchpriority="high"' : '') . ' class="img-fluid">';
+    }
+    $html .= '</div></div>';
+    $html .= '<div class="views-field views-field-title"><h2 class="field-content">' . \Drupal\Component\Utility\Html::escape($title) . '</h2></div>';
+    $html .= '<div class="views-field views-field-created"><time class="field-content" datetime="' . $date . '">' . $date . '</time></div>';
+    if ($badge !== '') {
+      $html .= '<div class="views-field views-field-field-categories"><span class="field-content">' . \Drupal\Component\Utility\Html::escape($badge) . '</span></div>';
+    }
+    $html .= '</a></div>';
+    $rows[] = [
+      '#markup' => \Drupal\Core\Render\Markup::create($html),
+      '#cache' => ['tags' => array_merge($node->getCacheTags(), $media_tags)],
+    ];
+    $tags = array_merge($tags, $node->getCacheTags(), $media_tags);
+    $index++;
+  }
+
+  if ($rows) {
+    $variables['rows'] = $rows;
+    $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $tags);
+  }
+}
+
+/**
+ * Adds pagination SEO links and JSON-LD to the photo list.
+ */
+function _xedc_photo_attach_seo(array &$variables, \Drupal\views\ViewExecutable $view, ?\Drupal\taxonomy\TermInterface $term): void {
+  $page = _xedc_photo_current_page();
+  $page_url = _xedc_photo_page_url($page, TRUE);
+  $name = $term ? $term->label() : '美图列表';
+  $description = '';
+  if ($term) {
+    $raw = (string) $term->get('description')->value;
+    $description = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+    $description = mb_substr($description, 0, 160);
+  }
+
+  $items = [];
+  $position = 1;
+  foreach ($view->result as $result) {
+    $node = $result->_entity ?? NULL;
+    if (!$node instanceof \Drupal\node\NodeInterface) {
+      continue;
+    }
+    $items[] = [
+      '@type' => 'ListItem',
+      'position' => $position++,
+      'url' => $node->toUrl()->setAbsolute()->toString(),
+      'name' => $node->label(),
+    ];
+  }
+
+  $breadcrumbs = [[
+    '@type' => 'ListItem',
+    'position' => 1,
+    'name' => '首页',
+    'item' => \Drupal\Core\Url::fromRoute('<front>')->setAbsolute()->toString(),
+  ]];
+  $breadcrumbs[] = [
+    '@type' => 'ListItem',
+    'position' => 2,
+    'name' => $name,
+    'item' => $term ? $term->toUrl()->setAbsolute()->toString() : _xedc_photo_page_url(0, TRUE),
+  ];
+
+  $data = [
+    '@context' => 'https://schema.org',
+    '@graph' => [
+      [
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbs,
+      ],
+      [
+        '@type' => 'CollectionPage',
+        'name' => $name,
+        'url' => $page_url,
+        'description' => $description,
+        'mainEntity' => [
+          '@type' => 'ItemList',
+          'itemListElement' => $items,
+        ],
+      ],
+    ],
+  ];
+  $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+  if ($json !== FALSE) {
+    $variables['#attached']['html_head'][] = [
+      [
+        '#type' => 'html_tag',
+        '#tag' => 'script',
+        '#attributes' => ['type' => 'application/ld+json'],
+        '#value' => \Drupal\Core\Render\Markup::create($json),
+      ],
+      'xedc_photo_jsonld',
+    ];
+  }
+
+  $total = (int) $view->pager->getTotalItems();
+  $per_page = max(1, (int) $view->pager->getItemsPerPage());
+  $last_page = max(0, (int) ceil($total / $per_page) - 1);
+  if ($page > 0) {
+    $variables['#attached']['html_head'][] = [
+      [
+        '#type' => 'html_tag',
+        '#tag' => 'link',
+        '#attributes' => ['rel' => 'prev', 'href' => _xedc_photo_page_url($page - 1, TRUE)],
+      ],
+      'xedc_photo_prev',
+    ];
+  }
+  if ($page < $last_page) {
+    $variables['#attached']['html_head'][] = [
+      [
+        '#type' => 'html_tag',
+        '#tag' => 'link',
+        '#attributes' => ['rel' => 'next', 'href' => _xedc_photo_page_url($page + 1, TRUE)],
+      ],
+      'xedc_photo_next',
+    ];
+  }
+}
+
+/**
+ * Preprocesses the image gallery view.
+ */
+function xedc_preprocess_views_view__image_gallery(array &$variables): void {
+  $view = $variables['view'];
+  if (!$view instanceof \Drupal\views\ViewExecutable || $view->id() !== 'image_gallery') {
+    return;
+  }
+  $variables['#attached']['library'][] = 'xedc/photo-list';
+
+  $term = NULL;
+  if (!empty($view->args[0])) {
+    $candidate = \Drupal\taxonomy\Entity\Term::load($view->args[0]);
+    if ($candidate instanceof \Drupal\taxonomy\TermInterface && $candidate->bundle() === 'photo_category') {
+      $term = $candidate;
+    }
+  }
+  $hidden_tids = [];
+  if ($term) {
+    $hidden_tids[] = (int) $term->id();
+    foreach ($term->get('parent')->getValue() as $parent) {
+      if (!empty($parent['target_id'])) {
+        $hidden_tids[] = (int) $parent['target_id'];
+      }
+    }
+    $hidden_tids = array_values(array_unique(array_filter($hidden_tids)));
+  }
+  _xedc_photo_build_rows($variables, $view, $hidden_tids);
+  _xedc_photo_attach_seo($variables, $view, $term);
+
+  if (!$term || _xedc_photo_current_page() !== 0) {
+    return;
+  }
+  $raw = (string) $term->get('description')->value;
+  $plain = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+  if ($plain === '') {
+    return;
+  }
+
+  $format = $term->get('description')->format ?: filter_fallback_format();
+  $text_id = 'term-intro-' . $term->id();
+  $intro = [
+    '#type' => 'container',
+    '#attributes' => [
+      'class' => ['term-intro'],
+      'data-term-intro' => '',
+    ],
+    '#cache' => ['tags' => $term->getCacheTags()],
+    '#attached' => ['library' => ['xedc/term-intro']],
+    'text' => [
+      '#type' => 'html_tag',
+      '#tag' => 'div',
+      '#attributes' => ['class' => ['term-intro__text'], 'id' => $text_id],
+      '#value' => \Drupal\Core\Render\Markup::create((string) check_markup($raw, $format)),
+    ],
+    'toggle' => [
+      '#markup' => \Drupal\Core\Render\Markup::create('<button type="button" class="term-intro__toggle" aria-expanded="false" aria-controls="' . \Drupal\Component\Utility\Html::escape($text_id) . '" hidden>展开</button>'),
+    ],
+  ];
+  $variables['xedc_photo_intro'] = $intro;
+  $variables['#attached']['library'][] = 'xedc/term-intro';
+  $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $term->getCacheTags());
 }
 
 /**

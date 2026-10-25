@@ -1,0 +1,21 @@
+uuid: 74e23ed7-6b7c-485f-aba0-59de402089d4
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: photo_card_640
+label: '图片卡片 640x1138 (WebP)'
+effects:
+  df71fec2-3e57-4173-a7b9-8ee9473fee20:
+    uuid: df71fec2-3e57-4173-a7b9-8ee9473fee20
+    id: image_scale_and_crop
+    weight: 3
+    data:
+      width: 640
+      height: 1138
+      anchor: center-center
+  2dc4b627-0acb-4fd6-818e-932612f30d00:
+    uuid: 2dc4b627-0acb-4fd6-818e-932612f30d00
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp

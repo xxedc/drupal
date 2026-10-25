@@ -82,6 +82,15 @@ function xedc_preprocess_html(array &$variables): void {
   if (\Drupal::request()->query->get('xedc_embed')) {
     $variables['attributes']['class'][] = 'xedc-embed';
   }
+  if (_xedc_is_photo_list_route() && ($page = _xedc_photo_current_page()) > 0) {
+    $suffix = ' - 第 ' . ($page + 1) . ' 页';
+    if (isset($variables['head_title']['title']) && is_string($variables['head_title']['title'])) {
+      $variables['head_title']['title'] .= $suffix;
+    }
+    elseif (is_string($variables['head_title'])) {
+      $variables['head_title'] .= $suffix;
+    }
+  }
 }
 
 /**
