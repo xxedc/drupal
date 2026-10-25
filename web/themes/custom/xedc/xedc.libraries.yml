@@ -104,5 +104,7 @@ photo-list:
   css:
     theme:
       css/photo-list.css: {}
+  js:
+    js/photo-list.js: {}
   dependencies:
     - xedc/style

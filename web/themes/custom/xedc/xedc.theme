@@ -399,15 +399,33 @@ function _xedc_photo_build_rows(array &$variables, \Drupal\views\ViewExecutable 
     }
     $badge = _xedc_photo_card_badge($node, $hidden_tids);
     $date = $date_formatter->format($node->getCreatedTime(), 'custom', 'Y-m-d');
+    $image_count = $node->hasField('field_images') ? (int) $node->get('field_images')->count() : 0;
+    $model_name = '';
+    if ($node->hasField('field_model') && !$node->get('field_model')->isEmpty()) {
+      foreach ($node->get('field_model')->referencedEntities() as $model) {
+        if ($model instanceof \Drupal\taxonomy\TermInterface) {
+          $model_name = $model->label();
+          break;
+        }
+      }
+    }
     $eager = $index < 2;
     $html = '<div class="views-row"><a class="photo-card-link" href="' . \Drupal\Component\Utility\Html::escape($url) . '">';
     $html .= '<div class="views-field views-field-field-cover-image"><div class="field-content">';
     if ($cover_url) {
       $html .= '<img src="' . \Drupal\Component\Utility\Html::escape($cover_url) . '" width="640" height="853" alt="' . \Drupal\Component\Utility\Html::escape($title) . '" loading="' . ($eager ? 'eager' : 'lazy') . '"' . ($eager ? ' fetchpriority="high"' : '') . ' class="img-fluid">';
     }
-    $html .= '</div></div>';
+    $html .= '</div>';
+    if ($image_count > 0) {
+      $html .= '<span class="photo-count-badge">' . $image_count . 'P</span>';
+    }
+    $html .= '</div>';
     $html .= '<div class="views-field views-field-title"><h2 class="field-content">' . \Drupal\Component\Utility\Html::escape($title) . '</h2></div>';
-    $html .= '<div class="views-field views-field-created"><time class="field-content" datetime="' . $date . '">' . $date . '</time></div>';
+    $html .= '<div class="views-field views-field-created">';
+    if ($model_name !== '') {
+      $html .= '<span class="photo-model">' . \Drupal\Component\Utility\Html::escape($model_name) . '</span><span class="photo-meta-sep" aria-hidden="true"> · </span>';
+    }
+    $html .= '<time class="field-content" datetime="' . $date . '">' . $date . '</time></div>';
     if ($badge !== '') {
       $html .= '<div class="views-field views-field-field-categories"><span class="field-content">' . \Drupal\Component\Utility\Html::escape($badge) . '</span></div>';
     }
