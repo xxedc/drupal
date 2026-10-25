@@ -209,6 +209,9 @@ function xedc_preprocess_node(array &$variables) {
   if ($node->hasField('field_summary') && !$node->get('field_summary')->isEmpty()) {
     $variables['img_summary'] = $node->get('field_summary')->view(['label' => 'hidden']);
   }
+  if (isset($variables['content']['field_images'])) {
+    $variables['content']['field_images']['#post_render'][] = [XedcPhotoGalleryLazy::class, 'render'];
+  }
   $st = \Drupal::entityTypeManager()->getStorage('node');
   $created = $node->getCreatedTime();
   $q = $st->getQuery()->accessCheck(TRUE)->condition('type', 'photo')->condition('status', 1);
@@ -247,16 +250,68 @@ function xedc_preprocess_node(array &$variables) {
 require_once __DIR__ . '/includes/auth.inc';
 
 function xedc_preprocess_page_title(array &$variables) {
-  if (\Drupal::routeMatch()->getRouteName() === 'entity.comment.edit_form') {
+  $route = \Drupal::routeMatch();
+  if ($route->getRouteName() === 'entity.comment.edit_form') {
     $variables['title'] = t('编辑评论');
+  }
+  $node = $route->getParameter('node');
+  if ($node instanceof \Drupal\node\NodeInterface && in_array($node->bundle(), ['photo', 'article', 'video'], TRUE)) {
+    $variables['title'] = '';
+    return;
   }
   $path = \Drupal::service('path.current')->getPath();
   if (preg_match('#^/taxonomy/term/(\d+)$#', $path, $m)) {
     $t = \Drupal\taxonomy\Entity\Term::load($m[1]);
     if ($t) {
-      $variables['title'] = $t->label();
+      $variables['title'] = $t->bundle() === 'tags' ? '' : $t->label();
     }
   }
+}
+
+/**
+ * Removes the system breadcrumb on article/video pages with custom crumbs.
+ */
+function xedc_preprocess_block(array &$variables): void {
+  if (($variables['plugin_id'] ?? '') !== 'system_breadcrumb_block') {
+    return;
+  }
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if (!$node instanceof \Drupal\node\NodeInterface || !in_array($node->bundle(), ['article', 'video'], TRUE)) {
+    return;
+  }
+  $variables['content'] = [];
+  $attributes = $variables['attributes'] ?? [];
+  if (is_object($attributes) && method_exists($attributes, 'addClass')) {
+    $attributes->addClass('d-none');
+  }
+  else {
+    $variables['attributes']['class'][] = 'd-none';
+  }
+  $variables['#cache']['contexts'][] = 'route';
+}
+
+/**
+ * Marks the first detail image as eager/high priority.
+ */
+function xedc_preprocess_image(array &$variables): void {
+  static $first_photo_image = FALSE;
+  if ($first_photo_image || ($variables['style_name'] ?? '') !== 'images_450x800') {
+    return;
+  }
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if (!$node instanceof \Drupal\node\NodeInterface || $node->bundle() !== 'photo') {
+    return;
+  }
+  $attributes = $variables['attributes'] ?? [];
+  if (is_object($attributes) && method_exists($attributes, 'setAttribute')) {
+    $attributes->setAttribute('loading', 'eager');
+    $attributes->setAttribute('fetchpriority', 'high');
+  }
+  else {
+    $variables['attributes']['loading'] = 'eager';
+    $variables['attributes']['fetchpriority'] = 'high';
+  }
+  $first_photo_image = TRUE;
 }
 
 /**
@@ -375,9 +430,17 @@ function _xedc_vd_file_url($entity) {
 function _xedc_vd_preprocess(array &$variables) {
   $node = $variables['node'];
   if ($node->bundle() !== 'video' || $variables['view_mode'] !== 'full') return;
-  $vd = ['cover' => '', 'type' => '', 'src' => '', 'mime' => ''];
+  $vd = ['cover' => '', 'cover_width' => 0, 'cover_height' => 0, 'type' => '', 'src' => '', 'mime' => ''];
   if ($node->hasField('field_video_cover') && !$node->get('field_video_cover')->isEmpty()) {
-    $vd['cover'] = _xedc_vd_file_url($node->get('field_video_cover')->entity);
+    $cover_media = $node->get('field_video_cover')->entity;
+    if ($cover_media instanceof \Drupal\media\MediaInterface && $cover_media->hasField('field_media_image')) {
+      $cover_image = $cover_media->get('field_media_image')->first();
+      if ($cover_image) {
+        $vd['cover_width'] = (int) $cover_image->get('width')->getValue();
+        $vd['cover_height'] = (int) $cover_image->get('height')->getValue();
+      }
+    }
+    $vd['cover'] = _xedc_vd_file_url($cover_media);
   }
   $src = '';
   if ($node->hasField('field_video_file') && !$node->get('field_video_file')->isEmpty()) {
@@ -510,7 +573,20 @@ function xedc_preprocess_node__article__teaser(array &$variables): void {
  */
 function xedc_preprocess_views_view__article_list(array &$variables): void {
   $req = \Drupal::request()->query;
-  $active = (int) $req->get('cat');
+  $raw_cat = $req->get('cat');
+  $active = 0;
+  if ($raw_cat !== NULL) {
+    $is_scalar = is_string($raw_cat) || is_int($raw_cat);
+    if (!$is_scalar || !preg_match('/^\d+$/', (string) $raw_cat)) {
+      throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+    }
+    $cat = (int) $raw_cat;
+    $term = $cat > 0 ? \Drupal\taxonomy\Entity\Term::load($cat) : NULL;
+    if (!$term || $term->bundle() !== 'article_category') {
+      throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
+    }
+    $active = $cat;
+  }
   $chips = [['name' => '全部', 'url' => '/articles', 'active' => !$active]];
   $tree = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree('article_category');
   foreach ($tree as $t) {
@@ -584,6 +660,9 @@ function xedc_xa_side(): array {
  * 文章列表分页数据。
  */
 function xedc_xa_pager($view): array {
+  if (!$view || !$view->pager) {
+    return [];
+  }
   $pager = $view->pager;
   $per = (int) $pager->getItemsPerPage();
   $total = (int) $pager->getTotalItems();
@@ -833,4 +912,17 @@ function xedc_preprocess_node__article__full(array &$variables): void {
     return ['title' => $n->label(), 'url' => $n->toUrl()->toString(),
       'meta' => $views($n->get('field_views')->value) . ' 阅读'];
   });
+}
+
+
+if (!class_exists('XedcPhotoGalleryLazy')) {
+  class XedcPhotoGalleryLazy implements \Drupal\Core\Security\TrustedCallbackInterface {
+    public static function render($children, $element) {
+      $children = str_replace('loading="eager"', 'loading="lazy"', $children);
+      return str_replace(' fetchpriority="high"', '', $children);
+    }
+    public static function trustedCallbacks() {
+      return ['render'];
+    }
+  }
 }

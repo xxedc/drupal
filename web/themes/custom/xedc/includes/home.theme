@@ -15,6 +15,17 @@ function _xedc_home_summary($n) {
   return mb_strimwidth($text, 0, 120, '…', 'UTF-8');
 }
 
+function _xedc_image_style_dimensions($style): array {
+  foreach ($style->getEffects() as $effect) {
+    $id = $effect->getPluginId();
+    $data = $effect->getConfiguration()['data'] ?? [];
+    if (in_array($id, ['image_scale', 'image_scale_and_crop'], TRUE) && !empty($data['width']) && !empty($data['height'])) {
+      return [(int) $data['width'], (int) $data['height']];
+    }
+  }
+  return [0, 0];
+}
+
 function _xedc_home_items($type, $field, $limit) {
   $nids = \Drupal::entityQuery('node')->accessCheck(TRUE)
     ->condition('type', $type)->condition('status', 1)
@@ -22,20 +33,38 @@ function _xedc_home_items($type, $field, $limit) {
   $items = [];
   foreach (\Drupal\node\Entity\Node::loadMultiple($nids) as $n) {
     $url = '';
+    $width = 0;
+    $height = 0;
     if ($n->hasField($field) && !$n->get($field)->isEmpty()) {
       $e = $n->get($field)->entity;
       if ($e instanceof \Drupal\media\MediaInterface) {
+        if ($e->hasField('field_media_image')) {
+          $image = $e->get('field_media_image')->first();
+          if ($image) {
+            $width = (int) $image->get('width')->getValue();
+            $height = (int) $image->get('height')->getValue();
+          }
+        }
         $e = $e->get('thumbnail')->entity;
       }
       if ($e instanceof \Drupal\file\FileInterface) {
         $s = \Drupal\image\Entity\ImageStyle::load($type === 'photo' ? 'images_450x800' : 'large');
         $url = $s ? $s->buildUrl($e->getFileUri()) : \Drupal::service('file_url_generator')->generateString($e->getFileUri());
+        if ($s) {
+          [$style_width, $style_height] = _xedc_image_style_dimensions($s);
+          if ($style_width && $style_height) {
+            $width = $style_width;
+            $height = $style_height;
+          }
+        }
       }
     }
     $items[] = [
       'title' => $n->label(),
       'url' => $n->toUrl()->toString(),
       'img' => $url,
+      'width' => $width,
+      'height' => $height,
       'summary' => $type === 'article' ? _xedc_home_summary($n) : '',
       'date' => \Drupal::service('date.formatter')->format($n->getCreatedTime(), 'custom', 'm-d'),
     ];

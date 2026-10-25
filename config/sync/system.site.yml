@@ -2,7 +2,7 @@ _core:
   default_config_hash: ijfbzDTN4CbE7Sr-6ubWzy_t1vH4OtU1doNCLssVz-4
 langcode: zh-hans
 uuid: e103140a-fea2-42e2-8034-74bb924a0ef2
-name: DClili
+name: DcLili
 mail: admin@gitxx.xyz
 slogan: ''
 page:
@@ -13,3 +13,4 @@ admin_compact_mode: false
 weight_select_max: 100
 default_langcode: zh-hans
 mail_notification: gitxxz@gmail.com
+

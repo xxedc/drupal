@@ -1,0 +1,9 @@
+uuid: 1171ece0-bb3c-461f-aae8-6d1a2addfc47
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: user.register
+label: 注册页
+tags:
+  robots: 'noindex,follow'
+

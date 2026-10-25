@@ -20,7 +20,7 @@
 
       {% if xa_cover %}
         <figure class="xa-cover xa-cover--main{% if xa_cover_portrait %} is-portrait{% else %} is-landscape{% endif %}">
-          <img src="{{ xa_cover }}" alt="{{ node.label }}"{% if xa_cover_width %} width="{{ xa_cover_width }}" height="{{ xa_cover_height }}"{% endif %} decoding="async">
+          <img src="{{ xa_cover }}" alt="{{ node.label }}"{% if xa_cover_width %} width="{{ xa_cover_width }}" height="{{ xa_cover_height }}"{% endif %} loading="eager" fetchpriority="high" decoding="async">
         </figure>
       {% endif %}
 

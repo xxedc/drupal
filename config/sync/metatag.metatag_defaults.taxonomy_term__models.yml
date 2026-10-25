@@ -1,0 +1,18 @@
+uuid: 420f8bae-6f99-41f4-a51f-954dd6dd1103
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: taxonomy_term__models
+label: '分类术语: 人物'
+tags:
+  title: '[term:name] | [site:name]'
+  description: '[term:description] [term:name] 模特作品合集'
+  canonical_url: '[term:url]'
+  og_title: '[term:name]'
+  og_description: '[term:description] [term:name] 模特作品合集'
+  og_url: '[term:url]'
+  og_type: website
+  twitter_cards_type: summary_large_image
+  twitter_cards_title: '[term:name]'
+  twitter_cards_description: '[term:description] [term:name] 模特作品合集'
+

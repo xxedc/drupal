@@ -1,0 +1,9 @@
+uuid: a64c8abc-e2f0-43cd-87d5-1a9c58dcb261
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: search.view_searchbd03c598368fa80e4916c2a0c51a98d4
+label: 搜索页
+tags:
+  robots: 'noindex,follow'
+

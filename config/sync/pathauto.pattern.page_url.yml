@@ -1,0 +1,24 @@
+uuid: 41b9db0a-21c5-4270-914f-ea6ff65eac35
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - node.type.page
+  module:
+    - node
+id: page_url
+label: '页面 URL'
+type: 'canonical_entities:node'
+pattern: '/[node:title]'
+selection_criteria:
+  d83c9410-c71d-48f9-8fc6-5ab52df22577:
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: node
+    bundles:
+      page: page
+selection_logic: and
+weight: -5
+relationships: {  }
+

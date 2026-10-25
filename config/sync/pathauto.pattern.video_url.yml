@@ -1,0 +1,24 @@
+uuid: a66e76b0-c89f-47cc-b7b1-af802237db59
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - node.type.video
+  module:
+    - node
+id: video_url
+label: '视频 URL'
+type: 'canonical_entities:node'
+pattern: '/videos/[node:title]'
+selection_criteria:
+  c62af050-d97b-4b85-9204-d59aa9d4151a:
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: node
+    bundles:
+      video: video
+selection_logic: and
+weight: -5
+relationships: {  }
+

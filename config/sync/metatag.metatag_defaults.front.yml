@@ -15,14 +15,17 @@ tags:
   og_determiner: Automatic
   og_image_alt: 'XEDC 网站分享预览图片'
   og_locale: zh_CN
-  og_locale_alternative: 'en_US,ja_JP'
-  og_site_name: ＸＥＤＣ
+  og_site_name: DcLili
   og_title: 'XEDC - 图片、视频与文章分享平台'
   og_type: website
-  og_url: 'https://gitxx.xyz'
+  og_url: '[site:url]'
   rating: general
   referrer: strict-origin-when-cross-origin
   rights: 'Copyright © 2026 XEDC. All rights reserved.'
   robots: 'index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large'
   shortlink: '[site:url]'
-  title: 'XEDC - 精选美图、视频与优质文章'
+  title: 'DcLili - 精选美图、视频与优质文章'
+  og_image: 'https://gitxx.xyz/themes/custom/xedc/screenshot.png'
+  twitter_cards_type: summary_large_image
+  twitter_cards_image: 'https://gitxx.xyz/themes/custom/xedc/screenshot.png'
+

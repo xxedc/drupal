@@ -1,0 +1,21 @@
+uuid: bc6be73e-1ea9-4635-bb56-80cab05ad1e3
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: node__video
+label: '内容: 视频'
+tags:
+  title: '[node:title] | [site:name]'
+  description: '[node:title] - [node:field_categories:entity:name]'
+  canonical_url: '[node:url]'
+  og_title: '[node:title]'
+  og_description: '[node:title] - [node:field_categories:entity:name]'
+  og_url: '[node:url]'
+  og_type: website
+  og_image: '[node:field_video_cover:entity:field_media_image:xa_hero:url]'
+  og_image_alt: '[node:title]'
+  twitter_cards_type: summary_large_image
+  twitter_cards_title: '[node:title]'
+  twitter_cards_description: '[node:title] - [node:field_categories:entity:name]'
+  twitter_cards_image: '[node:field_video_cover:entity:field_media_image:xa_hero:url]'
+

@@ -1,10 +1,11 @@
+<h1 class="visually-hidden">XEDC - 精选美图、视频与优质文章</h1>
 <div class="xedc-container">
 <section class="xedc-section">
   <div class="xedc-section__head"><h2>最新美图</h2><a href="/photos">查看更多 ›</a></div>
   <div class="xedc-grid">
   {% for i in home_photos %}
     <article class="xedc-card"><a href="{{ i.url }}">
-      {% if i.img %}<img src="{{ i.img }}" alt="{{ i.title }}" loading="lazy">{% endif %}
+      {% if i.img %}<img src="{{ i.img }}" alt="{{ i.title }}"{% if i.width %} width="{{ i.width }}" height="{{ i.height }}"{% endif %} loading="{{ loop.first ? 'eager' : 'lazy' }}"{% if loop.first %} fetchpriority="high"{% endif %}>{% endif %}
       <div class="xedc-card__title">{{ i.title }}</div>
     </a></article>
   {% endfor %}
@@ -15,7 +16,7 @@
   <div class="xedc-grid xedc-grid--video">
   {% for i in home_videos %}
     <article class="xedc-card"><a href="{{ i.url }}">
-      {% if i.img %}<img src="{{ i.img }}" alt="{{ i.title }}" loading="lazy">{% endif %}
+      {% if i.img %}<img src="{{ i.img }}" alt="{{ i.title }}"{% if i.width %} width="{{ i.width }}" height="{{ i.height }}"{% endif %} loading="lazy">{% endif %}
       <span class="xedc-play">▶</span>
       <div class="xedc-card__title">{{ i.title }}</div>
     </a></article>
@@ -27,7 +28,7 @@
   <div class="xedc-articles">
   {% for i in home_articles %}
     <a class="xedc-article" href="{{ i.url }}">
-      {% if i.img %}<img src="{{ i.img }}" alt="" loading="lazy">{% endif %}
+      {% if i.img %}<img src="{{ i.img }}" alt=""{% if i.width %} width="{{ i.width }}" height="{{ i.height }}"{% endif %} loading="lazy">{% endif %}
       <div class="xedc-article__body">
         <div class="xedc-card__title" style="padding:0">{{ i.title }}</div>
         {% if i.summary %}<p class="xedc-article__summary">{{ i.summary }}</p>{% endif %}

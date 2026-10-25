@@ -19,12 +19,12 @@
           </video>
         {% elseif vd.type == 'iframe' %}
           <div class="vd-click" data-embed="{{ vd.src }}">
-            {% if cover %}<img src="{{ cover }}" alt="{{ label }}">{% endif %}
+            {% if cover %}<img src="{{ cover }}" alt="{{ label }}"{% if vd.cover_width %} width="{{ vd.cover_width }}" height="{{ vd.cover_height }}"{% endif %} loading="eager" fetchpriority="high">{% endif %}
             <button type="button" class="vd-play" aria-label="播放">▶</button>
           </div>
           <script>document.querySelector('.vd-click').addEventListener('click',function(){var i=document.createElement('iframe');i.src=this.dataset.embed;i.allow='autoplay; fullscreen';i.allowFullscreen=true;i.referrerPolicy='strict-origin-when-cross-origin';this.replaceWith(i)});</script>
         {% elseif cover %}
-          <img src="{{ cover }}" alt="{{ label }}">
+          <img src="{{ cover }}" alt="{{ label }}"{% if vd.cover_width %} width="{{ vd.cover_width }}" height="{{ vd.cover_height }}"{% endif %} loading="eager" fetchpriority="high">
         {% endif %}
       </div>
 

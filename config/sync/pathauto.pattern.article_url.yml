@@ -1,0 +1,24 @@
+uuid: 34c358ff-4a92-4f58-8d62-3658d5e36833
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - node.type.article
+  module:
+    - node
+id: article_url
+label: '文章 URL'
+type: 'canonical_entities:node'
+pattern: '/articles/[node:title]'
+selection_criteria:
+  400b0c2d-74ea-4349-9604-4979ca1fafdd:
+    id: 'entity_bundle:node'
+    negate: false
+    context_mapping:
+      node: node
+    bundles:
+      article: article
+selection_logic: and
+weight: -5
+relationships: {  }
+

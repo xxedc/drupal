@@ -1,0 +1,21 @@
+uuid: e19c8d0e-012f-4f2d-b038-41cfcc22124a
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: node__article
+label: '内容: 文章'
+tags:
+  title: '[node:title] | [site:name]'
+  description: '[node:field_summary] [node:title] - [node:field_categories:entity:name]'
+  canonical_url: '[node:url]'
+  og_title: '[node:title]'
+  og_description: '[node:field_summary] [node:title] - [node:field_categories:entity:name]'
+  og_url: '[node:url]'
+  og_type: article
+  og_image: '[node:field_cover:entity:field_media_image:xa_hero:url]'
+  og_image_alt: '[node:title]'
+  twitter_cards_type: summary_large_image
+  twitter_cards_title: '[node:title]'
+  twitter_cards_description: '[node:field_summary] [node:title] - [node:field_categories:entity:name]'
+  twitter_cards_image: '[node:field_cover:entity:field_media_image:xa_hero:url]'
+
