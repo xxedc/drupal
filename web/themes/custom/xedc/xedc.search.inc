@@ -1,104 +1,650 @@
 <?php
 
-function xedc_search_type_map(): array {
-  return ['photo' => '美图', 'video' => '视频', 'article' => '文章'];
+/**
+ * @file
+ * Search page helpers for the xedc theme.
+ */
+
+use Drupal\Component\Utility\Html;
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Database\Query\PagerSelectExtender;
+use Drupal\Core\Render\Markup;
+use Drupal\Core\Url;
+use Drupal\file\FileInterface;
+use Drupal\image\Entity\ImageStyle;
+use Drupal\media\MediaInterface;
+use Drupal\node\Entity\Node;
+use Drupal\node\NodeInterface;
+use Drupal\search\SearchQuery;
+
+/**
+ * Returns supported search types.
+ */
+function _xedc_search_types(): array {
+  return [
+    'all' => '全部',
+    'photo' => '美图',
+    'video' => '视频',
+    'article' => '文章',
+    'model' => '模特',
+  ];
 }
 
-function xedc_search_parse_keys(): array {
-  $keys = (string) \Drupal::request()->query->get('keys', '');
-  if ($keys === '') {
-    $p = \Drupal::routeMatch()->getRawParameters()->all();
-    $keys = (string) ($p['keys'] ?? '');
+/**
+ * Whether the current route renders a content search page.
+ */
+function _xedc_search_is_route(): bool {
+  static $is_search = NULL;
+  if ($is_search !== NULL) {
+    return $is_search;
   }
-  $active = '';
-  if (preg_match('/(?:^|\s)type:([^\s]+)/u', $keys, $m)) { $active = $m[1]; }
-  $base = trim(preg_replace('/(?:^|\s)type:[^\s]+/u', '', $keys));
-  return [$base, $active];
+  $name = \Drupal::routeMatch()->getRouteName();
+  $is_search = in_array($name, ['search.view_search', 'search.view_node_search'], TRUE);
+  return $is_search;
 }
 
-function xedc_search_highlight(string $text, string $keys) {
-  $words = array_filter(array_map(fn($w) => trim($w, '"'), preg_split('/\s+/u', $keys)));
-  if (!$words) { return htmlspecialchars($text, ENT_QUOTES); }
-  $re = '/(' . implode('|', array_map(fn($w) => preg_quote($w, '/'), $words)) . ')/iu';
-  $out = '';
-  foreach (preg_split($re, $text, -1, PREG_SPLIT_DELIM_CAPTURE) as $i => $p) {
-    $e = htmlspecialchars($p, ENT_QUOTES);
-    $out .= ($i % 2) ? '<mark>' . $e . '</mark>' : $e;
+/**
+ * Returns sanitized search parameters: [q, type, sort, page].
+ */
+function _xedc_search_params(): array {
+  static $params = NULL;
+  if ($params !== NULL) {
+    return $params;
   }
-  return \Drupal\Core\Render\Markup::create($out);
-}
 
-function xedc_search_cover_url($node): string {
-  foreach (['field_cover_image', 'field_video_cover', 'field_image', 'field_images'] as $f) {
-    if (!$node->hasField($f) || $node->get($f)->isEmpty()) { continue; }
-    $e = $node->get($f)->entity;
-    if ($e && $e->getEntityTypeId() === 'media') { $e = $e->get('thumbnail')->entity; }
-    if ($e && $e->getEntityTypeId() === 'file') {
-      $uri = $e->getFileUri();
-      $style = \Drupal\image\Entity\ImageStyle::load('medium');
-      return $style ? $style->buildUrl($uri) : \Drupal::service('file_url_generator')->generateString($uri);
+  $request = \Drupal::request();
+  $q = $request->query->get('q');
+  if (!is_string($q) || trim($q) === '') {
+    $keys = $request->query->get('keys');
+    if (is_string($keys)) {
+      $q = $keys;
     }
   }
-  return '';
-}
-
-function xedc_search_find_node(array $v) {
-  $n = $v['result']['node'] ?? NULL;
-  if ($n instanceof \Drupal\node\NodeInterface) { return $n; }
-  $path = parse_url((string) ($v['url'] ?? ''), PHP_URL_PATH);
-  if (!$path) { return NULL; }
-  $u = \Drupal::service('path.validator')->getUrlIfValid(trim($path, '/'));
-  if ($u && $u->isRouted()) {
-    $id = $u->getRouteParameters()['node'] ?? NULL;
-    if ($id) { return \Drupal\node\Entity\Node::load($id); }
+  $q = is_string($q) ? $q : '';
+  $q = trim(strip_tags($q));
+  $q = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $q) ?? '';
+  $q = preg_replace('/\s+/u', ' ', $q) ?? '';
+  if (mb_strlen($q) > 100) {
+    $q = mb_substr($q, 0, 100);
   }
-  return NULL;
-}
 
-function xedc_preprocess_search_result(array &$variables) {
-  $node = xedc_search_find_node($variables);
-  if (!$node) { return; }
-  $b = $node->bundle();
-  $map = xedc_search_type_map();
-  $dur = '';
-  if ($b === 'video' && $node->hasField('field_duration') && !$node->get('field_duration')->isEmpty()) {
-    $d = $node->get('field_duration')->value;
-    $dur = is_numeric($d) ? gmdate((int) $d >= 3600 ? 'H:i:s' : 'i:s', (int) $d) : (string) $d;
+  $type = $request->query->get('type');
+  $type = is_string($type) ? strtolower($type) : 'all';
+  if (!array_key_exists($type, _xedc_search_types())) {
+    $type = 'all';
   }
-  [$base] = xedc_search_parse_keys();
-  $variables['sr'] = [
-    'type' => $b,
-    'type_label' => $map[$b] ?? $node->type->entity->label(),
-    'cover' => xedc_search_cover_url($node),
-    'duration' => $dur,
-    'title_html' => xedc_search_highlight((string) $node->label(), $base),
+
+  $sort = $request->query->get('sort');
+  $sort = $sort === 'latest' ? 'latest' : 'relevance';
+
+  $page = $request->query->get('page');
+  if (is_array($page)) {
+    $page = end($page);
+  }
+  $page = is_numeric($page) && (int) $page > 0 ? (int) $page : 0;
+  if ($page > 1000) {
+    $page = 1000;
+  }
+
+  $params = [$q, $type, $sort, $page];
+  return $params;
+}
+
+/**
+ * Builds a search URL while preserving q/type/sort.
+ */
+function _xedc_search_url(string $q, string $type = 'all', string $sort = 'relevance', int $page = 0): string {
+  $query = [];
+  if ($q !== '') {
+    $query['q'] = $q;
+  }
+  if ($type !== 'all') {
+    $query['type'] = $type;
+  }
+  if ($sort === 'latest') {
+    $query['sort'] = $sort;
+  }
+  if ($page > 0) {
+    $query['page'] = $page;
+  }
+  return Url::fromUserInput('/search', ['query' => $query])->toString();
+}
+
+/**
+ * Builds the core search query used for content results and counts.
+ */
+function _xedc_search_query(string $q, string $type = 'all') {
+  $query = \Drupal::database()
+    ->select('search_index', 'i')
+    ->extend(SearchQuery::class);
+  $query->join('node_field_data', 'n', '[n].[nid] = [i].[sid] AND [n].[langcode] = [i].[langcode]');
+  $query->condition('n.status', 1)->addTag('node_access');
+  $query->searchExpression($q, 'node_search');
+  if (in_array($type, ['photo', 'video', 'article'], TRUE)) {
+    $query->condition('n.type', $type);
+  }
+  return $query;
+}
+
+/**
+ * Counts content results for a type.
+ */
+function _xedc_search_count(string $q, string $type = 'all'): int {
+  if ($q === '') {
+    return 0;
+  }
+  $query = _xedc_search_query($q, $type);
+  if (!$query->prepareAndNormalize()) {
+    return 0;
+  }
+  return (int) $query->countQuery()->execute()->fetchField();
+}
+
+/**
+ * Returns result node IDs for content search.
+ */
+function _xedc_search_result_nids(string $q, string $type, string $sort, int $limit = 24): array {
+  if ($q === '' || !in_array($type, ['all', 'photo', 'video', 'article'], TRUE)) {
+    return [];
+  }
+  $query = _xedc_search_query($q, $type);
+  if (!$query->prepareAndNormalize()) {
+    return [];
+  }
+  if ($sort === 'latest') {
+    $query->orderBy('n.created', 'DESC')->groupBy('n.created');
+  }
+  $pager = $query->extend(PagerSelectExtender::class);
+  $pager->limit($limit);
+  $result = $pager->execute();
+  $nids = [];
+  if ($result) {
+    foreach ($result as $row) {
+      $nids[] = (int) $row->sid;
+    }
+  }
+  return $nids;
+}
+
+/**
+ * Escapes text and highlights search keywords.
+ */
+function _xedc_search_highlight(string $text, string $q): Markup {
+  $text = (string) $text;
+  $words = array_values(array_filter(
+    array_map(fn($word) => trim($word, '"'), preg_split('/\s+/u', trim($q)) ?: []),
+    fn($word) => $word !== ''
+  ));
+  if (!$words) {
+    return Markup::create(Html::escape($text));
+  }
+  $pattern = '/(' . implode('|', array_map(fn($word) => preg_quote($word, '/'), $words)) . ')/iu';
+  $parts = preg_split($pattern, $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+  if ($parts === FALSE) {
+    return Markup::create(Html::escape($text));
+  }
+  $out = '';
+  foreach ($parts as $index => $part) {
+    if ($part === '') {
+      continue;
+    }
+    $escaped = Html::escape($part);
+    $out .= ($index % 2 === 1) ? '<mark class="sr-mark">' . $escaped . '</mark>' : $escaped;
+  }
+  return Markup::create($out);
+}
+
+/**
+ * Returns a safe image URL from a file or media entity.
+ */
+function _xedc_search_image_entity($entity, string $style_id = 'photo_card_640'): array {
+  if (!$entity) {
+    return ['', []];
+  }
+  $tags = [];
+  if ($entity instanceof MediaInterface) {
+    $tags = $entity->getCacheTags();
+    if ($entity->hasField('field_media_image') && !$entity->get('field_media_image')->isEmpty()) {
+      $entity = $entity->get('field_media_image')->entity;
+    }
+    elseif ($entity->hasField('thumbnail') && !$entity->get('thumbnail')->isEmpty()) {
+      $entity = $entity->get('thumbnail')->entity;
+    }
+    else {
+      return ['', $tags];
+    }
+  }
+  if ($entity instanceof FileInterface) {
+    $tags = Cache::mergeTags($tags, $entity->getCacheTags());
+    $uri = $entity->getFileUri();
+    $style = ImageStyle::load($style_id);
+    $url = $style
+      ? $style->buildUrl($uri)
+      : \Drupal::service('file_url_generator')->generateString($uri);
+    return [$url, $tags];
+  }
+  return ['', $tags];
+}
+
+/**
+ * Checks that an inline image URL is safe to render.
+ */
+function _xedc_search_safe_image_url(string $url): bool {
+  $url = trim($url);
+  if ($url === '' || str_starts_with($url, '//')) {
+    return FALSE;
+  }
+  if (str_starts_with($url, '/')) {
+    return TRUE;
+  }
+  return (bool) preg_match('#^https?://#i', $url);
+}
+
+/**
+ * Returns node cover URL and cache tags.
+ */
+function _xedc_search_node_cover(NodeInterface $node, string $type = 'all'): array {
+  $bundle = $node->bundle();
+  $field = match ($bundle) {
+    'photo' => 'field_cover_image',
+    'video' => 'field_video_cover',
+    'article' => 'field_cover',
+    default => '',
+  };
+  if ($field !== '' && $node->hasField($field) && !$node->get($field)->isEmpty()) {
+    $style = ($bundle === 'video' && $type === 'video') ? 'video_cover' : 'photo_card_640';
+    [$url, $tags] = _xedc_search_image_entity($node->get($field)->entity, $style);
+    if ($url !== '') {
+      return [$url, $tags];
+    }
+  }
+
+  if ($bundle === 'photo' && $node->hasField('field_images') && !$node->get('field_images')->isEmpty()) {
+    [$url, $tags] = _xedc_search_image_entity($node->get('field_images')->first()->entity, 'photo_card_640');
+    if ($url !== '') {
+      return [$url, $tags];
+    }
+  }
+
+  if ($bundle === 'article' && $node->hasField('field_body') && !$node->get('field_body')->isEmpty()) {
+    $html = (string) $node->get('field_body')->value;
+    if (preg_match('/<img[^>]+src\s*=\s*["\']([^"\']+)["\']/i', $html, $match)) {
+      $src = html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+      if (str_starts_with($src, 'sites/') || str_starts_with($src, 'files/')) {
+        $src = '/' . $src;
+      }
+      if (_xedc_search_safe_image_url($src)) {
+        return [$src, []];
+      }
+    }
+  }
+
+  return ['', []];
+}
+
+/**
+ * Formats a video duration.
+ */
+function _xedc_search_duration(NodeInterface $node): string {
+  if (!$node->hasField('field_duration') || $node->get('field_duration')->isEmpty()) {
+    return '';
+  }
+  $value = $node->get('field_duration')->value;
+  if (is_numeric($value)) {
+    $seconds = (int) $value;
+    return gmdate($seconds >= 3600 ? 'H:i:s' : 'i:s', $seconds);
+  }
+  return trim((string) $value);
+}
+
+/**
+ * Builds the two-line article summary shown in article search results.
+ */
+function _xedc_search_summary(NodeInterface $node, string $q): Markup|string {
+  if (!$node->hasField('field_summary') || $node->get('field_summary')->isEmpty()) {
+    return '';
+  }
+  $text = strip_tags((string) $node->get('field_summary')->value);
+  $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
+  if ($text === '') {
+    return '';
+  }
+  if (mb_strlen($text) > 100) {
+    $text = mb_substr($text, 0, 100) . '…';
+  }
+  return _xedc_search_highlight($text, $q);
+}
+
+/**
+ * Builds card data for a list of node IDs.
+ */
+function _xedc_search_cards(array $nids, string $q, string $type): array {
+  if (!$nids) {
+    return [[], []];
+  }
+  $nodes = Node::loadMultiple($nids);
+  $date_formatter = \Drupal::service('date.formatter');
+  $types = _xedc_search_types();
+  $cards = [];
+  $tags = ['node_list'];
+  foreach ($nodes as $node) {
+    if (!$node instanceof NodeInterface || !$node->isPublished()) {
+      continue;
+    }
+    $bundle = $node->bundle();
+    if (!in_array($bundle, ['photo', 'video', 'article'], TRUE)) {
+      continue;
+    }
+    $title = $node->label();
+    [$cover, $cover_tags] = _xedc_search_node_cover($node, $type);
+    $tags = Cache::mergeTags($tags, $node->getCacheTags(), $cover_tags);
+    $date = $date_formatter->format($node->getCreatedTime(), 'custom', 'Y-m-d');
+    $model = '';
+    if ($node->hasField('field_model') && !$node->get('field_model')->isEmpty()) {
+      foreach ($node->get('field_model')->referencedEntities() as $term) {
+        if ($term instanceof \Drupal\taxonomy\TermInterface) {
+          $model = $term->label();
+          break;
+        }
+      }
+    }
+    $summary = ($type === 'article' && $bundle === 'article') ? _xedc_search_summary($node, $q) : '';
+    $cards[] = [
+      'url' => $node->toUrl()->toString(),
+      'title' => _xedc_search_highlight($title, $q),
+      'cover' => $cover,
+      'alt' => $title,
+      'type' => $bundle,
+      'type_label' => $types[$bundle] ?? '',
+      'video' => $bundle === 'video',
+      'duration' => $bundle === 'video' ? _xedc_search_duration($node) : '',
+      'model' => $model,
+      'date' => $date,
+      'summary' => $summary,
+      'initial' => mb_substr($title, 0, 1),
+    ];
+  }
+  return [$cards, $tags];
+}
+
+/**
+ * Finds model terms whose name matches the keyword.
+ */
+function _xedc_search_model_groups(string $q): array {
+  if ($q === '') {
+    return [];
+  }
+  $db = \Drupal::database();
+  $terms = $db->select('taxonomy_term_field_data', 't')
+    ->fields('t', ['tid', 'name'])
+    ->condition('vid', 'models')
+    ->condition('default_langcode', 1)
+    ->execute()
+    ->fetchAllKeyed();
+  if (!$terms) {
+    return [];
+  }
+
+  $alias = [];
+  if ($db->schema()->tableExists('taxonomy_term__field_alias_of')) {
+    $alias = $db->select('taxonomy_term__field_alias_of', 'a')
+      ->fields('a', ['entity_id', 'field_alias_of_target_id'])
+      ->condition('a.deleted', 0)
+      ->execute()
+      ->fetchAllKeyed();
+  }
+
+  $like = '%' . $db->escapeLike($q) . '%';
+  $matched = $db->select('taxonomy_term_field_data', 't')
+    ->fields('t', ['tid'])
+    ->condition('vid', 'models')
+    ->condition('default_langcode', 1)
+    ->condition('name', $like, 'LIKE')
+    ->execute()
+    ->fetchCol();
+  if (!$matched) {
+    return [];
+  }
+
+  $groups = [];
+  foreach ($matched as $tid) {
+    $tid = (int) $tid;
+    $main = isset($alias[$tid], $terms[$alias[$tid]]) ? (int) $alias[$tid] : $tid;
+    if (!isset($terms[$main])) {
+      continue;
+    }
+    $groups[$main]['main'] = $main;
+    $groups[$main]['name'] = $terms[$main];
+    $groups[$main]['tids'][$tid] = $tid;
+  }
+  if (!$groups) {
+    return [];
+  }
+
+  foreach ($alias as $tid => $main) {
+    $main = (int) $main;
+    $tid = (int) $tid;
+    if (isset($groups[$main], $terms[$tid])) {
+      $groups[$main]['tids'][$tid] = $tid;
+    }
+  }
+
+  foreach ($groups as &$group) {
+    $group['tids'] = array_values(array_unique($group['tids']));
+    $count_query = $db->select('node__field_model', 'm');
+    $count_query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
+    $count_query->condition('n.status', 1)
+      ->condition('m.deleted', 0)
+      ->condition('m.field_model_target_id', $group['tids'], 'IN');
+    $count_query->addExpression('COUNT(DISTINCT n.nid)', 'cnt');
+    $group['count'] = (int) $count_query->execute()->fetchField();
+
+    $latest = $db->select('node__field_model', 'm');
+    $latest->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
+    $latest->condition('n.status', 1)
+      ->condition('m.deleted', 0)
+      ->condition('m.field_model_target_id', $group['tids'], 'IN');
+    $latest->fields('n', ['nid'])->orderBy('n.created', 'DESC')->range(0, 1);
+    $nid = (int) ($latest->execute()->fetchField() ?: 0);
+    $group['cover'] = '';
+    if ($nid) {
+      $node = Node::load($nid);
+      if ($node) {
+        [$cover] = _xedc_search_node_cover($node, 'photo');
+        $group['cover'] = $cover;
+      }
+    }
+    $group['name_html'] = _xedc_search_highlight($group['name'], $q);
+    $group['initial'] = mb_substr($group['name'], 0, 1);
+    $group['url'] = Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $group['main']])->toString();
+  }
+  unset($group);
+
+  uasort($groups, fn($a, $b) => $b['count'] <=> $a['count']);
+  return array_values($groups);
+}
+
+/**
+ * Returns all model term IDs represented by matched model groups.
+ */
+function _xedc_search_model_tids(array $groups): array {
+  $tids = [];
+  foreach ($groups as $group) {
+    $tids = array_merge($tids, $group['tids']);
+  }
+  return array_values(array_unique(array_map('intval', $tids)));
+}
+
+/**
+ * Counts all content attached to matched model groups.
+ */
+function _xedc_search_model_content_count(array $groups): int {
+  $tids = _xedc_search_model_tids($groups);
+  if (!$tids) {
+    return 0;
+  }
+  $query = \Drupal::database()->select('node__field_model', 'm');
+  $query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
+  $query->condition('n.status', 1)
+    ->condition('m.deleted', 0)
+    ->condition('m.field_model_target_id', $tids, 'IN');
+  $query->addExpression('COUNT(DISTINCT n.nid)', 'cnt');
+  return (int) $query->execute()->fetchField();
+}
+
+/**
+ * Returns a page of content attached to matched model groups.
+ */
+function _xedc_search_model_nids(array $groups, int $limit = 24): array {
+  $tids = _xedc_search_model_tids($groups);
+  if (!$tids) {
+    return [];
+  }
+  $query = \Drupal::database()
+    ->select('node__field_model', 'm')
+    ->extend(PagerSelectExtender::class);
+  $query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
+  $query->condition('n.status', 1)
+    ->condition('m.deleted', 0)
+    ->condition('m.field_model_target_id', $tids, 'IN');
+  $query->fields('n', ['nid'])
+    ->distinct()
+    ->orderBy('n.created', 'DESC')
+    ->limit($limit);
+  $nids = [];
+  foreach ($query->execute() as $row) {
+    $nids[] = (int) $row->nid;
+  }
+  return $nids;
+}
+
+/**
+ * Returns popular models for empty search states.
+ */
+function _xedc_search_hot_models(int $limit = 6): array {
+  $db = \Drupal::database();
+  $query = $db->select('node__field_model', 'm');
+  $query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
+  $query->condition('n.status', 1)->condition('m.deleted', 0);
+  $query->addField('m', 'field_model_target_id', 'tid');
+  $query->addExpression('COUNT(DISTINCT n.nid)', 'cnt');
+  $query->groupBy('m.field_model_target_id')->orderBy('cnt', 'DESC')->range(0, $limit);
+  $rows = $query->execute()->fetchAll();
+  if (!$rows) {
+    return [];
+  }
+  $counts = [];
+  foreach ($rows as $row) {
+    $counts[(int) $row->tid] = (int) $row->cnt;
+  }
+  $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadMultiple(array_keys($counts));
+  $models = [];
+  foreach ($terms as $tid => $term) {
+    if ($term->bundle() !== 'models') {
+      continue;
+    }
+    $models[] = [
+      'name' => $term->label(),
+      'count' => $counts[$tid],
+      'url' => Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $tid])->toString(),
+    ];
+  }
+  usort($models, fn($a, $b) => $b['count'] <=> $a['count']);
+  return $models;
+}
+
+/**
+ * Builds the full search page render array.
+ */
+function _xedc_search_build_page(): array {
+  [$q, $type, $sort, $page] = _xedc_search_params();
+  $types = _xedc_search_types();
+  $counts = ['all' => 0, 'photo' => 0, 'video' => 0, 'article' => 0, 'model' => 0];
+  $groups = [];
+  $model_total = 0;
+
+  if ($q !== '') {
+    foreach (['all', 'photo', 'video', 'article'] as $key) {
+      $counts[$key] = _xedc_search_count($q, $key);
+    }
+    $groups = _xedc_search_model_groups($q);
+    $model_total = $groups ? _xedc_search_model_content_count($groups) : 0;
+    $counts['model'] = $model_total;
+  }
+
+  $cards = [];
+  $tags = ['node_list', 'taxonomy_term_list', 'media_list', 'file_list'];
+  if ($q !== '') {
+    if ($type === 'model' && $groups) {
+      $nids = _xedc_search_model_nids($groups);
+      [$cards, $card_tags] = _xedc_search_cards($nids, $q, $type);
+      $tags = Cache::mergeTags($tags, $card_tags);
+    }
+    elseif (in_array($type, ['all', 'photo', 'video', 'article'], TRUE)) {
+      $nids = _xedc_search_result_nids($q, $type, $sort);
+      [$cards, $card_tags] = _xedc_search_cards($nids, $q, $type);
+      $tags = Cache::mergeTags($tags, $card_tags);
+    }
+  }
+
+  $model_cards = in_array($type, ['all', 'model'], TRUE) ? $groups : [];
+  $tabs = [];
+  foreach ($types as $key => $label) {
+    $tabs[] = [
+      'key' => $key,
+      'label' => $label,
+      'count' => $counts[$key] ?? 0,
+      'url' => _xedc_search_url($q, $key, $sort, 0),
+      'active' => $key === $type,
+    ];
+  }
+
+  $info_count = match ($type) {
+    'photo', 'video', 'article', 'model' => $counts[$type],
+    default => $counts['all'],
+  };
+
+  $sorts = [
+    [
+      'key' => 'relevance',
+      'label' => '相关',
+      'active' => $sort === 'relevance',
+      'url' => _xedc_search_url($q, $type, 'relevance', 0),
+    ],
+    [
+      'key' => 'latest',
+      'label' => '最新',
+      'active' => $sort === 'latest',
+      'url' => _xedc_search_url($q, $type, 'latest', 0),
+    ],
   ];
-}
 
-function xedc_preprocess_item_list__search_results(array &$variables) {
-  $variables['attributes']['class'][] = 'sr-grid';
-  $variables['title'] = NULL;
-}
-
-function xedc_form_search_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-  $form['#attached']['library'][] = 'xedc/search-page';
-  [$base, $active] = xedc_search_parse_keys();
-  if (isset($form['basic']['keys'])) { $form['basic']['keys']['#default_value'] = $base; }
-  $form['basic']['xtype'] = [
-    '#type' => 'select',
-    '#title' => '类型',
-    '#title_display' => 'invisible',
-    '#options' => ['' => '全部'] + xedc_search_type_map(),
-    '#default_value' => $active,
-    '#weight' => -10,
+  $explore = [
+    ['label' => '最新美图', 'url' => Url::fromUserInput('/meitu')->toString()],
+    ['label' => '热门视频', 'url' => Url::fromUserInput('/video')->toString()],
+    ['label' => '最新文章', 'url' => Url::fromUserInput('/articles')->toString()],
+    ['label' => '全部模特', 'url' => Url::fromUserInput('/models')->toString()],
   ];
-  unset($form['help_link'], $form['basic']['help_link']);
-  $form['#validate'][] = 'xedc_search_form_validate';
-}
 
-function xedc_search_form_validate(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-  $k = trim(preg_replace('/(?:^|\s)type:\S+/u', '', (string) $form_state->getValue('keys')));
-  $t = (string) $form_state->getValue('xtype');
-  if ($t !== '' && $k !== '') { $k .= ' type:' . $t; }
-  $form_state->setValue('keys', $k);
+  return [
+    '#theme' => 'xedc_search_page',
+    '#q' => $q,
+    '#type' => $type,
+    '#sort' => $sort,
+    '#page' => $page,
+    '#form_action' => Url::fromUserInput('/search')->toString(),
+    '#tabs' => $tabs,
+    '#sorts' => $sorts,
+    '#info_count' => $info_count,
+    '#cards' => $cards,
+    '#models' => $model_cards,
+    '#pager' => $cards ? ['#type' => 'pager'] : [],
+    '#hot_models' => _xedc_search_hot_models(6),
+    '#explore' => $explore,
+    '#attached' => ['library' => ['xedc/search-page']],
+    '#cache' => [
+      'contexts' => ['url.query_args:q', 'url.query_args:type', 'url.query_args:sort', 'url.query_args:page'],
+      'tags' => $tags,
+    ],
+  ];
 }

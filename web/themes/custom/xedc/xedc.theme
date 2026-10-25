@@ -11,6 +11,32 @@ foreach (glob($includes_path) as $file) {
   require_once __DIR__ . '/includes/' . basename($file);
 }
 
+/**
+ * Implements hook_theme().
+ */
+function xedc_theme($existing, $type, $theme, $path) {
+  return [
+    'xedc_search_page' => [
+      'variables' => [
+        'q' => '',
+        'type' => 'all',
+        'sort' => 'relevance',
+        'page' => 0,
+        'form_action' => '/search',
+        'tabs' => [],
+        'sorts' => [],
+        'info_count' => 0,
+        'cards' => [],
+        'models' => [],
+        'pager' => [],
+        'hot_models' => [],
+        'explore' => [],
+      ],
+      'template' => 'search/search-page',
+    ],
+  ];
+}
+
 function _xedc_home_items_old($type, $field, $limit) {
   $nids = \Drupal::entityQuery('node')->accessCheck(TRUE)
     ->condition('type', $type)->condition('status', 1)
@@ -40,6 +66,17 @@ function _xedc_home_items_old($type, $field, $limit) {
 
 function xedc_preprocess_page(&$variables) {
   xedc_nav_build($variables);
+  if (_xedc_search_is_route() && isset($variables['page']['content'])) {
+    $variables['page']['content'] = _xedc_search_build_page();
+    $variables['page']['#cache']['contexts'] = array_merge(
+      $variables['page']['#cache']['contexts'] ?? [],
+      ['url.query_args:q', 'url.query_args:type', 'url.query_args:sort', 'url.query_args:page']
+    );
+    $variables['page']['#cache']['tags'] = array_merge(
+      $variables['page']['#cache']['tags'] ?? [],
+      ['node_list', 'taxonomy_term_list', 'media_list', 'file_list']
+    );
+  }
   if (\Drupal::service('path.matcher')->isFrontPage()) {
     $variables['home_photos'] = _xedc_home_items('photo', 'field_cover_image', 5);
     $variables['home_videos'] = _xedc_home_items('video', 'field_video_cover', 8);
@@ -49,6 +86,54 @@ function xedc_preprocess_page(&$variables) {
 }
 
 function xedc_page_attachments_alter(array &$attachments) {
+  if (_xedc_search_is_route()) {
+    [$q, $type, $sort, $page] = _xedc_search_params();
+    $query = [];
+    if ($q !== '') {
+      $query['q'] = $q;
+    }
+    if ($type !== 'all') {
+      $query['type'] = $type;
+    }
+    if ($page > 0) {
+      $query['page'] = $page;
+    }
+    $canonical = \Drupal\Core\Url::fromUserInput('/search', ['query' => $query])->setAbsolute()->toString();
+
+    $attachments['#attached']['html_head'] = $attachments['#attached']['html_head'] ?? [];
+    $has_canonical = FALSE;
+    foreach ($attachments['#attached']['html_head'] as $key => $item) {
+      $name = $item[1] ?? '';
+      if ($name === 'robots') {
+        unset($attachments['#attached']['html_head'][$key]);
+      }
+      if ($name === 'canonical_url') {
+        $attachments['#attached']['html_head'][$key][0]['#attributes']['href'] = $canonical;
+        $has_canonical = TRUE;
+      }
+    }
+    if (!$has_canonical) {
+      $attachments['#attached']['html_head'][] = [
+        [
+          '#tag' => 'link',
+          '#attributes' => ['rel' => 'canonical', 'href' => $canonical],
+        ],
+        'canonical_url',
+      ];
+    }
+    $attachments['#attached']['html_head'][] = [
+      [
+        '#tag' => 'meta',
+        '#attributes' => ['name' => 'robots', 'content' => 'noindex,follow'],
+      ],
+      'robots',
+    ];
+    $attachments['#cache']['contexts'] = array_merge(
+      $attachments['#cache']['contexts'] ?? [],
+      ['url.query_args:q', 'url.query_args:type', 'url.query_args:page']
+    );
+    return;
+  }
   if (\Drupal::service('path.matcher')->isFrontPage()) {
     $attachments['#cache']['tags'][] = 'node_list';
   }
@@ -268,6 +353,12 @@ function xedc_preprocess_node(array &$variables) {
 require_once __DIR__ . '/includes/auth.inc';
 
 function xedc_preprocess_page_title(array &$variables) {
+  if (_xedc_search_is_route()) {
+    [$q] = _xedc_search_params();
+    $variables['title'] = $q !== '' ? '搜索：' . $q : '搜索';
+    $variables['#cache']['contexts'][] = 'url.query_args:q';
+    return;
+  }
   $route = \Drupal::routeMatch();
   if ($route->getRouteName() === 'entity.comment.edit_form') {
     $variables['title'] = t('编辑评论');

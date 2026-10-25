@@ -1,0 +1,11 @@
+uuid: c3c1edd7-c840-4ce5-ab12-3d92bc562983
+langcode: zh-hans
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: ypffQyhZEeqeSMKEk2dimPYcDvVhfA_CRWBQfaGtijY
+id: yandex
+label: Yandex
+url: null
+index_now_url: 'https://yandex.com/indexnow?url=[url]&key=[key]'
+sitemap_variants: {  }

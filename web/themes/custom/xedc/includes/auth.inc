@@ -75,6 +75,16 @@ function _xedc_auth_foot(array &$form, string $text, string $label, string $rout
  * Implements hook_preprocess_html().
  */
 function xedc_preprocess_html(array &$variables): void {
+  if (_xedc_search_is_route()) {
+    [$q] = _xedc_search_params();
+    $variables['head_title'] = [
+      'title' => $q !== '' ? '搜索：' . $q : '搜索',
+      'name' => \Drupal::config('system.site')->get('name'),
+    ];
+    $variables['page']['#attached']['library'][] = 'xedc/search-page';
+    $variables['#cache']['contexts'][] = 'url.query_args:q';
+    return;
+  }
   $variables['page']['#attached']['library'][] = 'xedc/xedc_auth';
   if (_xedc_auth_is_auth_route()) {
     $variables['attributes']['class'][] = 'xedc-auth-page';

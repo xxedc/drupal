@@ -59,6 +59,9 @@ module:
   search: 0
   search_node: 0
   shortcut: 0
+  simple_sitemap: 0
+  simple_sitemap_engines: 0
+  simple_sitemap_views: 0
   smtp: 0
   statistics: 0
   system: 0

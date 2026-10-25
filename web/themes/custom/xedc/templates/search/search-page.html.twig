@@ -1,0 +1,115 @@
+{{ attach_library('xedc/search-page') }}
+{% set i_search %}<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>{% endset %}
+{% set i_close %}<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>{% endset %}
+{% set i_arrow %}<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>{% endset %}
+
+<div class="sr-page{{ type == 'video' ? ' sr-page--video' }}">
+  <form class="sr-form" action="{{ form_action }}" method="get" role="search">
+    <div class="sr-field">
+      <span class="sr-field-icon">{{ i_search }}</span>
+      <input class="sr-input" type="search" name="q" value="{{ q }}" placeholder="搜索美图、视频、文章、模特…" autocomplete="off" aria-label="搜索关键词">
+      <button class="sr-clear" type="button" data-sr-clear aria-label="清除关键词"{% if not q %} hidden{% endif %}>{{ i_close }}</button>
+      <button class="sr-submit" type="submit">搜索</button>
+    </div>
+    {% if type != 'all' %}<input type="hidden" name="type" value="{{ type }}">{% endif %}
+    {% if sort == 'latest' %}<input type="hidden" name="sort" value="latest">{% endif %}
+  </form>
+
+  <div class="sr-tabs-wrap">
+    <nav class="sr-tabs" aria-label="搜索类型">
+      {% for tab in tabs %}
+        <a class="sr-tab{{ tab.active ? ' is-active' }}" href="{{ tab.url }}">{{ tab.label }}{% if q %}<span class="sr-tab-count">{{ tab.count }}</span>{% endif %}</a>
+      {% endfor %}
+    </nav>
+  </div>
+
+  {% if models %}
+    <section class="sr-models" aria-label="匹配的模特">
+      {% for model in models %}
+        <a class="sr-model-card" href="{{ model.url }}">
+          <span class="sr-model-avatar">
+            {% if model.cover %}<img src="{{ model.cover }}" alt="" loading="lazy">{% else %}<span>{{ model.initial }}</span>{% endif %}
+          </span>
+          <span class="sr-model-info">
+            <span class="sr-model-label">模特</span>
+            <strong class="sr-model-name">{{ model.name_html }}</strong>
+            <span class="sr-model-count">{{ model.count }} 个作品</span>
+          </span>
+          <span class="sr-model-arrow">{{ i_arrow }}</span>
+        </a>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if q %}
+    <div class="sr-info">
+      <p class="sr-info-text">找到 <strong>{{ info_count }}</strong> 条与「<span class="sr-kw">{{ q }}</span>」相关的结果</p>
+      {% if type != 'model' %}
+        <div class="sr-sorts" aria-label="排序">
+          {% for item in sorts %}
+            <a class="sr-sort{{ item.active ? ' is-active' }}" href="{{ item.url }}">{{ item.label }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if cards %}
+    <ul class="sr-grid">
+      {% for card in cards %}
+        <li class="sr-item">
+          <a class="sr-card" href="{{ card.url }}">
+            <span class="sr-cover">
+              {% if card.cover %}<img class="sr-img" src="{{ card.cover }}" alt="{{ card.alt }}" loading="lazy" width="640" height="853">{% else %}<span class="sr-ph" aria-hidden="true">{{ card.initial }}</span>{% endif %}
+              <span class="sr-type">{{ card.type_label }}</span>
+              {% if card.video %}
+                <span class="sr-video-meta" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+                  {% if card.duration %}<span>{{ card.duration }}</span>{% endif %}
+                </span>
+              {% endif %}
+            </span>
+            <span class="sr-body">
+              <strong class="sr-title">{{ card.title }}</strong>
+              {% if card.summary %}<span class="sr-summary">{{ card.summary }}</span>{% endif %}
+              <span class="sr-meta">
+                {% if card.model %}<span class="sr-model">{{ card.model }}</span>{% else %}<time datetime="{{ card.date }}">{{ card.date }}</time>{% endif %}
+              </span>
+            </span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    {{ pager }}
+  {% elseif q %}
+    <div class="sr-empty">
+      <span class="sr-empty-icon">{{ i_search }}</span>
+      <h2>没有找到「{{ q }}」相关内容</h2>
+      <p>搜索建议：检查是否有错别字，或换一个更短、更常见的关键词试试。</p>
+      <div class="sr-empty-actions">
+        {% for item in explore %}
+          <a class="sr-empty-link" href="{{ item.url }}">{{ item.label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <div class="sr-empty">
+      <span class="sr-empty-icon">{{ i_search }}</span>
+      <h2>搜索美图、视频、文章和模特</h2>
+      <p>输入模特名、作品标题或关键词，开始发现内容。</p>
+      <div class="sr-empty-actions">
+        {% for item in explore %}
+          <a class="sr-empty-link" href="{{ item.url }}">{{ item.label }}</a>
+        {% endfor %}
+      </div>
+      {% if hot_models %}
+        <div class="sr-hot">
+          <span class="sr-hot-title">热门模特</span>
+          {% for model in hot_models %}
+            <a class="sr-hot-link" href="{{ model.url }}">{{ model.name }}<span>{{ model.count }}</span></a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>

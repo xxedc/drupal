@@ -58,6 +58,10 @@ search-page:
   css:
     theme:
       css/search.css: {}
+  js:
+    js/search-page.js: {}
+  dependencies:
+    - core/drupal
 
 article-list:
   css:
