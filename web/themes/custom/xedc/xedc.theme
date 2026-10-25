@@ -403,7 +403,7 @@ function _xedc_photo_build_rows(array &$variables, \Drupal\views\ViewExecutable 
     $html = '<div class="views-row"><a class="photo-card-link" href="' . \Drupal\Component\Utility\Html::escape($url) . '">';
     $html .= '<div class="views-field views-field-field-cover-image"><div class="field-content">';
     if ($cover_url) {
-      $html .= '<img src="' . \Drupal\Component\Utility\Html::escape($cover_url) . '" width="640" height="1138" alt="' . \Drupal\Component\Utility\Html::escape($title) . '" loading="' . ($eager ? 'eager' : 'lazy') . '"' . ($eager ? ' fetchpriority="high"' : '') . ' class="img-fluid">';
+      $html .= '<img src="' . \Drupal\Component\Utility\Html::escape($cover_url) . '" width="640" height="853" alt="' . \Drupal\Component\Utility\Html::escape($title) . '" loading="' . ($eager ? 'eager' : 'lazy') . '"' . ($eager ? ' fetchpriority="high"' : '') . ' class="img-fluid">';
     }
     $html .= '</div></div>';
     $html .= '<div class="views-field views-field-title"><h2 class="field-content">' . \Drupal\Component\Utility\Html::escape($title) . '</h2></div>';

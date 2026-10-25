@@ -100,17 +100,19 @@
     {% endblock %}
     {{ title_suffix }}
 
-    {% block views_header %}
-      {% if header %}
-        <div {{ views_header_attributes.addClass(views_header_classes) }}>
-          {{ header }}
-        </div>
-      {% endif %}
-    {% endblock %}
+    <div class="xedc-photo-list-heading{% if xedc_photo_intro %} has-intro{% endif %}">
+      {% block views_header %}
+        {% if header %}
+          <div {{ views_header_attributes.addClass(views_header_classes) }}>
+            {{ header }}
+          </div>
+        {% endif %}
+      {% endblock %}
 
-    {% if xedc_photo_intro %}
-      <div class="xedc-photo-intro">{{ xedc_photo_intro }}</div>
-    {% endif %}
+      {% if xedc_photo_intro %}
+        <div class="xedc-photo-intro">{{ xedc_photo_intro }}</div>
+      {% endif %}
+    </div>
 
     {% block views_filters %}
       {% if exposed %}

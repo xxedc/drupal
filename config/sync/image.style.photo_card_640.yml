@@ -3,7 +3,7 @@ langcode: zh-hans
 status: true
 dependencies: {  }
 name: photo_card_640
-label: '图片卡片 640x1138 (WebP)'
+label: '图片卡片 640x853 (WebP)'
 effects:
   df71fec2-3e57-4173-a7b9-8ee9473fee20:
     uuid: df71fec2-3e57-4173-a7b9-8ee9473fee20
@@ -11,7 +11,7 @@ effects:
     weight: 3
     data:
       width: 640
-      height: 1138
+      height: 853
       anchor: center-center
   2dc4b627-0acb-4fd6-818e-932612f30d00:
     uuid: 2dc4b627-0acb-4fd6-818e-932612f30d00
