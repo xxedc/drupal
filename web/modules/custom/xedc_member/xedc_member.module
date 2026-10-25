@@ -171,18 +171,6 @@ function xedc_member_form_alter(array &$form, FormStateInterface $form_state, $f
     $form['container']['upload']['#element_validate'][] = 'xedc_member_validate_video_mime';
   }
 
-  $form_object = $form_state->getFormObject();
-  if ($form_object instanceof \Drupal\comment\CommentForm
-    && !\Drupal::currentUser()->hasPermission('skip comment approval')
-    && !\Drupal::currentUser()->hasPermission('administer comments')) {
-    $form['xedc_member_comment_notice'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'div',
-      '#value' => t('评论提交后需要审核，审核通过后才会公开展示。'),
-      '#attributes' => ['class' => ['xm-notice']],
-      '#weight' => -50,
-    ];
-  }
 }
 
 /**

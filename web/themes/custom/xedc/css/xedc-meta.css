@@ -15,7 +15,6 @@
 
 
 /* 侧栏间距优化 */
-.img-detail__head{margin-bottom:1.25rem!important}
 .img-detail__side .comment{margin-bottom:.25rem}
 .img-detail__side .comment .field--name-comment-body,
 .img-detail__side .comment .comment__content{margin:.125rem 0 0!important}
@@ -24,7 +23,6 @@
 .img-detail__side .comment .links li{padding:0!important;margin:0!important}
 .img-detail__side .indented{margin-left:1.5rem!important;padding-left:.75rem!important}
 
-.img-detail__head{padding-bottom:.5rem}
 
 /* v3: 同排 + 图标 + 紧凑 */
 .xedc-meta__info{gap:.5rem}
@@ -38,3 +36,31 @@
 
 /* 相关推荐固定放到网格最后一行 */
 .img-detail > .img-rel{grid-row:-1}
+
+.xedc-meta__group{max-width:100%}
+.xedc-meta__values{min-width:0}
+.xedc-meta__tag{max-width:100%;overflow-wrap:anywhere}
+
+/* 分类、人物、标签统一胶囊 */
+.xedc-meta__model,
+.xedc-meta__tag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: .125rem .625rem;
+  border: 1px solid var(--m-border);
+  border-radius: 9999px;
+  background: var(--m-bg);
+  color: var(--m-fg);
+  font-size: .8125rem;
+  font-weight: 500;
+  line-height: 1.6;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.xedc-meta__model:hover,
+.xedc-meta__tag:hover {
+  background: var(--m-border);
+  color: var(--m-fg);
+  text-decoration: none;
+}

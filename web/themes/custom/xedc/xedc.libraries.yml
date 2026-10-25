@@ -72,3 +72,19 @@ article-detail:
       css/article-detail.css: {}
   js:
     js/article-detail.js: {}
+
+photo-detail:
+  js:
+    js/photo-detail.js: {}
+  dependencies:
+    - core/drupal
+
+comment-form:
+  version: 1.0
+  css:
+    theme:
+      css/comment-form.css: {}
+  js:
+    js/comment-form.js: {}
+  dependencies:
+    - core/drupal

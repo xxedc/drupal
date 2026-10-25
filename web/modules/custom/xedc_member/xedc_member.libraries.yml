@@ -3,6 +3,8 @@ member:
   css:
     theme:
       css/member.css: {}
+  js:
+    js/member.js: {}
   dependencies:
     - core/drupal
     - core/drupal.ajax

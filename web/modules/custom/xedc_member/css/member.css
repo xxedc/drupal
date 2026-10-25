@@ -1305,6 +1305,7 @@
   font-size: .8125rem;
   font-weight: 500;
   line-height: 1;
+  text-decoration: none;
   cursor: pointer;
   transition: border-color .15s, background-color .15s, color .15s;
 }
@@ -1538,4 +1539,47 @@
   .xm-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* 收藏按钮：覆盖主题 input--submit 模板固定附加的 btn-primary 黑色底 */
+.xedc-favorite-form .xedc-favorite-btn,
+.xedc-favorite-form .xedc-favorite-btn.btn-primary,
+.xedc-favorite-form .xedc-favorite-btn.btn-secondary {
+  padding: 0 12px;
+  border: 1px solid var(--xm-bd);
+  border-radius: 999px;
+  background: var(--xm-bg);
+  color: var(--xm-fg);
+  font-size: .8125rem;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.xedc-favorite-form .xedc-favorite-btn:hover,
+.xedc-favorite-form .xedc-favorite-btn:focus,
+.xedc-favorite-form .xedc-favorite-btn:active {
+  border-color: var(--xm-fg);
+  background: var(--xm-soft);
+  color: var(--xm-fg);
+  box-shadow: none;
+}
+
+.xedc-favorite-form .xedc-favorite-btn.is-favorite {
+  border-color: var(--xm-primary);
+  background: var(--xm-soft);
+  color: var(--xm-fg);
+}
+
+.img-detail__fav .xedc-favorite-form .xedc-favorite-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: .875rem;
+}
+
+.messages.is-xedc-autohide,
+.alert.is-xedc-autohide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
 }
