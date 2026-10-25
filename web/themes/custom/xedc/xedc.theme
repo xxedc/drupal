@@ -416,16 +416,15 @@ function _xedc_photo_build_rows(array &$variables, \Drupal\views\ViewExecutable 
       $html .= '<img src="' . \Drupal\Component\Utility\Html::escape($cover_url) . '" width="640" height="853" alt="' . \Drupal\Component\Utility\Html::escape($title) . '" loading="' . ($eager ? 'eager' : 'lazy') . '"' . ($eager ? ' fetchpriority="high"' : '') . ' class="img-fluid">';
     }
     $html .= '</div>';
+    if ($model_name !== '') {
+      $html .= '<span class="photo-model-badge">' . \Drupal\Component\Utility\Html::escape($model_name) . '</span>';
+    }
     if ($image_count > 0) {
       $html .= '<span class="photo-count-badge">' . $image_count . 'P</span>';
     }
     $html .= '</div>';
     $html .= '<div class="views-field views-field-title"><h2 class="field-content">' . \Drupal\Component\Utility\Html::escape($title) . '</h2></div>';
-    $html .= '<div class="views-field views-field-created">';
-    if ($model_name !== '') {
-      $html .= '<span class="photo-model">' . \Drupal\Component\Utility\Html::escape($model_name) . '</span><span class="photo-meta-sep" aria-hidden="true"> · </span>';
-    }
-    $html .= '<time class="field-content" datetime="' . $date . '">' . $date . '</time></div>';
+    $html .= '<div class="views-field views-field-created"><time class="field-content" datetime="' . $date . '">' . $date . '</time></div>';
     if ($badge !== '') {
       $html .= '<div class="views-field views-field-field-categories"><span class="field-content">' . \Drupal\Component\Utility\Html::escape($badge) . '</span></div>';
     }

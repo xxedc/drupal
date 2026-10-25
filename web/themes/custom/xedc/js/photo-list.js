@@ -5,37 +5,6 @@
     var view = document.querySelector('.xedc-view-photos');
     if (!view) return;
 
-    var root = document.documentElement;
-    var header = document.querySelector('[data-xn]') || document.querySelector('nav.xedc-nav') || document.querySelector('header.xn');
-    var filters = view.querySelector(':scope > .view-filters');
-    var backtop = null;
-
-    function updateStickyTop() {
-      if (!header) return;
-      var headerTop = parseFloat(window.getComputedStyle(header).top) || 0;
-      root.style.setProperty('--xedc-photo-sticky-top', (headerTop + header.offsetHeight) + 'px');
-    }
-
-    function updateStuckState() {
-      if (!filters) return;
-      var stickyTop = parseFloat(window.getComputedStyle(root).getPropertyValue('--xedc-photo-sticky-top')) || 0;
-      filters.classList.toggle('is-stuck', filters.getBoundingClientRect().top <= stickyTop + 1);
-    }
-
-    updateStickyTop();
-    updateStuckState();
-    window.addEventListener('scroll', updateStuckState, { passive: true });
-    window.addEventListener('resize', function () {
-      updateStickyTop();
-      updateStuckState();
-    });
-    if (window.ResizeObserver && header) {
-      new ResizeObserver(function () {
-        updateStickyTop();
-        updateStuckState();
-      }).observe(header);
-    }
-
     view.querySelectorAll('.views-field-field-cover-image img').forEach(function (img) {
       if (img.complete) return;
       img.classList.add('xedc-img-pending');
@@ -48,7 +17,7 @@
       img.addEventListener('error', reveal);
     });
 
-    backtop = document.createElement('button');
+    var backtop = document.createElement('button');
     backtop.type = 'button';
     backtop.className = 'xedc-backtop';
     backtop.setAttribute('aria-label', '回到顶部');
