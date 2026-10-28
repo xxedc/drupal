@@ -87,4 +87,41 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
   });
+
+  function revealActiveMemberTab() {
+    var nav = document.querySelector('.xm-nav');
+    if (!nav) return;
+    var active = nav.querySelector('.xm-nav__item.is-active');
+    if (!active || !active.scrollIntoView) return;
+    active.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+
+  function bindAvatarUpload() {
+    var input = document.getElementById('xm-avatar-input');
+    if (!input || input.dataset.xmBound === '1') return;
+    input.dataset.xmBound = '1';
+    input.addEventListener('change', function () {
+      if (!input.files || !input.files.length || !input.form) return;
+      var submit = input.form.querySelector('.xm-form-actions [type="submit"], .form-actions [type="submit"]');
+      if (submit && input.form.requestSubmit) {
+        input.form.requestSubmit(submit);
+      }
+      else {
+        input.form.submit();
+      }
+    });
+  }
+
+  function bootMemberUi() {
+    revealActiveMemberTab();
+    bindAvatarUpload();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootMemberUi);
+  }
+  else {
+    bootMemberUi();
+  }
+  window.addEventListener('resize', revealActiveMemberTab);
 })();

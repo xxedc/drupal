@@ -1,5 +1,5 @@
 member:
-  version: 1.0
+  version: 1.2
   css:
     theme:
       css/member.css: {}

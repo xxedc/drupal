@@ -9,11 +9,12 @@
       </span>
     </a>
 
-    <nav class="xm-nav" aria-label="会员中心导航">
+    <nav class="xm-nav" aria-label="会员中心导航" data-xm-nav>
       {% for item in nav %}
         <a href="{{ item.url }}" class="xm-nav__item{% if item.key == active %} is-active{% endif %}"{% if item.key == active %} aria-current="page"{% endif %}>{{ item.label }}</a>
       {% endfor %}
     </nav>
+    <p class="xm-nav-hint">左右滑动切换栏目</p>
 
     <div class="xm-side-foot">
       <a href="{{ urls.profile }}">个人资料</a>

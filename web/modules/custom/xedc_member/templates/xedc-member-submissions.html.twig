@@ -29,10 +29,12 @@
             <p>{{ item.review_note }}</p>
           </div>
         {% endif %}
-        <div class="xm-submission-card__actions">
-          <a href="{{ item.edit_url }}">编辑 / 提交审核</a>
-          {% if item.view_url %}<a href="{{ item.view_url }}">查看已发布内容</a>{% endif %}
-        </div>
+        {% if item.edit_url or item.view_url %}
+          <div class="xm-submission-card__actions">
+            {% if item.edit_url %}<a href="{{ item.edit_url }}">编辑 / 提交审核</a>{% endif %}
+            {% if item.view_url %}<a href="{{ item.view_url }}">查看已发布内容</a>{% endif %}
+          </div>
+        {% endif %}
       </article>
     {% endfor %}
   </div>
@@ -40,6 +42,13 @@
 {% else %}
   <div class="xm-empty">
     <strong>{{ empty }}</strong>
-    <p>投稿会先保存为草稿，提交审核后才能发布。</p>
+    <p>从上方选择美图、视频或文章开始投稿。内容会先保存为草稿，提交审核通过后才会公开。</p>
+    {% if create_links %}
+      <div class="xm-empty__links">
+        {% for link in create_links %}
+          <a href="{{ link.url }}">{{ link.label }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
 {% endif %}

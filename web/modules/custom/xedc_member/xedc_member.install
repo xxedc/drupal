@@ -221,6 +221,14 @@ function xedc_member_update_10004() {
 }
 
 /**
+ * Revokes skip-comment-approval again so active config matches the policy.
+ */
+function xedc_member_update_10009() {
+  xedc_member_apply_comment_moderation_policy();
+  return t('Revoked skip comment approval from anonymous and authenticated roles.');
+}
+
+/**
  * Applies media upload size limits for member submissions.
  */
 function xedc_member_update_10005() {

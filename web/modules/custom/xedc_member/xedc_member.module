@@ -9,6 +9,8 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\node\NodeInterface;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
+use Drupal\views\ViewExecutable;
 use Drupal\xedc_member\Form\FavoriteToggleForm;
 use Drupal\xedc_member\Service\FavoriteManager;
 
@@ -141,7 +143,158 @@ function xedc_member_form_node_form_alter(array &$form, FormStateInterface $form
       $form[$key]['#access'] = FALSE;
     }
   }
+
+  $weights = [
+    'photo' => [
+      'title' => 0,
+      'field_images' => 10,
+      'field_cover_image' => 20,
+      'field_summary' => 30,
+      'field_categories' => 40,
+      'field_tags' => 50,
+      'field_model' => 60,
+      'moderation_state' => 80,
+    ],
+    'video' => [
+      'title' => 0,
+      'field_video_file' => 10,
+      'field_video_cover' => 20,
+      'field_body' => 30,
+      'field_categories' => 40,
+      'field_tags' => 50,
+      'field_video_url' => 60,
+      'field_duration' => 70,
+      'moderation_state' => 80,
+    ],
+    'article' => [
+      'title' => 0,
+      'field_cover' => 10,
+      'field_summary' => 20,
+      'field_body' => 30,
+      'field_categories' => 40,
+      'field_tags' => 50,
+      'field_author' => 60,
+      'field_source' => 70,
+      'field_source_url' => 80,
+      'moderation_state' => 90,
+    ],
+  ];
+  foreach ($weights[$node->bundle()] as $field_name => $weight) {
+    if (isset($form[$field_name])) {
+      $form[$field_name]['#weight'] = $weight;
+    }
+  }
+  if (isset($form['actions'])) {
+    $form['actions']['#weight'] = 100;
+  }
+
+  $own_only = xedc_member_media_library_is_restricted() ? t('仅显示自己上传的文件') : '';
+  $media_hints = [
+    'field_images' => $own_only,
+    'field_cover_image' => $own_only !== '' ? t('可选封面。@hint', ['@hint' => $own_only]) : t('可选封面'),
+    'field_video_file' => $own_only !== '' ? t('支持 MP4。@hint', ['@hint' => $own_only]) : t('支持 MP4'),
+    'field_video_cover' => $own_only !== '' ? t('可选封面。@hint', ['@hint' => $own_only]) : t('可选封面'),
+    'field_cover' => $own_only !== '' ? t('可选封面。@hint', ['@hint' => $own_only]) : t('可选封面'),
+  ];
+  foreach ($media_hints as $field_name => $hint) {
+    if (isset($form[$field_name]['widget']) && is_array($form[$field_name]['widget'])) {
+      xedc_member_prepare_media_widget($form[$field_name]['widget'], (string) $hint);
+    }
+  }
+  if (isset($form['field_video_url']['widget'][0])) {
+    $form['field_video_url']['widget'][0]['#description'] = t('可选');
+  }
+  if (isset($form['field_duration']['widget'][0])) {
+    $form['field_duration']['widget'][0]['#description'] = t('可选，单位为秒');
+  }
+  if (isset($form['field_body'])) {
+    xedc_member_simplify_text_format($form['field_body']);
+  }
+  if (isset($form['moderation_state'])) {
+    xedc_member_translate_moderation_widget($form['moderation_state'], $node->isNew());
+  }
+
   $form['#attributes']['class'][] = 'xm-submission-form';
+  $form['#attributes']['class'][] = 'xm-submission-form--' . $node->bundle();
+  $form['#attached']['library'][] = 'xedc_member/member';
+}
+
+/**
+ * Limits the media library picker copy and explains whose files are listed.
+ */
+function xedc_member_prepare_media_widget(array &$widget, string $hint): void {
+  $widget['#attributes']['class'][] = 'xm-media-widget';
+  if (isset($widget['#field_prefix']['empty_selection'])) {
+    $widget['#field_prefix']['empty_selection']['#markup'] = t('还没有选择文件。');
+    $widget['#field_prefix']['empty_selection']['#prefix'] = '<p class="xm-media-empty">';
+    $widget['#field_prefix']['empty_selection']['#suffix'] = '</p>';
+  }
+  if (isset($widget['open_button'])) {
+    $widget['open_button']['#value'] = t('添加媒体');
+    $widget['open_button']['#attributes']['class'][] = 'xm-media-open';
+  }
+  if (isset($widget['#field_prefix']['weight_toggle']['#value'])) {
+    $widget['#field_prefix']['weight_toggle']['#value'] = t('调整顺序');
+  }
+  if (isset($widget['selection']) && is_array($widget['selection'])) {
+    foreach ($widget['selection'] as &$item) {
+      if (is_array($item) && isset($item['remove_button'])) {
+        $item['remove_button']['#value'] = t('移除');
+      }
+    }
+    unset($item);
+  }
+  $widget['#description'] = $hint;
+}
+
+/**
+ * Hides the long text-format help under member submission fields.
+ */
+function xedc_member_simplify_text_format(array &$element): void {
+  if (isset($element['format']) && is_array($element['format'])) {
+    foreach (['guidelines', 'help'] as $key) {
+      if (isset($element['format'][$key])) {
+        $element['format'][$key]['#access'] = FALSE;
+      }
+    }
+    if (isset($element['format']['format']['#title'])) {
+      $element['format']['format']['#title'] = t('文本格式');
+    }
+  }
+  foreach ($element as $key => &$child) {
+    if ((!is_int($key) && !(is_string($key) && !str_starts_with($key, '#'))) || !is_array($child)) {
+      continue;
+    }
+    xedc_member_simplify_text_format($child);
+  }
+}
+
+/**
+ * Replaces the English moderation widget labels on member submission forms.
+ */
+function xedc_member_translate_moderation_widget(array &$element, bool $is_new): void {
+  if (isset($element['current']['#title'])) {
+    $element['current']['#title'] = t('当前状态');
+  }
+  if (isset($element['state']['#title'])) {
+    $element['state']['#title'] = $is_new ? t('保存为') : t('变更为');
+    $element['state']['#description'] = t('可先保存草稿。');
+  }
+  if (isset($element['#title']) && (isset($element['current']) || isset($element['state']))) {
+    $element['#title'] = t('审核状态');
+  }
+  elseif (isset($element['#title']) && !isset($element['current']) && !isset($element['state'])) {
+    $title = trim((string) $element['#title']);
+    if ($title !== '' && preg_match('/moderation state|^state$|^save as$|^change to$|^current state$/i', $title)) {
+      $element['#title'] = t('审核状态');
+    }
+  }
+  foreach ($element as $key => &$child) {
+    if ((!is_int($key) && !(is_string($key) && !str_starts_with($key, '#'))) || !is_array($child)) {
+      continue;
+    }
+    xedc_member_translate_moderation_widget($child, $is_new);
+  }
 }
 
 /**
@@ -164,13 +317,24 @@ function xedc_member_form_alter(array &$form, FormStateInterface $form_state, $f
       $form['field_media_video_file']['widget'][0]['#element_validate'][] = 'xedc_member_validate_video_mime';
     }
   }
-  if ($form_id === 'media_library_add_form_upload'
-    && !\Drupal::currentUser()->hasPermission('administer media')
-    && isset($form['container']['upload']['#upload_validators']['FileExtension']['extensions'])
-    && str_contains($form['container']['upload']['#upload_validators']['FileExtension']['extensions'], 'mp4')) {
-    $form['container']['upload']['#element_validate'][] = 'xedc_member_validate_video_mime';
+  if ($form_id === 'media_library_add_form_upload') {
+    if (isset($form['container']['upload']['#title'])) {
+      $form['container']['upload']['#title'] = t('上传文件');
+    }
+    if (xedc_member_media_library_is_restricted()) {
+      $form['xedc_media_hint'] = [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => t('仅显示自己上传的文件'),
+        '#attributes' => ['class' => ['xm-media-hint']],
+        '#weight' => -50,
+      ];
+    }
+    $extensions = $form['container']['upload']['#upload_validators']['FileExtension']['extensions'] ?? '';
+    if (is_string($extensions) && str_contains($extensions, 'mp4') && !\Drupal::currentUser()->hasPermission('administer media')) {
+      $form['container']['upload']['#element_validate'][] = 'xedc_member_validate_video_mime';
+    }
   }
-
 }
 
 /**
@@ -179,35 +343,35 @@ function xedc_member_form_alter(array &$form, FormStateInterface $form_state, $f
 function xedc_member_validate_video_mime(array &$element, FormStateInterface $form_state) {
   $value = $element['#value'] ?? [];
   $fids = [];
-  $collect = function ($item, $key = NULL) use (&$collect, &$fids) {
-    if ($key === 'display') {
-      return;
+  if (is_array($value) && isset($value['fids']) && is_array($value['fids'])) {
+    $fids = $value['fids'];
+  }
+  elseif (is_array($value)) {
+    $fids = $value;
+  }
+  foreach ($fids as $fid) {
+    if (!is_numeric($fid) || (int) $fid <= 0) {
+      continue;
     }
-    if (is_array($item)) {
-      foreach ($item as $child_key => $child) {
-        $collect($child, $child_key);
-      }
-    }
-    elseif (is_numeric($item)) {
-      $fids[] = (int) $item;
-    }
-  };
-  $collect($value);
-  $allowed = ['video/mp4', 'application/mp4', 'video/x-m4v'];
-  foreach (array_unique($fids) as $fid) {
-    $file = \Drupal\file\Entity\File::load($fid);
+    $file = \Drupal\file\Entity\File::load((int) $fid);
     if (!$file) {
       continue;
     }
     $realpath = \Drupal::service('file_system')->realpath($file->getFileUri());
-    if (!$realpath || !is_file($realpath)) {
+    if (!$realpath || !is_readable($realpath)) {
       continue;
     }
-    $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($realpath);
-    if (!in_array($mime, $allowed, TRUE)) {
-      $form_state->setError($element, t('上传的视频不是有效的 MP4 文件。'));
-      return;
+    try {
+      $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($realpath) ?: '';
     }
+    catch (\Throwable $e) {
+      continue;
+    }
+    if ($mime === '' || $mime === 'application/octet-stream' || str_starts_with($mime, 'video/') || $mime === 'application/mp4') {
+      continue;
+    }
+    $form_state->setError($element, t('请上传 MP4 视频。'));
+    return;
   }
 }
 
@@ -221,17 +385,25 @@ function xedc_member_form_user_form_alter(array &$form, FormStateInterface $form
 
   // Keep only the email/password parts of the core account form on this page.
   $form['account']['name']['#access'] = FALSE;
-  if (isset($form['timezone'])) {
-    $form['timezone']['#access'] = FALSE;
+  foreach (['timezone', 'language', 'user_picture', 'roles', 'path', 'contact', 'matomo'] as $key) {
+    if (isset($form[$key])) {
+      $form[$key]['#access'] = FALSE;
+    }
   }
-  if (isset($form['language'])) {
-    $form['language']['#access'] = FALSE;
+  if (isset($form['account']['mail'])) {
+    $form['account']['mail']['#weight'] = 0;
+    $form['account']['mail']['#title'] = t('邮箱');
+    $form['account']['mail']['#description'] = t('不会公开');
   }
-  if (isset($form['user_picture'])) {
-    $form['user_picture']['#access'] = FALSE;
+  if (isset($form['account']['current_pass'])) {
+    $form['account']['current_pass']['#weight'] = 10;
+    $form['account']['current_pass']['#title'] = t('当前密码');
+    $form['account']['current_pass']['#description'] = t('修改邮箱或密码时填写');
   }
-  if (isset($form['roles'])) {
-    $form['roles']['#access'] = FALSE;
+  if (isset($form['account']['pass'])) {
+    $form['account']['pass']['#weight'] = 20;
+    $form['account']['pass']['#description'] = '';
+    $form['account']['pass']['#after_build'][] = 'xedc_member_password_confirm_after_build';
   }
   if (isset($form['actions']['delete'])) {
     $form['actions']['delete']['#access'] = FALSE;
@@ -240,7 +412,123 @@ function xedc_member_form_user_form_alter(array &$form, FormStateInterface $form
     $form['actions']['submit']['#value'] = t('保存账户安全设置');
     $form['actions']['submit']['#submit'][] = 'xedc_member_user_form_redirect';
   }
+  $form['#after_build'][] = 'xedc_member_security_form_after_build';
+  $form['#validate'][] = 'xedc_member_security_form_validate';
   $form['#attributes']['class'][] = 'xm-security-form';
+}
+
+/**
+ * Hides tracking and other account sections after later alters have run.
+ */
+function xedc_member_security_form_after_build(array $form, FormStateInterface $form_state) {
+  if (\Drupal::routeMatch()->getRouteName() !== 'xedc_member.security') {
+    return $form;
+  }
+  foreach (['timezone', 'language', 'user_picture', 'roles', 'path', 'contact', 'matomo'] as $key) {
+    if (isset($form[$key])) {
+      $form[$key]['#access'] = FALSE;
+    }
+  }
+  foreach ($form as $key => &$element) {
+    if (!is_array($element) || str_starts_with((string) $key, '#')) {
+      continue;
+    }
+    $title = isset($element['#title']) ? (string) $element['#title'] : '';
+    if ($title !== '' && preg_match('/matomo|piwik/i', $title)) {
+      $element['#access'] = FALSE;
+    }
+  }
+  return $form;
+}
+
+/**
+ * Translates the password strength widget on the member security form.
+ */
+function xedc_member_password_confirm_after_build(array $element, FormStateInterface $form_state) {
+  if (\Drupal::routeMatch()->getRouteName() !== 'xedc_member.security') {
+    return $element;
+  }
+  if (isset($element['pass1'])) {
+    $element['pass1']['#title'] = t('新密码');
+    $element['pass1']['#description'] = t('留空则不修改');
+  }
+  if (isset($element['pass2'])) {
+    $element['pass2']['#title'] = t('确认新密码');
+  }
+  $element['#element_validate'] = ['xedc_member_password_confirm_validate'];
+  $existing = $element['#attached']['drupalSettings']['password'] ?? [];
+  $element['#attached']['drupalSettings']['password'] = [
+    'confirmTitle' => (string) t('两次密码是否一致：'),
+    'confirmSuccess' => (string) t('一致'),
+    'confirmFailure' => (string) t('不一致'),
+    'strengthTitle' => '',
+    'hasWeaknesses' => '',
+    'tooShort' => (string) t('再长一些'),
+    'addLowerCase' => (string) t('加入小写字母'),
+    'addUpperCase' => (string) t('加入大写字母'),
+    'addNumbers' => (string) t('加入数字'),
+    'addPunctuation' => (string) t('加入标点'),
+    'sameAsUsername' => (string) t('不要与用户名相同'),
+    'weak' => (string) t('弱'),
+    'fair' => (string) t('中'),
+    'good' => (string) t('强'),
+    'strong' => (string) t('强'),
+  ] + $existing;
+  return $element;
+}
+
+/**
+ * Validates the member security password pair and keeps the stored value flat.
+ */
+function xedc_member_password_confirm_validate(array &$element, FormStateInterface $form_state, array &$complete_form) {
+  $pass1 = trim((string) ($element['pass1']['#value'] ?? ''));
+  $pass2 = trim((string) ($element['pass2']['#value'] ?? ''));
+  if ($pass1 !== '' || $pass2 !== '') {
+    if ($pass1 !== $pass2) {
+      $form_state->setError($element, t('两次输入的新密码不一致。'));
+    }
+  }
+  elseif (!empty($element['#required']) && $form_state->getUserInput()) {
+    $form_state->setError($element, t('请填写新密码。'));
+  }
+  $form_state->setValueForElement($element['pass1'], NULL);
+  $form_state->setValueForElement($element['pass2'], NULL);
+  $form_state->setValueForElement($element, $pass1);
+}
+
+/**
+ * Rewrites leftover English account-form errors on the security page.
+ */
+function xedc_member_security_form_validate(array &$form, FormStateInterface $form_state) {
+  $errors = $form_state->getErrors();
+  if (!$errors) {
+    return;
+  }
+  $rebuilt = [];
+  $changed = FALSE;
+  foreach ($errors as $name => $message) {
+    $text = trim(strip_tags((string) $message));
+    if (preg_match('/current password is missing or incorrect/i', $text)) {
+      $rebuilt[$name] = t('修改邮箱或密码需要填写正确的当前密码。');
+      $changed = TRUE;
+    }
+    elseif (preg_match('/passwords do not match|password field is required/i', $text)) {
+      $rebuilt[$name] = str_contains(strtolower($text), 'match')
+        ? t('两次输入的新密码不一致。')
+        : t('请填写新密码。');
+      $changed = TRUE;
+    }
+    else {
+      $rebuilt[$name] = $message;
+    }
+  }
+  if (!$changed) {
+    return;
+  }
+  $form_state->clearErrors();
+  foreach ($rebuilt as $name => $message) {
+    $form_state->setErrorByName($name, $message);
+  }
 }
 
 /**
@@ -337,6 +625,51 @@ function xedc_member_preprocess_node(array &$variables) {
   $variables['#attached']['library'][] = 'xedc_member/member';
   $variables['#cache']['contexts'][] = 'user';
   $variables['#cache']['tags'][] = 'node:' . $node->id();
+}
+
+/**
+ * Implements hook_views_query_alter().
+ *
+ * Member submission pickers must not list media owned by other users.
+ */
+function xedc_member_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
+  if ($view->id() !== 'media_library' || $view->current_display === 'page') {
+    return;
+  }
+  $view->element['#cache']['contexts'][] = 'user';
+  if (!xedc_member_media_library_is_restricted() || !method_exists($query, 'addWhere')) {
+    return;
+  }
+  if (isset($view->display_handler)) {
+    $view->display_handler->setOption('cache', [
+      'type' => 'none',
+      'options' => [],
+    ]);
+  }
+  $query->addWhere(0, 'media_field_data.uid', (int) \Drupal::currentUser()->id(), '=');
+}
+
+/**
+ * Whether the current account should only see media they uploaded.
+ */
+function xedc_member_media_library_is_restricted(): bool {
+  $account = \Drupal::currentUser();
+  if (!$account->isAuthenticated()) {
+    return FALSE;
+  }
+  foreach ([
+    'administer media',
+    'administer nodes',
+    'edit any media',
+    'update any media',
+    'edit any image media',
+    'edit any video media',
+  ] as $permission) {
+    if ($account->hasPermission($permission)) {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }
 
 /**

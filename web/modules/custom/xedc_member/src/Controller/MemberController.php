@@ -386,13 +386,14 @@ class MemberController extends ControllerBase {
     if ($account->get('user_picture')->isEmpty()) {
       return [];
     }
+    $style = ImageStyle::load('max_325x325') ? 'max_325x325' : '';
     return $account->get('user_picture')->view([
       'label' => 'hidden',
       'type' => 'image',
       'settings' => [
-        'image_style' => 'thumbnail',
+        'image_style' => $style,
         'image_link' => '',
-        'image_loading' => ['attribute' => 'lazy'],
+        'image_loading' => ['attribute' => 'eager'],
       ],
     ]);
   }
@@ -545,9 +546,12 @@ class MemberController extends ControllerBase {
       $review_note = (string) $node->get('revision_log')->value;
     }
 
-    $edit_url = Url::fromRoute('entity.node.edit_form', ['node' => $node->id()], [
-      'query' => ['destination' => Url::fromRoute('xedc_member.submissions')->toString()],
-    ])->toString();
+    $edit_url = '';
+    if ($node->access('update')) {
+      $edit_url = Url::fromRoute('entity.node.edit_form', ['node' => $node->id()], [
+        'query' => ['destination' => Url::fromRoute('xedc_member.submissions')->toString()],
+      ])->toString();
+    }
     $view_url = $node->isPublished() ? $node->toUrl()->toString() : '';
 
     return [

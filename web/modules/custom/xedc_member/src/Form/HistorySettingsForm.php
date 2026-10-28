@@ -50,7 +50,7 @@ class HistorySettingsForm extends FormBase {
       '#type' => 'checkbox',
       '#title' => $this->t('记录我的浏览历史'),
       '#default_value' => $this->historyManager->isEnabled((int) $account->id()),
-      '#description' => $this->t('关闭后不再记录新的浏览行为。已有历史会保留，你可以在浏览历史页面删除单条记录或清空全部历史。'),
+      '#description' => $this->t('关闭后不再记录新的浏览。已有记录会保留。'),
     ];
     $form['actions']['submit'] = [
       '#type' => 'submit',

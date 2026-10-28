@@ -1,30 +1,22 @@
 <header class="xm-head">
   <div>
     <h1 class="xm-title">个人资料</h1>
-    <p class="xm-sub">管理你的昵称、头像和个人简介。</p>
   </div>
   <a class="xm-btn" href="{{ urls.security }}">账户安全</a>
 </header>
 
-<div class="xm-profile">
-  <aside class="xm-profile__side">
-    <p class="xm-profile__eyebrow">当前头像</p>
-    <div class="xm-profile-avatar">
-      {% if avatar %}{{ avatar }}{% else %}<span>{{ account.initial }}</span>{% endif %}
+<section class="xm-panel xm-profile-card">
+  <div class="xm-profile-hero">
+    <label class="xm-profile-avatar" for="xm-avatar-input">
+      {% if avatar %}{{ avatar }}{% else %}<span class="xm-profile-avatar__letter">{{ account.initial }}</span>{% endif %}
+      <span class="xm-profile-avatar__edit">更换</span>
+    </label>
+    <div class="xm-profile-hero__meta">
+      <strong>{{ account.name }}</strong>
+      <span>{{ account.username }}</span>
+      <span>{{ account.mail }}</span>
     </div>
-    <dl class="xm-profile__info">
-      <div><dt>用户名</dt><dd>{{ account.username }}</dd></div>
-      <div><dt>邮箱</dt><dd>{{ account.mail }}</dd></div>
-      <div><dt>注册时间</dt><dd>{{ account.member_since }}</dd></div>
-      {% if account.nickname %}<div><dt>昵称</dt><dd>{{ account.nickname }}</dd></div>{% endif %}
-    </dl>
-    <p class="xm-note">在表单中上传、更换或移除头像。用户名和邮箱由账户安全页面管理。</p>
-  </aside>
-
-  <section class="xm-panel xm-profile__form">
-    <div class="xm-panel__head">
-      <h2>编辑资料</h2>
-    </div>
-    {{ form }}
-  </section>
-</div>
+  </div>
+  <p class="xm-media-hint">支持 JPG/PNG/WebP，最大 2MB</p>
+  {{ form }}
+</section>
