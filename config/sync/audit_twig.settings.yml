@@ -1,0 +1,8 @@
+_core:
+  default_config_hash: JXCnnovEvpOQtNQMWoldvgzSOMcXngWNpkby3AM-B80
+ignore_cache_analysis: false
+ignore_anti_patterns: false
+ignore_field_sync: false
+ignore_theme_suggestions: false
+ignore_preprocess_analysis: false
+ignore_external_libraries: false

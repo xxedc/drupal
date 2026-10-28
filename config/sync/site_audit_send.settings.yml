@@ -1,0 +1,7 @@
+_core:
+  default_config_hash: AesP_hldok89OzZ5G0PrkAm6WbUQNgmAtvvlUiP7IqY
+remote_url: ''
+remote_label: 远程报告
+cron_save_interval: 0
+cron_send_interval: 0
+cron_delete_interval: 0

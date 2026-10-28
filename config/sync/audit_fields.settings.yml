@@ -1,0 +1,6 @@
+_core:
+  default_config_hash: '-2IoD-mD-LkgPycX7op7-4qxZpp8qGRpgt7iyoeqoi4'
+max_fields_per_bundle: 30
+max_view_modes: 5
+max_form_modes: 2
+ignored_fields: ''

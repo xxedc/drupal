@@ -1,0 +1,9 @@
+_core:
+  default_config_hash: mk0Sg58E4aKbvGAOH_0eChdNmqIeKNbfc4qxASsP7YM
+min_lines: 5
+min_tokens: 50
+format_php: true
+format_twig: true
+format_javascript: true
+format_css: true
+max_clones_display: 50

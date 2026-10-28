@@ -9,7 +9,7 @@ dependencies:
 _core:
   default_config_hash: DexqLBdD7TB7piALIPEvcHI9NvY1BNibYaTSF-aJWUw
 id: redirect
-label: Redirect
+label: 重定向
 module: views
 description: 'List of redirects'
 tag: ''
@@ -22,7 +22,7 @@ display:
     display_plugin: default
     position: 0
     display_options:
-      title: Redirect
+      title: 重定向
       fields:
         redirect_bulk_form:
           id: redirect_bulk_form

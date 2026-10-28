@@ -1,0 +1,11 @@
+_core:
+  default_config_hash: nxVHoyKArc7rRpFKrnZcO-BLwi1NMUfNhSZqrcA6oLM
+secret: tO7CDHmAlj8jXHZ4HOgnMUvYWz8z3IIC
+min_scores:
+  config_checks: 100
+check_database: true
+cron_max_age: 24
+check_files: true
+check_cache: true
+show_time: true
+show_details: false

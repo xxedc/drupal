@@ -1,0 +1,4 @@
+_core:
+  default_config_hash: AQ4v2KEs1gpp8czQwJ1FsOUrB0TD-K-gOwyWdg5Kijk
+cron_stale_hours: 24
+queue_warning_threshold: 100

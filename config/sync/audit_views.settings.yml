@@ -1,0 +1,6 @@
+_core:
+  default_config_hash: D7rnjOcbbTjjJHcAvqZAyElnqTw8edJxm6HHDoovcPA
+relationships_threshold: 3
+cache_excluded_views: "watchdog\r\nredirect_404"
+access_excluded_views: media_library
+exclude_disabled_views: true

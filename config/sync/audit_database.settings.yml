@@ -1,0 +1,6 @@
+_core:
+  default_config_hash: vo7OD_n2m0Ze9xcElvrvGIu6iTR_UHgrHYcgldXFWhs
+table_size_threshold: 100
+database_size_threshold: 1000
+ignore_cache_backend_warnings: false
+ignore_dblog_warnings: false

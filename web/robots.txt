@@ -62,7 +62,6 @@ Disallow: /user/password
 Disallow: /user/login
 Disallow: /user/logout
 Disallow: /media/oembed
-Disallow: /member
 Disallow: /*/media/oembed
 # Paths (no clean URLs)
 Disallow: /index.php/admin/
@@ -77,5 +76,3 @@ Disallow: /index.php/user/login
 Disallow: /index.php/user/logout
 Disallow: /index.php/media/oembed
 Disallow: /index.php/*/media/oembed
-
-Sitemap: https://gitxx.xyz/sitemap.xml

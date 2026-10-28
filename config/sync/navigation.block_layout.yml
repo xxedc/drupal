@@ -65,4 +65,14 @@ sections:
           icon_class: help
         weight: -2
         additional: {  }
+      0183be31-24c0-4378-afa5-189a75f4277e:
+        uuid: 0183be31-24c0-4378-afa5-189a75f4277e
+        region: footer
+        configuration:
+          id: audit_config_checks_summary
+          label: 'Audit: configuration checks'
+          label_display: '0'
+          provider: audit_config_checks
+        weight: -3
+        additional: {  }
     third_party_settings: {  }

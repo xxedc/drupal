@@ -1,0 +1,11 @@
+_core:
+  default_config_hash: uFDeMBIdSb32W96B5SF7KrOX8P7FpNwqb_faNv8jF1k
+ignore_simple_sitemap: false
+ignore_robots_sitemap: false
+ignore_metatag: false
+ignore_redirect: false
+ignore_pathauto: false
+ignore_pathauto_node: false
+ignore_pathauto_taxonomy_term: false
+ignore_pathauto_user: false
+ignore_pathauto_media: false

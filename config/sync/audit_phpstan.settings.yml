@@ -1,0 +1,13 @@
+_core:
+  default_config_hash: ozuHxMM4YquKkdDUn1beWexOLisa8Kahg9YzvGSJrck
+level: 5
+memory_limit: 512M
+max_errors_display: 500
+respect_project_config: true
+skip_deprecations: false
+skip_phpdoc_types: false
+skip_entity_mapping: false
+custom_entity_mapping: ''
+report_unmatched_ignored_errors: false
+ignore_errors: ''
+active_types: ''

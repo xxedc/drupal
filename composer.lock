@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "edd23afee28a21bd30d81c5aea5712c7",
+    "content-hash": "a01c1044e6d2c210fce3c340c206e22d",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -956,6 +956,73 @@
                 }
             ],
             "time": "2026-10-01T06:59:29+00:00"
+        },
+        {
+            "name": "drupal/audit",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/audit.git",
+                "reference": "1.1.0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/audit-1.1.0.zip",
+                "reference": "1.1.0",
+                "shasum": "4b14ab237a9a6bb695757a0022189e79adc25200"
+            },
+            "require": {
+                "drupal/core": "^10.3 || ^11 || ^12"
+            },
+            "require-dev": {
+                "drupal/audit_blocks": "*",
+                "drupal/audit_cache": "*",
+                "drupal/audit_config_checks": "*",
+                "drupal/audit_cron": "*",
+                "drupal/audit_database": "*",
+                "drupal/audit_entity": "*",
+                "drupal/audit_fields": "*",
+                "drupal/audit_i18n": "*",
+                "drupal/audit_images": "*",
+                "drupal/audit_menu": "*",
+                "drupal/audit_modules": "*",
+                "drupal/audit_performance": "*",
+                "drupal/audit_security": "*",
+                "drupal/audit_seo": "*",
+                "drupal/audit_status": "*",
+                "drupal/audit_twig": "*",
+                "drupal/audit_updates": "*",
+                "drupal/audit_url": "*",
+                "drupal/audit_views": "*",
+                "drupal/audit_watchdog": "*",
+                "drupal/search_api": "*"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "1.1.0",
+                    "datestamp": "1792254998",
+                    "security-coverage": {
+                        "status": "not-covered",
+                        "message": "Project has not opted into security advisory coverage!"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "trebormc",
+                    "homepage": "https://www.drupal.org/user/1750828"
+                }
+            ],
+            "description": "Provides tools for auditing and analyzing Drupal sites.",
+            "homepage": "https://www.drupal.org/project/audit",
+            "support": {
+                "source": "https://git.drupalcode.org/project/audit"
+            }
         },
         {
             "name": "drupal/colorbox",
@@ -2217,6 +2284,75 @@
             "support": {
                 "source": "https://cgit.drupalcode.org/simple_sitemap",
                 "issues": "https://drupal.org/project/issues/simple_sitemap"
+            }
+        },
+        {
+            "name": "drupal/site_audit",
+            "version": "4.1.3",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/site_audit.git",
+                "reference": "4.1.3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/site_audit-4.1.3.zip",
+                "reference": "4.1.3",
+                "shasum": "ddf2eb39f3e97b1779ace87ed82a47d77d336dc0"
+            },
+            "require": {
+                "drupal/core": "^10.2 || ^11"
+            },
+            "require-dev": {
+                "drupal/site_audit_report_entity": "*"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "4.1.3",
+                    "datestamp": "1775232488",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    }
+                },
+                "drush": {
+                    "services": {
+                        "drush.services.yml": "^9 || ^10"
+                    }
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "James Glasgow",
+                    "homepage": "https://www.drupal.org/user/1386596",
+                    "email": "james@jrglasgow.com"
+                },
+                {
+                    "name": "froboy",
+                    "homepage": "https://www.drupal.org/user/271282"
+                },
+                {
+                    "name": "jon pugh",
+                    "homepage": "https://www.drupal.org/user/17028"
+                },
+                {
+                    "name": "jrglasgow",
+                    "homepage": "https://www.drupal.org/user/36590"
+                },
+                {
+                    "name": "norman.lol",
+                    "homepage": "https://www.drupal.org/user/2482808"
+                }
+            ],
+            "description": "This extension provides Site Audit commands for The Drupal UI and Drush.",
+            "homepage": "https://www.drupal.org/project/site_audit",
+            "support": {
+                "source": "https://git.drupalcode.org/project/site_audit"
             }
         },
         {

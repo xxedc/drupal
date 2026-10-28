@@ -1,0 +1,13 @@
+_core:
+  default_config_hash: TBOWQIncRyAUjTXhY2MgBVnhL8emP74GwMgXg5cokQc
+extensions: 'php,module,inc,install,test,profile,theme,info,txt,yml'
+min_severity: 5
+ignore_warnings: false
+excluded_sniffs: {  }
+parallel: 4
+use_cache: true
+max_violations_display: 2000
+report_width: 120
+show_sniff_codes: true
+binary_location_info: ''
+binary_location_current: ''

@@ -1,0 +1,43 @@
+_core:
+  default_config_hash: sljPxY5Wjzeg1ppSPivpZ3kVXkpE62ssz-oleMGYuQ4
+config_expectations:
+  -
+    config: system.performance
+    key: cache.page.max_age
+    operator: '!='
+    value: '0'
+  -
+    config: system.performance
+    key: css.preprocess
+    operator: '='
+    value: 'true'
+  -
+    config: system.performance
+    key: js.preprocess
+    operator: '='
+    value: 'true'
+  -
+    config: system.logging
+    key: error_level
+    operator: '='
+    value: hide
+required_modules:
+  - page_cache
+  - dynamic_page_cache
+  - big_pipe
+  - update
+forbidden_modules:
+  - devel
+  - devel_generate
+  - devel_php
+  - devel_entity_updates
+  - entity_update
+  - kint
+  - webprofiler
+  - stage_file_proxy
+  - reroute_email
+  - masquerade
+  - shield
+  - upgrade_status
+  - php
+  - automated_cron

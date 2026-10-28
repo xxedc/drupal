@@ -1,0 +1,7 @@
+_core:
+  default_config_hash: WZSHBmmi1r_BVen9Y92ZSbjf0ziSS-JCsN_PQaE8Ksc
+empty_bundle_threshold: 1
+ignored_bundles: ''
+revision_threshold_node: 100
+revision_threshold_paragraph: 50
+revision_table_size_threshold_mb: 100
