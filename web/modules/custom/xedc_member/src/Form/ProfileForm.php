@@ -10,12 +10,30 @@ use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\file\FileInterface;
 use Drupal\user\Entity\User;
+use Drupal\xedc_member\Service\MemberAliasManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Edits the member's nickname, bio and avatar.
  */
 class ProfileForm extends FormBase {
+
+  /**
+   * Constructs a ProfileForm.
+   */
+  public function __construct(
+    protected MemberAliasManager $aliasManager,
+  ) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('xedc_member.alias_manager')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -41,49 +59,69 @@ class ProfileForm extends FormBase {
     if ($account->hasField('field_xedc_bio') && !$account->get('field_xedc_bio')->isEmpty()) {
       $bio = $account->get('field_xedc_bio')->value;
     }
-    $picture_fid = NULL;
-    if (!$account->get('user_picture')->isEmpty()) {
-      $picture_fid = (int) $account->get('user_picture')->target_id;
-    }
-
     $form['#attributes']['class'][] = 'xm-profile-form';
     $form['nickname'] = [
       '#type' => 'textfield',
       '#title' => $this->t('昵称'),
       '#default_value' => $nickname,
-      '#maxlength' => 64,
-      '#description' => $this->t('最多 64 个字符'),
+      '#maxlength' => 20,
     ];
     $form['bio'] = [
       '#type' => 'textarea',
       '#title' => $this->t('个人简介'),
       '#default_value' => $bio,
       '#rows' => 4,
-      '#maxlength' => 500,
-      '#description' => $this->t('最多 500 个字符'),
+      '#maxlength' => 300,
     ];
     $form['picture'] = [
       '#type' => 'file',
       '#title' => $this->t('头像'),
       '#title_display' => 'invisible',
       '#id' => 'xm-avatar-input',
+      '#wrapper_attributes' => [
+        'class' => ['xm-avatar-file-slot', 'visually-hidden'],
+      ],
       '#attributes' => [
+        'id' => 'xm-avatar-input',
         'accept' => 'image/jpeg,image/png,image/gif,image/webp',
-        'class' => ['xm-avatar-file'],
+        'class' => ['xm-avatar-file', 'visually-hidden'],
+        'tabindex' => '-1',
       ],
     ];
-    $form['remove_picture'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('移除头像'),
-      '#submit' => ['::removePictureSubmit'],
-      '#limit_validation_errors' => [],
-      '#attributes' => ['class' => ['xm-avatar-remove']],
-      '#access' => $picture_fid > 0,
-      '#weight' => 50,
+    $uid = (int) $account->id();
+    $form['alias'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('自定义个人主页'),
+      '#default_value' => $this->aliasManager->getSlug($uid),
+      '#maxlength' => 32,
+      '#size' => 60,
+      '#description' => $this->t('留空则使用/member。可用字母、数字、下划线和连字符。'),
+      '#description_display' => 'after',
+      '#attributes' => [
+        'data-xm-alias' => '1',
+        'autocomplete' => 'off',
+        'autocapitalize' => 'off',
+        'spellcheck' => 'false',
+        'placeholder' => 'my-name',
+      ],
+      '#wrapper_attributes' => [
+        'class' => ['xm-alias-field'],
+      ],
     ];
+    $form['alias_status'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => '',
+      '#attributes' => [
+        'class' => ['xm-alias-status'],
+        'data-xm-alias-status' => '1',
+        'aria-live' => 'polite',
+      ],
+    ];
+    $form['#attached']['drupalSettings']['xedcMember']['aliasCheck'] = Url::fromRoute('xedc_member.alias_check')->toString();
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('保存个人资料'),
+      '#value' => $this->t('保存'),
       '#button_type' => 'primary',
     ];
     $form['actions']['cancel'] = [
@@ -117,13 +155,20 @@ class ProfileForm extends FormBase {
     }
 
     $nickname = trim(strip_tags((string) $form_state->getValue('nickname')));
-    if (mb_strlen($nickname) > 64) {
-      $form_state->setErrorByName('nickname', $this->t('昵称不能超过 64 个字符。'));
+    if (mb_strlen($nickname) > 20) {
+      $form_state->setErrorByName('nickname', $this->t('昵称不能超过 20 个字符。'));
     }
 
     $bio = trim(strip_tags((string) $form_state->getValue('bio')));
-    if (mb_strlen($bio) > 500) {
-      $form_state->setErrorByName('bio', $this->t('个人简介不能超过 500 个字符。'));
+    if (mb_strlen($bio) > 300) {
+      $form_state->setErrorByName('bio', $this->t('个人简介不能超过 300 个字符。'));
+    }
+
+    $alias = $this->aliasManager->check((string) $form_state->getValue('alias'), (int) $account->id());
+    if (!$alias['ok']) {
+      $form_state->setErrorByName('alias', $alias['status'] === 'taken'
+        ? $this->t('该路径已被占用。')
+        : $alias['message']);
     }
 
     $bag = $this->getRequest()->files->get('files');
@@ -179,24 +224,13 @@ class ProfileForm extends FormBase {
     $account->save();
     $this->deleteUnusedPicture($old_picture_fid, $fid > 0 ? $fid : $old_picture_fid);
 
-    $this->messenger()->addStatus($this->t('个人资料已更新。'));
-    $form_state->setRedirectUrl(Url::fromRoute('xedc_member.profile'));
-  }
-
-  /**
-   * Removes the current avatar without changing nickname or bio.
-   */
-  public function removePictureSubmit(array &$form, FormStateInterface $form_state) {
-    $account = $this->loadAccount();
-    if (!$account) {
-      $this->messenger()->addError($this->t('请先登录后再修改资料。'));
+    $alias_error = $this->aliasManager->save((int) $account->id(), (string) $form_state->getValue('alias'));
+    if ($alias_error) {
+      $this->messenger()->addError($alias_error);
+      $form_state->setRedirectUrl(Url::fromRoute('xedc_member.profile'));
       return;
     }
-    $old_picture_fid = (int) ($account->get('user_picture')->target_id ?? 0);
-    $account->set('user_picture', []);
-    $account->save();
-    $this->deleteUnusedPicture($old_picture_fid, 0);
-    $this->messenger()->addStatus($this->t('头像已移除。'));
+
     $form_state->setRedirectUrl(Url::fromRoute('xedc_member.profile'));
   }
 

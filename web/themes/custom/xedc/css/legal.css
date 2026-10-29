@@ -106,8 +106,13 @@ body:has(.field--name-field-body) form.contact-message-form,
 .contact-message-form .form-email{height:40px}
 .contact-message-form .form-textarea{min-height:140px;resize:vertical}
 .contact-message-form input:focus,
-.contact-message-form textarea:focus{
-  outline:2px solid var(--bs-primary,#18181b);outline-offset:1px;
+.contact-message-form textarea:focus,
+.contact-message-form select:focus{
+  border-color:var(--bs-body-color,#18181b);
+  background:var(--bs-body-bg,#fff);
+  background-color:var(--bs-body-bg,#fff);
+  outline:none;
+  box-shadow:none;
 }
 .contact-message-form .form-submit{
   height:40px;padding:0 20px;border:0;border-radius:8px;cursor:pointer;

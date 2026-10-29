@@ -64,6 +64,16 @@
     });
   });
 
+  // 会员头像：按下时保持一小段缩放，避免点按过快看不出反馈
+  qa('.xn-account').forEach(function (a) {
+    var timer;
+    a.addEventListener('pointerdown', function () {
+      a.classList.add('is-pressed');
+      clearTimeout(timer);
+      timer = setTimeout(function () { a.classList.remove('is-pressed'); }, 180);
+    });
+  });
+
   // 当前页高亮
   var cur = location.pathname.replace(/\/$/, '') || '/';
   qa('.xn-link,.xn-m-link,.xn-m-sub').forEach(function (a) {

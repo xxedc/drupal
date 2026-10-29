@@ -25,6 +25,11 @@ class FavoriteManager {
   public const PER_PAGE = 12;
 
   /**
+   * Pager element id, kept off the default so other blocks cannot steal it.
+   */
+  public const PAGER_ELEMENT = 10;
+
+  /**
    * Constructs a FavoriteManager.
    */
   public function __construct(
@@ -104,6 +109,7 @@ class FavoriteManager {
     $query = $this->baseQuery($uid, $bundle);
     $query->orderBy('f.created', 'DESC');
     $query = $query->extend(PagerSelectExtender::class);
+    $query->element(self::PAGER_ELEMENT);
     $query->limit(self::PER_PAGE);
     return $query->execute()->fetchAll();
   }

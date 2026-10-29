@@ -12,7 +12,7 @@
   <div class="xm-notice">
     <strong>浏览历史记录已关闭</strong>
     <span>关闭后不会记录新的浏览行为。已有记录仍会保留，可以在这里删除单条记录或清空全部。</span>
-    <a href="{{ urls.settings }}">去开启</a>
+    <a href="{{ urls.security }}">去开启</a>
   </div>
 {% endif %}
 
@@ -28,11 +28,13 @@
       {% include '@xedc_member/templates/xedc-member-card.html.twig' with {card: card} %}
     {% endfor %}
   </div>
-  {{ pager }}
+  {% if pager %}
+    <div class="xm-pager">{{ pager }}</div>
+  {% endif %}
 {% else %}
   <div class="xm-empty">
     <strong>{{ empty }}</strong>
-    <p>登录后打开美图、视频或文章详情页，浏览记录会自动出现在这里。</p>
+    <p>打开美图、视频或文章后，浏览记录会自动出现在这里。</p>
     <div class="xm-empty__links">
       <a href="/meitu">看看美图</a>
       <a href="/video">看看视频</a>

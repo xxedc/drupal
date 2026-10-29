@@ -1,0 +1,7 @@
+html.xm-quiet-status :is(.messages--status, .alert-success, [data-drupal-message-type="status"]) {
+  display: none !important;
+}
+
+html.xm-quiet-status [data-drupal-messages]:not(:has(:is(.messages--error, .messages--warning, .alert-danger, .alert-warning, [data-drupal-message-type="error"], [data-drupal-message-type="warning"]))) {
+  display: none !important;
+}

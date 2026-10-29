@@ -29,8 +29,13 @@ body:has(.sr-page) h1.page-title { margin-top: .125rem; }
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 .sr-field:focus-within {
-  border-color: var(--bs-secondary-color);
-  box-shadow: 0 0 0 3px rgba(var(--bs-secondary-rgb), .22);
+  border-color: var(--bs-body-color);
+  box-shadow: none;
+}
+.sr-input:focus {
+  background: var(--bs-body-bg);
+  background-color: var(--bs-body-bg);
+  box-shadow: none;
 }
 .sr-field-icon {
   position: absolute;

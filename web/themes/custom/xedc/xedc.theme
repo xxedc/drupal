@@ -86,6 +86,14 @@ function xedc_preprocess_page(&$variables) {
 }
 
 function xedc_page_attachments_alter(array &$attachments) {
+  foreach ($attachments['#attached']['html_head'] ?? [] as $key => $item) {
+    if (($item[1] ?? '') !== 'viewport') {
+      continue;
+    }
+    $attachments['#attached']['html_head'][$key][0]['#attributes']['content'] = 'width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual';
+    break;
+  }
+
   if (_xedc_search_is_route()) {
     [$q, $type, $sort, $page] = _xedc_search_params();
     $query = [];

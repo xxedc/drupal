@@ -28,11 +28,19 @@ form.xedc-auth *{box-sizing:border-box}
 form.xedc-auth .form-item,form.xedc-auth .js-form-item,form.xedc-auth .form-wrapper{margin:0 0 16px}
 form.xedc-auth label,form.xedc-auth legend{display:block;margin:0 0 8px;font-size:14px;font-weight:500;color:var(--xa-fg)}
 form.xedc-auth .form-required::after,form.xedc-auth .js-form-required::after{content:" *";background:none;color:var(--xa-danger);display:inline;width:auto;height:auto;margin:0}
-form.xedc-auth :is(input[type=text],input[type=password],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=date],select,textarea){width:100%;height:40px;padding:0 12px;border:1px solid var(--xa-border);border-radius:var(--xa-radius);background:transparent;color:var(--xa-fg);font-size:14px;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:border-color .15s,box-shadow .15s;appearance:none;-webkit-appearance:none}
+form.xedc-auth :is(input[type=text],input[type=password],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=date],select,textarea){width:100%;height:40px;padding:0 12px;border:1px solid var(--xa-border);border-radius:var(--xa-radius);background-color:var(--xa-bg);color:var(--xa-fg);font-size:14px;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:border-color .15s,box-shadow .15s;appearance:none;-webkit-appearance:none}
 form.xedc-auth textarea{height:auto;min-height:88px;padding:8px 12px}
 form.xedc-auth select{padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 form.xedc-auth :is(input,select,textarea)::placeholder{color:var(--xa-muted)}
-form.xedc-auth :is(input,select,textarea):focus{outline:none;border-color:var(--xa-ring);box-shadow:0 0 0 3px color-mix(in srgb,var(--xa-ring) 35%,transparent)}
+form.xedc-auth :is(input,select,textarea):focus{outline:none;border-color:var(--xa-fg);background-color:var(--xa-bg)!important;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+form.xedc-auth input:-webkit-autofill,
+form.xedc-auth input:-webkit-autofill:hover,
+form.xedc-auth input:-webkit-autofill:focus,
+form.xedc-auth input:-webkit-autofill:active,
+form.xedc-auth input:autofill,
+form.xedc-auth input:autofill:focus{border-color:var(--xa-border);-webkit-text-fill-color:var(--xa-fg);caret-color:var(--xa-fg);background-color:var(--xa-bg)!important;background-image:none!important;-webkit-box-shadow:0 0 0 1000px var(--xa-bg) inset!important;box-shadow:0 0 0 1000px var(--xa-bg) inset!important;transition:background-color 99999s ease-out}
+form.xedc-auth input:-webkit-autofill:focus,
+form.xedc-auth input:autofill:focus{border-color:var(--xa-fg)}
 form.xedc-auth input[type=checkbox],form.xedc-auth input[type=radio]{accent-color:var(--xa-primary);width:16px;height:16px;margin-right:8px;vertical-align:-3px}
 form.xedc-auth .form-type-checkbox label,form.xedc-auth .form-type-radio label{display:inline;font-weight:400}
 form.xedc-auth :is(.description,.form-text,.form-item__description){margin:6px 0 0;color:var(--xa-muted);font-size:12.5px;line-height:1.5}
@@ -86,9 +94,13 @@ form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit)+:is(inp
 .xedc-login-dialog{padding:0;border:1px solid var(--xa-border);border-radius:calc(var(--xa-radius) + 4px);background:var(--xa-bg);color:var(--xa-fg);width:min(420px,calc(100vw - 24px));max-width:none;max-height:92vh;overflow:hidden;box-shadow:0 10px 38px rgba(0,0,0,.18)}
 .xedc-login-dialog::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
 .xedc-login-dialog iframe{display:block;width:100%;height:440px;border:0;background:transparent;color-scheme:normal}
-.xedc-login-dialog__close{position:absolute;top:10px;right:10px;z-index:2;display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;border-radius:var(--xa-radius);background:transparent;color:var(--xa-muted);cursor:pointer}
-.xedc-login-dialog__close:hover{background:var(--xa-muted-bg);color:var(--xa-fg)}
-.xedc-login-dialog__close:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--xa-ring) 45%,transparent)}
+.xedc-login-dialog__close{position:absolute;top:10px;right:10px;z-index:2;display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;border-radius:var(--xa-radius);background:transparent;background-color:transparent;color:var(--xa-muted);cursor:pointer;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+.xedc-login-dialog__close:hover,
+.xedc-login-dialog__close:focus,
+.xedc-login-dialog__close:active{background:transparent!important;background-color:transparent!important;box-shadow:none;color:var(--xa-fg)}
+.xedc-login-dialog__close:hover,
+.xedc-login-dialog__close:active{opacity:.55}
+.xedc-login-dialog__close:focus-visible{outline:1px solid var(--xa-border);outline-offset:2px;opacity:1}
 html.xedc-dialog-open{overflow:hidden}
 
 /* iPhone 上输入框 16px，避免聚焦时页面被放大 */

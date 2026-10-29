@@ -3,14 +3,11 @@
     <h1 class="xm-title">账户安全</h1>
     <p class="xm-sub">修改邮箱或密码需要验证当前密码。</p>
   </div>
-  <a class="xm-btn" href="{{ urls.profile }}">返回个人资料</a>
 </header>
 
 <div class="xm-security">
   <section class="xm-panel">
-    <div class="xm-panel__head">
-      <h2>账户信息</h2>
-    </div>
+    <h2 class="xm-security__label">账户信息</h2>
     <dl class="xm-account">
       <div><dt>用户名</dt><dd>{{ account.username }}</dd></div>
       <div><dt>邮箱</dt><dd>{{ account.mail }}</dd></div>
@@ -19,4 +16,21 @@
     </dl>
     {{ form }}
   </section>
+
+  <section class="xm-panel">
+    <div class="xm-panel__head">
+      <h2>浏览历史</h2>
+      <a href="{{ urls.history }}">查看记录</a>
+    </div>
+    {{ history_form }}
+  </section>
+
+  <ul class="xm-links">
+    <li>
+      <a href="{{ urls.logout }}">
+        <span><b>退出登录</b><small>退出后需要重新登录</small></span>
+        <span class="xm-links__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+      </a>
+    </li>
+  </ul>
 </div>

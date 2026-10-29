@@ -24,13 +24,23 @@
   line-height: 1.7;
   resize: vertical;
   box-shadow: none;
-  transition: height .15s ease;
+  transition: none;
 }
-.comment-form .form-textarea:focus {
-  height: 140px;
-  min-height: 140px;
+.comment-form .form-textarea:focus,
+.img-detail .comment-form .form-textarea:focus {
+  height: auto;
+  min-height: 90px;
+  background: var(--bs-body-bg, #fff);
+  background-color: var(--bs-body-bg, #fff);
   outline: 0;
   box-shadow: none;
+}
+@media (min-width: 992px) {
+  .img-detail .comment-form .form-textarea,
+  .img-detail .comment-form .form-textarea:focus {
+    height: auto !important;
+    min-height: 90px !important;
+  }
 }
 .comment-form:focus-within {
   border-color: #171717;

@@ -1,0 +1,53 @@
+/* Focused fields keep a white (or theme) fill and a border change.
+   A gray focus fill, an outward ring, or a sub-16px font shifts the page. */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+:where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]):not([type="hidden"]):not([type="color"]),
+  textarea,
+  select
+):focus {
+  background-color: var(--bs-body-bg, #fff) !important;
+  background-image: none !important;
+  outline: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.form-control:focus,
+.form-select:focus {
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-bg, #fff);
+  border-color: var(--bs-body-color, #18181b);
+  outline: none;
+  box-shadow: none;
+}
+
+.xn-search input:focus,
+.xn-msearch input:focus,
+.search-field input:focus,
+.navbar-search input:focus {
+  background-color: var(--xn-bg, var(--bs-body-bg, #fff)) !important;
+  box-shadow: none;
+}
+
+.sr-input:focus,
+.comment-form .form-textarea:focus,
+.img-detail .comment-form .form-textarea:focus {
+  background-color: var(--bs-body-bg, #fff) !important;
+  box-shadow: none;
+}
+
+@media (pointer: coarse) {
+  :where(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]):not([type="hidden"]):not([type="color"]),
+    textarea,
+    select
+  ) {
+    font-size: 16px !important;
+  }
+}

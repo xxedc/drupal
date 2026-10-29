@@ -3,6 +3,7 @@ style:
     theme:
       build/css/main.style.css: {}
       css/home.css: {}
+      css/inputs.css: {}
   js:
     build/js/main.script.js: {}
   dependencies:
@@ -23,7 +24,7 @@ meta:
       css/xedc-meta.css: {}
 
 navbar:
-  version: 1.0
+  version: 1.2
   css:
     theme:
       css/xedc-navbar.css: {}

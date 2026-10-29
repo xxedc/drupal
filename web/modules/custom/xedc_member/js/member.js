@@ -25,6 +25,20 @@
     return true;
   }
 
+  function blurMemberActionFocus() {
+    var active = document.activeElement;
+    if (!active || active === document.body || !active.closest) return;
+    if (active.matches('.xedc-favorite-btn, .xedc-history-delete-btn') || active.closest('.xedc-favorite-form, .xedc-history-delete-form')) {
+      active.blur();
+    }
+  }
+
+  document.addEventListener('mousedown', function (event) {
+    var button = event.target.closest('.xedc-favorite-btn, .xedc-history-delete-btn');
+    if (!button) return;
+    event.preventDefault();
+  }, true);
+
   document.addEventListener('click', function (event) {
     var button = event.target.closest('.xedc-favorite-btn');
     if (!button) return;
@@ -39,61 +53,92 @@
   }, true);
 
   document.addEventListener('submit', function (event) {
-    var form = event.target.closest('form.xedc-favorite-form');
-    if (!form) return;
-    if (form.dataset.xedcFavoriteLoading === '1') {
-      event.preventDefault();
-      return;
-    }
+    var form = event.target && event.target.closest ? event.target.closest('form.xedc-favorite-form') : null;
+    if (!form || form.dataset.xedcFavoriteLoading === '1') return;
     beginFavorite(form);
   }, true);
 
   if (window.jQuery) {
     window.jQuery(document).on('ajaxComplete', function (event, xhr, settings) {
       var data = typeof settings.data === 'string' ? settings.data : '';
-      if (data.indexOf('xedc_member_favorite_toggle') === -1) return;
-      document.querySelectorAll('form.xedc-favorite-form[data-xedc-favorite-loading]').forEach(endFavorite);
+      var isFavorite = data.indexOf('xedc_member_favorite_toggle') !== -1;
+      var isHistory = data.indexOf('xedc_member_history_delete') !== -1;
+      if (!isFavorite && !isHistory) return;
+      if (isFavorite) {
+        document.querySelectorAll('form.xedc-favorite-form[data-xedc-favorite-loading]').forEach(endFavorite);
+      }
+      blurMemberActionFocus();
+      window.setTimeout(blurMemberActionFocus, 0);
     });
   }
-
-  var messageTimers = new WeakMap();
-
-  function scheduleMessage(element) {
-    if (!element || element.nodeType !== 1) return;
-    var isStatus = element.matches('[data-drupal-message-type="status"], .alert-success, .messages--status');
-    if (!isStatus) return;
-    if (messageTimers.has(element)) return;
-    if (!/收藏|取消收藏/.test(element.textContent || '')) return;
-    messageTimers.set(element, window.setTimeout(function () {
-      messageTimers.delete(element);
-      element.classList.add('is-xedc-autohide');
-      window.setTimeout(function () {
-        if (element.parentNode) element.parentNode.removeChild(element);
-      }, 250);
-    }, 3000));
-  }
-
-  function scanMessages(node) {
-    if (!node || node.nodeType !== 1) return;
-    if (node.matches && node.matches('[data-drupal-message-type="status"], .alert-success, .messages--status')) scheduleMessage(node);
-    if (node.querySelectorAll) node.querySelectorAll('[data-drupal-message-type="status"], .alert-success, .messages--status').forEach(scheduleMessage);
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var observer = new MutationObserver(function (mutations) {
-      mutations.forEach(function (mutation) {
-        mutation.addedNodes.forEach(scanMessages);
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
 
   function revealActiveMemberTab() {
-    var nav = document.querySelector('.xm-nav');
+    var nav = document.querySelector('[data-xm-nav]');
     if (!nav) return;
     var active = nav.querySelector('.xm-nav__item.is-active');
-    if (!active || !active.scrollIntoView) return;
-    active.scrollIntoView({ inline: 'center', block: 'nearest' });
+    if (!active) return;
+    if (nav.scrollWidth <= nav.clientWidth + 1) return;
+    var navRect = nav.getBoundingClientRect();
+    var itemRect = active.getBoundingClientRect();
+    var delta = itemRect.left - navRect.left - ((nav.clientWidth - itemRect.width) / 2);
+    if (Math.abs(delta) < 2) return;
+    nav.scrollLeft += delta;
+  }
+
+  function paintAliasStatus(status, result) {
+    status.textContent = result.message || '';
+    status.classList.remove('is-ok', 'is-bad', 'is-wait');
+    if (result.status === 'available' || result.status === 'empty') {
+      status.classList.add('is-ok');
+    }
+    else if (result.status === 'checking') {
+      status.classList.add('is-wait');
+    }
+    else if (result.message) {
+      status.classList.add('is-bad');
+    }
+  }
+
+  function bindAliasCheck() {
+    var input = document.querySelector('[data-xm-alias]');
+    var status = document.querySelector('[data-xm-alias-status]');
+    if (!input || !status || input.dataset.xmAliasBound === '1') return;
+    input.dataset.xmAliasBound = '1';
+    var settings = window.drupalSettings || {};
+    var endpoint = settings.xedcMember && settings.xedcMember.aliasCheck;
+    if (!endpoint) return;
+    var timer = 0;
+    var seq = 0;
+
+    function run() {
+      var value = input.value;
+      var current = ++seq;
+      if (value.trim() === '') {
+        paintAliasStatus(status, { status: 'empty', message: '' });
+        return;
+      }
+      paintAliasStatus(status, { status: 'checking', message: '检查中' });
+      var url = endpoint + (endpoint.indexOf('?') === -1 ? '?' : '&') + 'q=' + encodeURIComponent(value);
+      window.fetch(url, {
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json' }
+      }).then(function (response) {
+        if (!response.ok) throw new Error('alias');
+        return response.json();
+      }).then(function (data) {
+        if (current !== seq) return;
+        paintAliasStatus(status, data || { status: 'invalid', message: '暂时无法检查' });
+      }).catch(function () {
+        if (current !== seq) return;
+        paintAliasStatus(status, { status: 'invalid', message: '暂时无法检查' });
+      });
+    }
+
+    input.addEventListener('input', function () {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(run, 280);
+    });
+    if (input.value.trim() !== '') run();
   }
 
   function bindAvatarUpload() {
@@ -115,6 +160,7 @@
   function bootMemberUi() {
     revealActiveMemberTab();
     bindAvatarUpload();
+    bindAliasCheck();
   }
 
   if (document.readyState === 'loading') {
@@ -123,5 +169,4 @@
   else {
     bootMemberUi();
   }
-  window.addEventListener('resize', revealActiveMemberTab);
 })();

@@ -46,7 +46,7 @@
         <svg class="xn-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-2.93 1.41-1.41m11.32-11.32 1.41-1.41M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41"/></svg>
       </button>
       {% if logged_in %}
-        <a class="xn-icon" href="{{ account_url }}" aria-label="会员中心"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+        <a class="xn-icon xn-account" href="{{ account_url }}" aria-label="会员中心">{% if member_avatar_url %}<img class="xn-avatar" src="{{ member_avatar_url }}" alt="" width="32" height="32">{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>{% endif %}</a>
       {% else %}
         <a class="xn-icon xn-only-m" href="{{ path('user.login') }}" aria-label="登录"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
         <a class="xn-text xn-only-d" href="{{ path('user.login') }}">登录</a>

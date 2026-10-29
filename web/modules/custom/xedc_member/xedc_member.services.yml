@@ -20,3 +20,31 @@ services:
       - '@current_user'
     tags:
       - { name: event_subscriber }
+
+  xedc_member.alias_manager:
+    class: Drupal\xedc_member\Service\MemberAliasManager
+    arguments:
+      - '@database'
+      - '@user.data'
+      - '@language_manager'
+      - '@entity_type.manager'
+      - '@path_alias.repository'
+      - '@cache.default'
+
+  xedc_member.alias_path_processor:
+    class: Drupal\xedc_member\PathProcessor\MemberAliasPathProcessor
+    arguments:
+      - '@xedc_member.alias_manager'
+      - '@current_user'
+    tags:
+      - { name: path_processor_inbound, priority: 150 }
+      - { name: path_processor_outbound, priority: 50 }
+
+  xedc_member.alias_subscriber:
+    class: Drupal\xedc_member\EventSubscriber\MemberAliasSubscriber
+    arguments:
+      - '@xedc_member.alias_manager'
+      - '@current_user'
+      - '@current_route_match'
+    tags:
+      - { name: event_subscriber }

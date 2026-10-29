@@ -48,13 +48,13 @@ class HistorySettingsForm extends FormBase {
     $form['#attributes']['class'][] = 'xm-history-form';
     $form['history_enabled'] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('记录我的浏览历史'),
+      '#title' => $this->t('记录浏览历史'),
       '#default_value' => $this->historyManager->isEnabled((int) $account->id()),
-      '#description' => $this->t('关闭后不再记录新的浏览。已有记录会保留。'),
+      '#description' => $this->t('关闭后不再记录'),
     ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('保存设置'),
+      '#value' => $this->t('保存'),
       '#button_type' => 'primary',
     ];
     $form['#cache'] = [
@@ -77,10 +77,7 @@ class HistorySettingsForm extends FormBase {
 
     $enabled = (bool) $form_state->getValue('history_enabled');
     $this->historyManager->setEnabled((int) $account->id(), $enabled);
-    $this->messenger()->addStatus($enabled
-      ? $this->t('浏览历史记录已开启。')
-      : $this->t('浏览历史记录已关闭。已有记录会保留，你可以在浏览历史页面管理。'));
-    $form_state->setRedirectUrl(Url::fromRoute('xedc_member.settings'));
+    $form_state->setRedirectUrl(Url::fromRoute('xedc_member.security'));
   }
 
 }

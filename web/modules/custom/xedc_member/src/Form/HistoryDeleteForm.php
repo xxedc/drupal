@@ -3,7 +3,6 @@
 namespace Drupal\xedc_member\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\MessageCommand;
 use Drupal\Core\Ajax\RemoveCommand;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -53,7 +52,7 @@ class HistoryDeleteForm extends FormBase {
     $form['#suffix'] = '</div>';
     $form['nid'] = [
       '#type' => 'hidden',
-      '#value' => $nid,
+      '#default_value' => $nid,
     ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
@@ -99,9 +98,6 @@ class HistoryDeleteForm extends FormBase {
     }
 
     $this->historyManager->delete((int) $account->id(), $nid);
-    $message = $this->t('已删除这条浏览历史。');
-    $this->messenger()->addStatus($message);
-    $form_state->set('xedc_history_delete_message', $message);
 
     if ($this->getRequest()->isXmlHttpRequest()) {
       $form_state->setRebuild(TRUE);
@@ -119,10 +115,7 @@ class HistoryDeleteForm extends FormBase {
   public static function ajaxDelete(array &$form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
     $nid = (int) $form_state->getValue('nid');
-    $message = $form_state->get('xedc_history_delete_message') ?: '已删除这条浏览历史。';
-
     $response->addCommand(new RemoveCommand('#xedc-member-history-' . $nid));
-    $response->addCommand(new MessageCommand($message));
 
     return $response;
   }

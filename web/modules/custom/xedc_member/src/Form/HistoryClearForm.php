@@ -85,8 +85,7 @@ class HistoryClearForm extends ConfirmFormBase {
       return;
     }
 
-    $count = $this->historyManager->clear((int) $account->id());
-    $this->messenger()->addStatus($this->t('已清空 @count 条浏览历史。', ['@count' => $count]));
+    $this->historyManager->clear((int) $account->id());
     $form_state->setRedirectUrl(Url::fromRoute('xedc_member.history'));
   }
 

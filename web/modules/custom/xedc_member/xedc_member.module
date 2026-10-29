@@ -5,10 +5,14 @@
  * XEDC member center hooks.
  */
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\file\FileInterface;
+use Drupal\image\Entity\ImageStyle;
 use Drupal\node\NodeInterface;
+use Drupal\user\Entity\User;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
 use Drupal\xedc_member\Form\FavoriteToggleForm;
@@ -91,6 +95,7 @@ function xedc_member_theme($existing, $type, $theme, $path) {
         'account' => [],
         'avatar' => [],
         'form' => [],
+        'history_form' => [],
         'urls' => [],
       ],
       'template' => 'xedc-member-security',
@@ -317,6 +322,9 @@ function xedc_member_form_alter(array &$form, FormStateInterface $form_state, $f
       $form['field_media_video_file']['widget'][0]['#element_validate'][] = 'xedc_member_validate_video_mime';
     }
   }
+  if (xedc_member_should_quiet_status()) {
+    xedc_member_attach_status_drop($form);
+  }
   if ($form_id === 'media_library_add_form_upload') {
     if (isset($form['container']['upload']['#title'])) {
       $form['container']['upload']['#title'] = t('上传文件');
@@ -385,7 +393,7 @@ function xedc_member_form_user_form_alter(array &$form, FormStateInterface $form
 
   // Keep only the email/password parts of the core account form on this page.
   $form['account']['name']['#access'] = FALSE;
-  foreach (['timezone', 'language', 'user_picture', 'roles', 'path', 'contact', 'matomo'] as $key) {
+  foreach (['timezone', 'language', 'user_picture', 'roles', 'path', 'contact', 'matomo', 'field_xedc_nickname', 'field_xedc_bio'] as $key) {
     if (isset($form[$key])) {
       $form[$key]['#access'] = FALSE;
     }
@@ -409,7 +417,7 @@ function xedc_member_form_user_form_alter(array &$form, FormStateInterface $form
     $form['actions']['delete']['#access'] = FALSE;
   }
   if (isset($form['actions']['submit'])) {
-    $form['actions']['submit']['#value'] = t('保存账户安全设置');
+    $form['actions']['submit']['#value'] = t('保存');
     $form['actions']['submit']['#submit'][] = 'xedc_member_user_form_redirect';
   }
   $form['#after_build'][] = 'xedc_member_security_form_after_build';
@@ -424,7 +432,7 @@ function xedc_member_security_form_after_build(array $form, FormStateInterface $
   if (\Drupal::routeMatch()->getRouteName() !== 'xedc_member.security') {
     return $form;
   }
-  foreach (['timezone', 'language', 'user_picture', 'roles', 'path', 'contact', 'matomo'] as $key) {
+  foreach (['timezone', 'language', 'user_picture', 'roles', 'path', 'contact', 'matomo', 'field_xedc_nickname', 'field_xedc_bio'] as $key) {
     if (isset($form[$key])) {
       $form[$key]['#access'] = FALSE;
     }
@@ -535,16 +543,170 @@ function xedc_member_security_form_validate(array &$form, FormStateInterface $fo
  * Redirects the embedded core account form back to the member center.
  */
 function xedc_member_user_form_redirect(array &$form, FormStateInterface $form_state) {
+  \Drupal::messenger()->deleteByType('status');
   $form_state->setRedirect('xedc_member.security');
+}
+
+/**
+ * Drops success messages from submit buttons on frontend forms.
+ */
+function xedc_member_attach_status_drop(array &$form): void {
+  // Keep this on the form. A button-level #submit replaces the form handler,
+  // so the profile, favorite and history actions would never run.
+  $form['#submit'][] = 'xedc_member_drop_status_message';
+}
+
+/**
+ * Removes status messages after a successful frontend submit.
+ */
+function xedc_member_drop_status_message(array &$form, FormStateInterface $form_state): void {
+  if ($form_state->hasAnyErrors()) {
+    return;
+  }
+  \Drupal::messenger()->deleteByType('status');
+}
+
+/**
+ * Whether frontend success banners should stay hidden.
+ *
+ * Password reset, registration and the contact form keep their status text,
+ * because that text is the only confirmation those pages provide.
+ */
+function xedc_member_should_quiet_status(): bool {
+  $route = (string) \Drupal::routeMatch()->getRouteName();
+  if ($route === 'user.login' || $route === 'user.register' || $route === 'user.pass' || str_starts_with($route, 'user.reset')) {
+    return FALSE;
+  }
+  if ($route === 'contact.site_page' || $route === 'entity.contact_form.canonical') {
+    return FALSE;
+  }
+  $account = \Drupal::currentUser();
+  $member_editor = $account->isAuthenticated()
+    && !$account->hasPermission('administer nodes')
+    && !$account->hasPermission('administer media');
+  if ($member_editor && (
+    str_starts_with($route, 'entity.node.')
+    || str_starts_with($route, 'node.add')
+    || str_starts_with($route, 'media_library.')
+    || str_starts_with($route, 'entity.media.')
+    || str_starts_with($route, 'entity.comment.')
+  )) {
+    return TRUE;
+  }
+  if (\Drupal::service('router.admin_context')->isAdminRoute()) {
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Implements hook_preprocess_status_messages().
+ */
+function xedc_member_preprocess_status_messages(array &$variables): void {
+  if (!xedc_member_should_quiet_status()) {
+    return;
+  }
+  unset($variables['message_list']['status']);
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function xedc_member_page_attachments(array &$attachments): void {
+  if (!xedc_member_should_quiet_status()) {
+    return;
+  }
+  $attachments['#attached']['library'][] = 'xedc_member/quiet';
+  $attachments['#cache']['contexts'][] = 'route';
+  $attachments['#cache']['contexts'][] = 'user.permissions';
 }
 
 /**
  * Implements hook_preprocess_page().
  */
 function xedc_member_preprocess_page(array &$variables) {
-  $variables['#cache']['contexts'][] = 'user.roles:authenticated';
-  if (\Drupal::currentUser()->isAuthenticated()) {
+  $variables['#cache']['contexts'][] = 'user';
+  $account = \Drupal::currentUser();
+  if ($account->isAuthenticated()) {
+    $uid = (int) $account->id();
+    $variables['#cache']['tags'][] = 'user:' . $uid;
+    $variables['#cache']['tags'][] = 'xedc_member:aliases';
     $variables['member_center_url'] = Url::fromRoute('xedc_member.overview')->toString();
+    $variables['member_avatar_url'] = xedc_member_avatar_url($uid);
+  }
+}
+
+/**
+ * Builds a small circular avatar URL for the site header.
+ */
+function xedc_member_avatar_url(int $uid): string {
+  $user = User::load($uid);
+  if (!$user || !$user->hasField('user_picture') || $user->get('user_picture')->isEmpty()) {
+    return '';
+  }
+  $file = $user->get('user_picture')->entity;
+  if (!$file instanceof FileInterface) {
+    return '';
+  }
+  $uri = $file->getFileUri();
+  $style = ImageStyle::load('thumbnail') ?: ImageStyle::load('max_325x325');
+  if ($style) {
+    return $style->buildUrl($uri);
+  }
+  return \Drupal::service('file_url_generator')->generateString($uri);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_login_form.
+ */
+function xedc_member_form_user_login_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  $form['#submit'][] = 'xedc_member_user_login_redirect';
+}
+
+/**
+ * Sends a successful login to the member center unless a destination is set.
+ */
+function xedc_member_user_login_redirect(array &$form, FormStateInterface $form_state) {
+  $request = \Drupal::request();
+  $destination = $request->query->get('destination') ?: $request->request->get('destination');
+  if (is_string($destination) && $destination !== '') {
+    $path = parse_url($destination, PHP_URL_PATH);
+    $path = is_string($path) && $path !== '' ? $path : $destination;
+    if (!preg_match('#^/user(?:/\d+)?/?$#', $path)) {
+      return;
+    }
+  }
+  $form_state->setRedirectUrl(Url::fromRoute('xedc_member.overview'));
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for path_alias.
+ */
+function xedc_member_path_alias_insert(EntityInterface $entity) {
+  xedc_member_alias_cache_clear($entity);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for path_alias.
+ */
+function xedc_member_path_alias_update(EntityInterface $entity) {
+  xedc_member_alias_cache_clear($entity);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for path_alias.
+ */
+function xedc_member_path_alias_delete(EntityInterface $entity) {
+  xedc_member_alias_cache_clear($entity);
+}
+
+/**
+ * Drops cached vanity paths when a user alias changes.
+ */
+function xedc_member_alias_cache_clear(EntityInterface $entity): void {
+  $path = method_exists($entity, 'getPath') ? (string) $entity->getPath() : '';
+  if (preg_match('#^/user/(\d+)$#', $path, $matches)) {
+    Cache::invalidateTags(['user:' . $matches[1], 'xedc_member:aliases']);
   }
 }
 
@@ -553,6 +715,9 @@ function xedc_member_preprocess_page(array &$variables) {
  */
 function xedc_member_preprocess_html(array &$variables) {
   $route = \Drupal::routeMatch()->getRouteName();
+  if (xedc_member_should_quiet_status()) {
+    $variables['attributes']['class'][] = 'xm-quiet-status';
+  }
   if (is_string($route) && str_starts_with($route, 'xedc_member.')) {
     $variables['attributes']['class'][] = 'xm-page';
     if ($route === 'xedc_member.history_clear') {
@@ -560,6 +725,7 @@ function xedc_member_preprocess_html(array &$variables) {
     }
   }
   $variables['#cache']['contexts'][] = 'route';
+  $variables['#cache']['contexts'][] = 'user.permissions';
 }
 
 /**

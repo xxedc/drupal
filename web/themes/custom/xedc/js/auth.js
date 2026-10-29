@@ -161,6 +161,104 @@
   });
 })();
 
+/* 登录信息短期记住：掩码后存在本机，14 天过期即删除 */
+(function () {
+  'use strict';
+  var KEY = 'xedc.login.remember';
+  var TTL = 14 * 24 * 60 * 60 * 1000;
+  var cached = null;
+
+  function b64(bytes) {
+    var s = '';
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s);
+  }
+  function unb64(text) {
+    var s = atob(text);
+    var out = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+    return out;
+  }
+  function readRaw() {
+    try { return localStorage.getItem(KEY); } catch (err) { return null; }
+  }
+  function writeRaw(value) {
+    try {
+      if (value == null) localStorage.removeItem(KEY);
+      else localStorage.setItem(KEY, value);
+    } catch (err) {}
+  }
+  function decode(raw) {
+    var rec;
+    try { rec = JSON.parse(raw); } catch (err) { writeRaw(null); return null; }
+    if (!rec || !rec.exp || rec.exp < Date.now() || rec.v !== 1 || !rec.m || !rec.d) {
+      writeRaw(null);
+      return null;
+    }
+    try {
+      var masked = unb64(rec.d);
+      var mask = unb64(rec.m);
+      if (mask.length !== masked.length) { writeRaw(null); return null; }
+      var json = new Uint8Array(masked.length);
+      for (var i = 0; i < masked.length; i++) json[i] = masked[i] ^ mask[i];
+      var data = JSON.parse(new TextDecoder().decode(json));
+      if (!data || data.exp < Date.now() || !data.u || !data.p) { writeRaw(null); return null; }
+      return data;
+    } catch (err) {
+      writeRaw(null);
+      return null;
+    }
+  }
+  function load() {
+    if (cached) return cached;
+    var raw = readRaw();
+    cached = raw ? decode(raw) : null;
+    return cached;
+  }
+  function save(name, pass) {
+    var data = { u: name, p: pass, exp: Date.now() + TTL };
+    var json = new TextEncoder().encode(JSON.stringify(data));
+    var mask = crypto.getRandomValues(new Uint8Array(json.length));
+    var masked = new Uint8Array(json.length);
+    for (var i = 0; i < json.length; i++) masked[i] = json[i] ^ mask[i];
+    cached = data;
+    writeRaw(JSON.stringify({ v: 1, exp: data.exp, m: b64(mask), d: b64(masked) }));
+  }
+  function apply(form) {
+    var data = load();
+    if (!data || !form) return;
+    var name = form.querySelector('input[name="name"]');
+    var pass = form.querySelector('input[name="pass"]');
+    if (name && !name.value) name.value = data.u;
+    if (pass && !pass.value) pass.value = data.p;
+  }
+  function loginForm() {
+    return document.querySelector('form.xedc-auth--login');
+  }
+
+  var stale = readRaw();
+  if (stale) decode(stale);
+
+  function boot() {
+    var form = loginForm();
+    if (!form) return;
+    apply(form);
+    window.setTimeout(function () { apply(form); }, 400);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form.classList || !form.classList.contains('xedc-auth--login')) return;
+    var name = form.querySelector('input[name="name"]');
+    var pass = form.querySelector('input[name="pass"]');
+    if (!name || !pass || !name.value || !pass.value) return;
+    if (!window.crypto || !crypto.getRandomValues || !window.TextEncoder) return;
+    try { save(name.value, pass.value); } catch (err) {}
+  }, true);
+})();
+
 /* 提交中：按钮显示转圈并防止重复提交 */
 (function () {
   'use strict';

@@ -5,16 +5,18 @@
     {% else %}
       <span class="xm-card__ph" aria-hidden="true">{{ card.type_label }}</span>
     {% endif %}
-    <span class="xm-card__type">{{ card.type_label }}</span>
+    <span class="xm-card__type">{{ card.category|default(card.type_label) }}</span>
   </a>
   <div class="xm-card__body">
     <h3 class="xm-card__title"><a href="{{ card.url }}">{{ card.title }}</a></h3>
-    <div class="xm-card__meta">
-      <span>{{ card.date }}</span>
-      {% if card.meta is defined and card.meta %}<span>{{ card.meta }}</span>{% endif %}
+    <div class="xm-card__foot">
+      <div class="xm-card__meta">
+        <span>{{ card.date }}</span>
+        {% if card.meta is defined and card.meta %}<span>{{ card.meta }}</span>{% endif %}
+      </div>
+      {% if card.remove_form %}
+        <div class="xm-card__actions">{{ card.remove_form }}</div>
+      {% endif %}
     </div>
-    {% if card.remove_form %}
-      <div class="xm-card__actions">{{ card.remove_form }}</div>
-    {% endif %}
   </div>
 </article>

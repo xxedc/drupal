@@ -1,8 +1,8 @@
 <header class="xm-head">
   <div>
     <h1 class="xm-title">个人资料</h1>
+    <p class="xm-sub">头像、昵称和个人主页。</p>
   </div>
-  <a class="xm-btn" href="{{ urls.security }}">账户安全</a>
 </header>
 
 <section class="xm-panel xm-profile-card">
@@ -14,9 +14,8 @@
     <div class="xm-profile-hero__meta">
       <strong>{{ account.name }}</strong>
       <span>{{ account.username }}</span>
-      <span>{{ account.mail }}</span>
+      <span>点击头像更换，JPG/PNG/WebP，2MB 以内</span>
     </div>
   </div>
-  <p class="xm-media-hint">支持 JPG/PNG/WebP，最大 2MB</p>
   {{ form }}
 </section>

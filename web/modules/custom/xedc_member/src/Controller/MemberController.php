@@ -18,7 +18,10 @@ use Drupal\xedc_member\Form\HistorySettingsForm;
 use Drupal\xedc_member\Form\ProfileForm;
 use Drupal\xedc_member\Service\FavoriteManager;
 use Drupal\xedc_member\Service\HistoryManager;
+use Drupal\xedc_member\Service\MemberAliasManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -37,6 +40,7 @@ class MemberController extends ControllerBase {
     protected FileUrlGeneratorInterface $fileUrlGenerator,
     protected DateFormatterInterface $dateFormatter,
     protected RequestStack $requestStack,
+    protected MemberAliasManager $aliasManager,
   ) {}
 
   /**
@@ -48,7 +52,8 @@ class MemberController extends ControllerBase {
       $container->get('xedc_member.history_manager'),
       $container->get('file_url_generator'),
       $container->get('date.formatter'),
-      $container->get('request_stack')
+      $container->get('request_stack'),
+      $container->get('xedc_member.alias_manager')
     );
   }
 
@@ -108,8 +113,12 @@ class MemberController extends ControllerBase {
       '#cards' => $cards,
       '#filters' => $this->favoriteFilters($type),
       '#total' => $this->favoriteManager->countVisible($uid, $type),
-      '#pager' => ['#type' => 'pager'],
-      '#empty' => $type ? $this->t('这个分类还没有收藏内容。') : $this->t('还没有收藏任何内容。'),
+      '#pager' => [
+        '#type' => 'pager',
+        '#element' => FavoriteManager::PAGER_ELEMENT,
+        '#quantity' => 5,
+      ],
+      '#empty' => $type ? $this->t('这个分类还没有收藏。') : $this->t('还没有收藏。'),
     ];
 
     return $this->shell('favorites', $content);
@@ -140,10 +149,14 @@ class MemberController extends ControllerBase {
       '#items' => $items,
       '#filters' => $this->historyFilters($type),
       '#total' => $this->historyManager->countVisible($uid, $type),
-      '#pager' => ['#type' => 'pager'],
+      '#pager' => [
+        '#type' => 'pager',
+        '#element' => HistoryManager::PAGER_ELEMENT,
+        '#quantity' => 5,
+      ],
       '#enabled' => $this->historyManager->isEnabled($uid),
       '#urls' => $this->memberUrls(),
-      '#empty' => $type ? $this->t('这个分类还没有浏览记录。') : $this->t('还没有浏览记录。'),
+      '#empty' => $type ? $this->t('这个分类还没有浏览记录。') : $this->t('还没有浏览记录。打开内容后会自动记在这里。'),
     ];
 
     return $this->shell('history', $content);
@@ -183,7 +196,7 @@ class MemberController extends ControllerBase {
       '#items' => $items,
       '#total' => (int) $count,
       '#pager' => ['#type' => 'pager'],
-      '#empty' => $this->t('还没有发表评论。'),
+      '#empty' => $this->t('还没有评论。'),
     ];
 
     return $this->shell('comments', $content);
@@ -264,18 +277,40 @@ class MemberController extends ControllerBase {
   }
 
   /**
-   * Account settings page.
+   * Legacy account settings URL. The page now lives under account security.
    */
-  public function settings() {
-    $account = $this->loadAccount();
-    $content = [
-      '#theme' => 'xedc_member_settings',
-      '#account' => $this->accountData($account),
-      '#urls' => $this->memberUrls(),
-      '#history_form' => $this->formBuilder()->getForm(HistorySettingsForm::class),
-    ];
+  public function settings(): RedirectResponse {
+    return new RedirectResponse(Url::fromRoute('xedc_member.security')->toString(), 302);
+  }
 
-    return $this->shell('settings', $content);
+  /**
+   * Checks whether a vanity alias is free while the member is typing.
+   */
+  public function aliasCheck(): JsonResponse {
+    $request = $this->requestStack->getCurrentRequest();
+    $raw = $request ? (string) $request->query->get('q', '') : '';
+    $result = $this->aliasManager->check($raw, (int) $this->currentUser()->id());
+    $response = new JsonResponse([
+      'ok' => $result['ok'],
+      'status' => $result['status'],
+      'message' => $result['message'],
+    ]);
+    $response->headers->set('Cache-Control', 'no-store');
+    return $response;
+  }
+
+  /**
+   * Blocks a vanity URL that belongs to another member.
+   */
+  public function aliasDenied() {
+    if ($this->currentUser()->isAnonymous()) {
+      $request = $this->requestStack->getCurrentRequest();
+      $destination = $request ? $request->getRequestUri() : '/';
+      return new RedirectResponse(Url::fromRoute('user.login', [], [
+        'query' => ['destination' => $destination],
+      ])->toString());
+    }
+    throw new AccessDeniedHttpException('无权访问该会员中心。');
   }
 
   /**
@@ -304,6 +339,7 @@ class MemberController extends ControllerBase {
       '#account' => $this->accountData($account),
       '#avatar' => $this->avatar($account),
       '#form' => $this->entityFormBuilder()->getForm($account, 'default'),
+      '#history_form' => $this->formBuilder()->getForm(HistorySettingsForm::class),
       '#urls' => $this->memberUrls(),
     ];
 
@@ -325,7 +361,6 @@ class MemberController extends ControllerBase {
       ['key' => 'submissions', 'label' => $this->t('我的投稿'), 'url' => $urls['submissions']],
       ['key' => 'profile', 'label' => $this->t('个人资料'), 'url' => $urls['profile']],
       ['key' => 'security', 'label' => $this->t('账户安全'), 'url' => $urls['security']],
-      ['key' => 'settings', 'label' => $this->t('账号设置'), 'url' => $urls['settings']],
     ];
 
     return [
@@ -411,7 +446,7 @@ class MemberController extends ControllerBase {
       'submissions' => Url::fromRoute('xedc_member.submissions')->toString(),
       'profile' => Url::fromRoute('xedc_member.profile')->toString(),
       'security' => Url::fromRoute('xedc_member.security')->toString(),
-      'settings' => Url::fromRoute('xedc_member.settings')->toString(),
+      'settings' => Url::fromRoute('xedc_member.security')->toString(),
       'logout' => Url::fromRoute('user.logout')->toString(),
       'login' => Url::fromRoute('user.login')->toString(),
     ];
@@ -473,6 +508,7 @@ class MemberController extends ControllerBase {
       'url' => $node->toUrl()->toString(),
       'type' => $node->bundle(),
       'type_label' => $this->typeLabel($node->bundle()),
+      'category' => $this->categoryLabel($node),
       'cover' => $this->coverImage($node),
       'date' => $this->dateFormatter->format($node->getCreatedTime(), 'custom', 'Y-m-d'),
       'remove_form' => $remove_form,
@@ -490,6 +526,7 @@ class MemberController extends ControllerBase {
       'url' => $node->toUrl()->toString(),
       'type' => $node->bundle(),
       'type_label' => $this->typeLabel($node->bundle()),
+      'category' => $this->categoryLabel($node),
       'cover' => $this->coverImage($node),
       'date' => $this->dateFormatter->format((int) $row->last_viewed, 'custom', 'Y-m-d H:i'),
       'meta' => $this->t('浏览 @count 次', ['@count' => (int) $row->view_count]),
@@ -632,6 +669,17 @@ class MemberController extends ControllerBase {
         'url' => Url::fromRoute('node.add', ['node_type' => 'article'])->toString(),
       ],
     ];
+  }
+
+  /**
+   * Resolves the referenced category term name.
+   */
+  protected function categoryLabel(NodeInterface $node): string {
+    if (!$node->hasField('field_categories') || $node->get('field_categories')->isEmpty()) {
+      return '';
+    }
+    $term = $node->get('field_categories')->entity;
+    return $term ? (string) $term->label() : '';
   }
 
   /**

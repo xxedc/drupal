@@ -3,7 +3,6 @@
 namespace Drupal\xedc_member\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\MessageCommand;
 use Drupal\Core\Ajax\RemoveCommand;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormBase;
@@ -70,11 +69,11 @@ class FavoriteToggleForm extends FormBase {
     $form['#suffix'] = '</div>';
     $form['nid'] = [
       '#type' => 'hidden',
-      '#value' => $nid,
+      '#default_value' => $nid,
     ];
     $form['context'] = [
       '#type' => 'hidden',
-      '#value' => $context,
+      '#default_value' => $context,
     ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
@@ -143,16 +142,12 @@ class FavoriteToggleForm extends FormBase {
     $was_favorite = $this->favoriteManager->isFavorited($uid, $nid);
     if ($was_favorite) {
       $this->favoriteManager->remove($uid, $nid);
-      $message = $this->t('已取消收藏。');
     }
     else {
       $this->favoriteManager->add($uid, $node);
-      $message = $this->t('已收藏。');
     }
-    $this->messenger()->addStatus($message);
 
     $form_state->set('xedc_favorite_context', $context);
-    $form_state->set('xedc_favorite_message', $message);
     $form_state->set('xedc_favorite_list_removed', $context === 'list' && $was_favorite);
 
     if ($this->getRequest()->isXmlHttpRequest()) {
@@ -172,7 +167,6 @@ class FavoriteToggleForm extends FormBase {
     $response = new AjaxResponse();
     $context = $form_state->get('xedc_favorite_context') ?: 'detail';
     $nid = (int) $form_state->getValue('nid');
-    $message = $form_state->get('xedc_favorite_message') ?: '收藏状态已更新。';
 
     if ($context === 'list' && $form_state->get('xedc_favorite_list_removed')) {
       $response->addCommand(new RemoveCommand('#xedc-member-fav-' . $nid));
@@ -180,7 +174,6 @@ class FavoriteToggleForm extends FormBase {
     else {
       $response->addCommand(new ReplaceCommand('#xedc-favorite-' . $context . '-' . $nid, $form));
     }
-    $response->addCommand(new MessageCommand($message));
 
     return $response;
   }

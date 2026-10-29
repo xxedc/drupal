@@ -26,6 +26,11 @@ class HistoryManager {
   public const PER_PAGE = 12;
 
   /**
+   * Pager element id, kept off the default so other blocks cannot steal it.
+   */
+  public const PAGER_ELEMENT = 10;
+
+  /**
    * User data key for the history recording preference.
    */
   public const ENABLED_KEY = 'history_enabled';
@@ -143,6 +148,7 @@ class HistoryManager {
     $query = $this->baseQuery($uid, $bundle);
     $query->orderBy('h.last_viewed', 'DESC');
     $query = $query->extend(PagerSelectExtender::class);
+    $query->element(self::PAGER_ELEMENT);
     $query->limit(self::PER_PAGE);
     return $query->execute()->fetchAll();
   }
