@@ -110,6 +110,7 @@ module:
   views_ui: 0
   workflows: 0
   xa_views: 0
+  xedc_home: 0
   xedc_member: 0
   xedc_models: 0
   xedc_quick: 0

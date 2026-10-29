@@ -1,0 +1,23 @@
+uuid: 208738c8-8f47-40ba-90bb-d703ed815592
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_slideshow
+    - node.type.photo
+id: node.photo.field_slideshow
+field_name: field_slideshow
+entity_type: node
+bundle: photo
+label: 首页轮播
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 开启
+  off_label: 关闭
+field_type: boolean

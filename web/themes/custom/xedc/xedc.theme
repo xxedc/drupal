@@ -78,10 +78,32 @@ function xedc_preprocess_page(&$variables) {
     );
   }
   if (\Drupal::service('path.matcher')->isFrontPage()) {
-    $variables['home_photos'] = _xedc_home_items('photo', 'field_cover_image', 5);
-    $variables['home_videos'] = _xedc_home_items('video', 'field_video_cover', 8);
-    $variables['home_articles'] = _xedc_home_items('article', 'field_cover', 6);
+    $variables['home_slides'] = [];
+    $variables['home_categories'] = [];
+    if (\Drupal::moduleHandler()->moduleExists('xedc_home')) {
+      $cards = \Drupal::service('xedc_home.cards');
+      $variables['home_slides'] = $cards->slideshow();
+      $variables['home_photos'] = $cards->fromView('block_photos', 'field_cover_image', 'images_450x800', 'photo');
+      $variables['home_videos'] = $cards->fromView('block_videos', 'field_video_cover', 'video_cover', 'video');
+      $variables['home_articles'] = $cards->fromView('block_articles', 'field_cover', 'large', 'article');
+      $block = \Drupal::service('plugin.manager.block')->createInstance('xedc_home_photo_categories');
+      $variables['home_categories'] = $block->build();
+      if (count($variables['home_slides']) > 1) {
+        $variables['#attached']['library'][] = 'xedc/home';
+      }
+    }
+    else {
+      $variables['home_photos'] = _xedc_home_items('photo', 'field_cover_image', 5);
+      $variables['home_videos'] = _xedc_home_items('video', 'field_video_cover', 8);
+      $variables['home_articles'] = _xedc_home_items('article', 'field_cover', 6);
+    }
+    $variables['#cache']['tags'][] = 'node_list';
+    $variables['#cache']['tags'][] = 'taxonomy_term_list';
+    $variables['#cache']['contexts'][] = 'user.permissions';
+    $variables['#cache']['max-age'] = \Drupal\Core\Cache\Cache::mergeMaxAges($variables['#cache']['max-age'] ?? \Drupal\Core\Cache\Cache::PERMANENT, 3600);
     $variables['page']['#cache']['tags'][] = 'node_list';
+    $variables['page']['#cache']['tags'][] = 'taxonomy_term_list';
+    $variables['page']['#cache']['max-age'] = \Drupal\Core\Cache\Cache::mergeMaxAges($variables['page']['#cache']['max-age'] ?? \Drupal\Core\Cache\Cache::PERMANENT, 3600);
   }
 }
 

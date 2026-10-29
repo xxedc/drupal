@@ -7,8 +7,10 @@ dependencies:
     - field.field.node.photo.field_categories
     - field.field.node.photo.field_comment
     - field.field.node.photo.field_cover_image
+    - field.field.node.photo.field_featured
     - field.field.node.photo.field_images
     - field.field.node.photo.field_model
+    - field.field.node.photo.field_slideshow
     - field.field.node.photo.field_summary
     - field.field.node.photo.field_tags
     - node.type.photo
@@ -20,6 +22,11 @@ targetEntityType: node
 bundle: photo
 mode: default
 content:
+  content_moderation_control:
+    settings: {  }
+    third_party_settings: {  }
+    weight: -20
+    region: content
   field_categories:
     type: entity_reference_label
     label: hidden
@@ -46,6 +53,16 @@ content:
     third_party_settings: {  }
     weight: 101
     region: content
+  field_featured:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 114
+    region: content
   field_images:
     type: entity_reference_entity_view
     label: hidden
@@ -62,6 +79,16 @@ content:
       link: true
     third_party_settings: {  }
     weight: 106
+    region: content
+  field_slideshow:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 115
     region: content
   field_summary:
     type: basic_string

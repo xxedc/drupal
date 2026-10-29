@@ -1,0 +1,23 @@
+uuid: da8938bf-3bb2-41a7-b9a7-f2a8a38b721c
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_featured
+    - node.type.photo
+id: node.photo.field_featured
+field_name: field_featured
+entity_type: node
+bundle: photo
+label: 推荐
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 开启
+  off_label: 关闭
+field_type: boolean

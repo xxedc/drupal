@@ -1,0 +1,28 @@
+<section class="xedc-section xedc-cats-wrap">
+  <div class="xedc-cats">
+    {% for cat in categories %}
+      <div class="xedc-cat">
+        <h2 class="xedc-cat__name"><a href="{{ cat.url }}">{{ cat.name }}</a></h2>
+        {% if cat.photos %}
+          <div class="xedc-cat__grid">
+            {% for item in cat.photos %}
+              <article class="xedc-card">
+                <a href="{{ item.url }}">
+                  <span class="xedc-card__media">
+                    {% if item.img %}
+                      <img src="{{ item.img }}" alt="{{ item.title }}"{% if item.width %} width="{{ item.width }}" height="{{ item.height }}"{% endif %} loading="lazy">
+                    {% endif %}
+                    {% if item.count %}
+                      <span class="xedc-badge">{{ item.count }}张</span>
+                    {% endif %}
+                  </span>
+                  <span class="xedc-card__title">{{ item.model }}</span>
+                </a>
+              </article>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>

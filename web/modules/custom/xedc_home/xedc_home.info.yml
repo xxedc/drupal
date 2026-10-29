@@ -1,0 +1,11 @@
+name: 'XEDC Home'
+type: module
+description: '首页轮播补齐与图片分类栏目。'
+package: XEDC
+core_version_requirement: ^11
+dependencies:
+  - drupal:block
+  - drupal:node
+  - drupal:taxonomy
+  - drupal:views
+  - statistics:statistics
