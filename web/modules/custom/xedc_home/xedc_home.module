@@ -5,6 +5,9 @@
  * Homepage helpers: category block theme, flag defaults, hot-video sort.
  */
 
+use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\node\NodeInterface;
 use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\ViewExecutable;
@@ -45,9 +48,21 @@ function xedc_home_node_presave(NodeInterface $node): void {
  * on DESC. Rank missing counts as zero, then fall back to publish time.
  */
 function xedc_home_views_query_alter(ViewExecutable $view, $query): void {
-  if ($view->id() !== 'xedc_home' || $view->current_display !== 'block_videos' || !$query instanceof Sql) {
+  if (!$query instanceof Sql) {
     return;
   }
+  if ($view->id() === 'xedc_home' && $view->current_display === 'block_videos') {
+    _xedc_home_hot_video_sort($query);
+  }
+  if ($view->id() === 'image_gallery' && $view->current_display === 'page_3') {
+    _xedc_home_featured_sort($query);
+  }
+}
+
+/**
+ * Puts missing view counts after real counts.
+ */
+function _xedc_home_hot_video_sort(Sql $query): void {
   $info = $query->getTableInfo('node_counter');
   $alias = (string) ($info['alias'] ?? '');
   if ($alias === '' || !preg_match('/^[A-Za-z0-9_]+$/', $alias)) {
@@ -64,5 +79,90 @@ function xedc_home_views_query_alter(ViewExecutable $view, $query): void {
   $query->addOrderBy(NULL, 'COALESCE(' . $alias . '.totalcount, 0)', 'DESC', 'xedc_hot');
   foreach ($rest as $order) {
     $query->orderby[] = $order;
+  }
+}
+
+/**
+ * Pins photos with field_featured checked to the front of a category list.
+ *
+ * Missing values sort as not recommended. The category sort chosen by the
+ * visitor still applies after this flag.
+ */
+function _xedc_home_featured_sort(Sql $query): void {
+  $alias = $query->ensureTable('node__field_featured');
+  if (!is_string($alias) || !preg_match('/^[A-Za-z0-9_]+$/', $alias)) {
+    return;
+  }
+  $rest = [];
+  foreach ($query->orderby as $order) {
+    $field = (string) ($order['field'] ?? '');
+    if (!str_contains($field, 'field_featured_value') && !str_contains($field, 'xedc_featured')) {
+      $rest[] = $order;
+    }
+  }
+  $query->orderby = [];
+  $query->addOrderBy(NULL, 'COALESCE(' . $alias . '.field_featured_value, 0)', 'DESC', 'xedc_featured');
+  foreach ($rest as $order) {
+    $query->orderby[] = $order;
+  }
+}
+
+/**
+ * Implements hook_form_node_form_alter().
+ *
+ * Administrators and content editors publish directly. Members stay on the
+ * draft / needs-review transitions from the authenticated role.
+ */
+function xedc_home_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  $account = \Drupal::currentUser();
+  if (!$account->hasPermission('administer nodes')) {
+    return;
+  }
+  $form['#after_build'][] = '_xedc_home_staff_moderation_default';
+}
+
+/**
+ * Defaults staff saves to the published moderation state.
+ */
+function _xedc_home_staff_moderation_default(array $form, FormStateInterface $form_state): array {
+  $input = $form_state->getUserInput();
+  if ($form_state->isSubmitted() || isset($input['moderation_state'])) {
+    return $form;
+  }
+  $state = &$form['moderation_state']['widget'][0]['state'];
+  if (!is_array($state) || empty($state['#options']['published'])) {
+    return $form;
+  }
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof \Drupal\Core\Entity\EntityFormInterface) {
+    return $form;
+  }
+  $node = $form_object->getEntity();
+  if (!$node instanceof NodeInterface || !in_array($node->bundle(), ['article', 'photo', 'video'], TRUE)) {
+    return $form;
+  }
+  $current = $node->isNew() ? '' : (string) $node->get('moderation_state')->value;
+  if ($node->isNew() || $current === '' || $current === 'draft') {
+    $state['#default_value'] = 'published';
+    $state['#description'] = t('保存后直接发布，不进入审核。');
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function xedc_home_menu_local_tasks_alter(array &$data, $route_name, RefinableCacheableDependencyInterface &$cacheability): void {
+  foreach ($data['tabs'] as &$level) {
+    if (!is_array($level)) {
+      continue;
+    }
+    foreach ($level as &$tab) {
+      $url = $tab['#link']['url'] ?? NULL;
+      if (!$url instanceof Url || !$url->isRouted() || $url->getRouteName() !== 'content_moderation.admin_moderated_content') {
+        continue;
+      }
+      $tab['#link']['title'] = t('待审核内容');
+    }
   }
 }

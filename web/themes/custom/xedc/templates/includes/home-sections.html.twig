@@ -37,22 +37,22 @@
 {% endif %}
 {% if home_photos %}
 <section class="xedc-section">
+  {{ attach_library('xedc/meitu-card') }}
   <div class="xedc-section__head"><h2>最新美图</h2><a href="/meitu">查看更多 ›</a></div>
-  <div class="xedc-grid">
+  <div class="meitu-grid">
   {% for item in home_photos %}
-    <article class="xedc-card">
-      <a href="{{ item.url }}">
-        <span class="xedc-card__media">
-          {% if item.img %}
-            <img src="{{ item.img }}" alt="{{ item.title }}"{% if item.width %} width="{{ item.width }}" height="{{ item.height }}"{% endif %} loading="{{ (not home_slides and loop.first) ? 'eager' : 'lazy' }}"{% if not home_slides and loop.first %} fetchpriority="high"{% endif %}>
-          {% endif %}
-          {% if item.count %}
-            <span class="xedc-badge">{{ item.count }}张</span>
-          {% endif %}
-        </span>
-        <span class="xedc-card__title">{{ item.title }}</span>
-      </a>
-    </article>
+    {% include '@xedc/templates/includes/meitu-card.html.twig' with {
+      url: item.url,
+      title: item.title,
+      img: item.img,
+      count: item.count,
+      category: item.category|default(''),
+      date: item.date|default(''),
+      loading: (not home_slides and loop.first) ? 'eager' : 'lazy',
+      fetchpriority: (not home_slides and loop.first) ? 'high' : '',
+      width: item.width,
+      height: item.height
+    } only %}
   {% endfor %}
   </div>
 </section>

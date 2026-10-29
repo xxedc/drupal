@@ -1,0 +1,134 @@
+/* 分类筛选、排序、同类切换共用。普通态与激活态只换颜色，尺寸保持一致。 */
+a.xedc-pill,
+button.xedc-pill,
+summary.xedc-pill,
+.photo-tabs a.xedc-pill,
+.photo-sorts a.xedc-pill,
+.xedc-tax__chip.xedc-pill,
+.xedc-tax__more.xedc-pill,
+.xa a.xa-chip.xedc-pill,
+a.sr-tab.xedc-pill,
+a.sr-sort.xedc-pill{
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+  height:30px;
+  min-height:30px;
+  max-height:30px;
+  margin:0;
+  padding:0 12px;
+  border:1px solid var(--bs-border-color,#e4e4e7);
+  border-radius:15px;
+  background:var(--bs-body-bg,#fff);
+  color:#3f3f46;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:500;
+  font-style:normal;
+  line-height:1;
+  letter-spacing:0;
+  text-decoration:none;
+  text-transform:none;
+  white-space:nowrap;
+  box-shadow:none;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+a.xedc-pill:hover,
+button.xedc-pill:hover,
+summary.xedc-pill:hover,
+.photo-tabs a.xedc-pill:hover,
+.photo-sorts a.xedc-pill:hover,
+.xa a.xa-chip.xedc-pill:hover,
+a.sr-tab.xedc-pill:hover,
+a.sr-sort.xedc-pill:hover{
+  background:var(--bs-tertiary-bg,#f4f4f5);
+  border-color:var(--bs-border-color,#e4e4e7);
+  color:#18181b;
+  text-decoration:none;
+}
+a.xedc-pill.is-active,
+button.xedc-pill.is-active,
+a.xedc-pill.is-active:hover,
+button.xedc-pill.is-active:hover,
+.photo-tabs a.xedc-pill.is-active,
+.photo-sorts a.xedc-pill.is-active,
+.photo-tabs a.xedc-pill.is-active:hover,
+.photo-sorts a.xedc-pill.is-active:hover,
+.xa a.xa-chip.xedc-pill.is-active,
+.xa a.xa-chip.xedc-pill.is-active:hover,
+a.sr-tab.xedc-pill.is-active,
+a.sr-sort.xedc-pill.is-active,
+a.sr-tab.xedc-pill.is-active:hover,
+a.sr-sort.xedc-pill.is-active:hover{
+  background:#18181b;
+  border-color:#18181b;
+  color:#fff;
+  font-weight:500;
+}
+:is([data-bs-theme=dark],[data-theme=dark]) a.xedc-pill,
+:is([data-bs-theme=dark],[data-theme=dark]) button.xedc-pill,
+:is([data-bs-theme=dark],[data-theme=dark]) summary.xedc-pill{
+  background:var(--bs-body-bg,#18181b);
+  border-color:var(--bs-border-color,#3f3f46);
+  color:#d4d4d8;
+}
+:is([data-bs-theme=dark],[data-theme=dark]) a.xedc-pill:hover,
+:is([data-bs-theme=dark],[data-theme=dark]) button.xedc-pill:hover,
+:is([data-bs-theme=dark],[data-theme=dark]) summary.xedc-pill:hover{
+  background:var(--bs-tertiary-bg,#27272a);
+  color:#fafafa;
+}
+:is([data-bs-theme=dark],[data-theme=dark]) a.xedc-pill.is-active,
+:is([data-bs-theme=dark],[data-theme=dark]) a.xedc-pill.is-active:hover,
+:is([data-bs-theme=dark],[data-theme=dark]) button.xedc-pill.is-active{
+  background:#fafafa;
+  border-color:#fafafa;
+  color:#18181b;
+}
+a.xedc-pill:focus-visible,
+button.xedc-pill:focus-visible,
+summary.xedc-pill:focus-visible{
+  outline:2px solid var(--bs-body-color,#18181b);
+  outline-offset:2px;
+}
+summary.xedc-pill{list-style:none}
+summary.xedc-pill::-webkit-details-marker{display:none}
+summary.xedc-pill::marker{content:none}
+
+.photo-tabs,
+.photo-sorts,
+.xedc-tax,
+.xedc-tax__list,
+.xa .xa-chips,
+.sr-tabs,
+.sr-info .sr-sorts,
+.xedc-chips{gap:8px}
+.photo-sorts,
+.sr-info .sr-sorts,
+.xedc-view-photos .photo-sorts{
+  display:inline-flex;
+  align-items:center;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.photo-tabs .xedc-more,
+.xedc-chips .xedc-more{display:contents}
+.photo-tabs .xedc-more[open] summary,
+.xedc-chips .xedc-more[open] summary{display:none}
+a.sr-tab.xedc-pill .sr-tab-count{
+  font-size:12px;
+  font-weight:500;
+  line-height:1;
+}
+
+@media(prefers-reduced-motion:reduce){
+  a.xedc-pill,button.xedc-pill,summary.xedc-pill{transition:none}
+}

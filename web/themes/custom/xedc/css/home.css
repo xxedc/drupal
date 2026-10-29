@@ -7,9 +7,8 @@
 .xedc-section__head h2{font-size:20px;font-weight:700;line-height:1.25;margin:0;color:var(--bs-body-color)}
 .xedc-section__head a{display:inline-flex;align-items:center;font-size:14px;line-height:1.25;color:var(--bs-secondary-color);text-decoration:none;white-space:nowrap}
 .xedc-section__head a:hover{color:var(--bs-body-color)}
-.xedc-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0}
-.xedc-chips a{flex:none;padding:6px 14px;border:1px solid var(--bs-border-color);border-radius:999px;font-size:14px;text-decoration:none;color:inherit}
-.xedc-chips a.is-active{background:var(--bs-primary);color:var(--bs-primary-color,var(--bs-body-bg));border-color:var(--bs-primary)}
+.xedc-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;overflow-x:auto;padding:4px 0}
+.xedc-chips-title{font-size:13px;color:var(--bs-secondary-color);margin-right:2px}
 .xedc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .xedc-grid:not(.xedc-grid--video)>:nth-child(n+5){display:none}
 @media(min-width:768px){
@@ -54,27 +53,18 @@
 .xedc-backdrop{z-index:1 !important}
 .xedc-menu{z-index:2 !important}
 }
-/* 分类标签只显示术语名。行距、标签间距、与右侧「更多」的间距共用 --xedc-tax-gap。颜色走主题变量。 */
-.xedc-tax{--xedc-chip-h:32px;--xedc-tax-gap:12px;display:flex;align-items:flex-end;gap:var(--xedc-tax-gap);padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
-.xedc-tax__list{display:flex;flex:1 1 auto;min-width:0;align-items:center;align-content:flex-start;flex-wrap:wrap;gap:var(--xedc-tax-gap);overflow:visible}
-.xedc-tax__chip{display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;height:var(--xedc-chip-h);margin:0;padding:0 14px;border:1px solid var(--bs-border-color);border-radius:999px;background:transparent;color:var(--bs-body-color);font-size:14px;font-weight:500;line-height:1;text-decoration:none;white-space:nowrap;box-shadow:none;transition:background .15s,border-color .15s,color .15s}
-/* 悬停只铺一层浅底，不改字重、不加阴影。 */
-.xedc-tax__chip:hover{background:var(--bs-tertiary-bg);border-color:var(--bs-border-color);color:var(--bs-body-color);text-decoration:none}
-.xedc-tax__chip:focus-visible{outline:2px solid var(--bs-body-color);outline-offset:2px}
+/* 分类标签只显示术语名。按钮外观由 .xedc-pill 控制，这里只排版。行高变量给折叠计算用。 */
+.xedc-tax{--xedc-chip-h:30px;--xedc-tax-gap:8px;display:flex;align-items:flex-end;gap:8px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.xedc-tax__list{display:flex;flex:1 1 auto;min-width:0;align-items:center;align-content:flex-start;flex-wrap:wrap;gap:8px;overflow:visible}
 /* 「更多」默认不显示。手机超出两行后贴在栏目右侧，与标签底对齐，不另起一行。 */
-.xedc-tax__more{display:none;margin:0;box-sizing:border-box;height:var(--xedc-chip-h);padding:0 14px;border:1px solid var(--bs-border-color);border-radius:999px;background:transparent;color:var(--bs-secondary-color);font-size:13px;font-weight:500;line-height:1;white-space:nowrap;cursor:pointer;box-shadow:none}
-.xedc-tax__more:hover{background:var(--bs-tertiary-bg);border-color:var(--bs-border-color);color:var(--bs-body-color)}
-.xedc-tax__more:focus-visible{outline:2px solid var(--bs-body-color);outline-offset:2px}
+.xedc-tax__more.xedc-pill{display:none}
 @media(max-width:991.98px){
 .xedc-tax.is-collapsible:not(.is-open) .xedc-tax__list{max-height:calc(var(--xedc-chip-h) * 2 + var(--xedc-tax-gap));overflow:hidden}
-.xedc-tax.is-collapsible .xedc-tax__more{display:inline-flex;align-items:center;flex:none}
+.xedc-tax.is-collapsible .xedc-tax__more.xedc-pill{display:inline-flex}
 }
 @media(min-width:992px){
-/* PC 间距略松于手机，并展示全部标签。「更多」在下方规则里隐藏。 */
-.xedc-tax{--xedc-tax-gap:14px}
 .xedc-tax__list{overflow:visible;max-height:none}
-.xedc-tax__chip{padding:0 16px}
-.xedc-tax__more{display:none}
+.xedc-tax__more.xedc-pill{display:none}
 }
 /* 首页顶栏底边去掉，避免压在轮播上方形成一条线。仅首页。 */
 .path-frontpage header.xn{border-bottom:0;box-shadow:none}
@@ -140,5 +130,5 @@
 }
 @media(prefers-reduced-motion:reduce){
 .xedc-hero__track{scroll-behavior:auto}
-.xedc-hero__nav,.xedc-card,.xedc-article,.xedc-tax__chip{transition:none}
+.xedc-hero__nav,.xedc-card,.xedc-article,.xedc-pill{transition:none}
 }

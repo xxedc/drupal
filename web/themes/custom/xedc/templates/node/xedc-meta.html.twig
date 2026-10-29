@@ -1,8 +1,11 @@
 {{ attach_library('xedc/meta') }}
 {% set meta_part = part|default('all') %}
-{% if xedc_meta %}
+{% set show_stats = meta_part == 'all' or meta_part == 'stats' %}
+{% set show_classify = meta_part == 'all' or meta_part == 'info' or meta_part == 'classify' %}
+{% set show_tags = meta_part == 'all' or meta_part == 'info' or meta_part == 'tags' %}
+{% if xedc_meta and (show_stats or (show_classify and (xedc_meta.categories or xedc_meta.models)) or (show_tags and xedc_meta.tags)) %}
 <div class="xedc-meta">
-  {% if meta_part != 'info' %}
+  {% if show_stats %}
   <div class="xedc-meta__stats">
     <span class="xedc-meta__stat">
       <span class="xedc-meta__stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></span>
@@ -21,9 +24,9 @@
     </span>
   </div>
   {% endif %}
-  {% if meta_part != 'stats' and (xedc_meta.categories or xedc_meta.models or xedc_meta.tags) %}
+  {% if (show_classify and (xedc_meta.categories or xedc_meta.models)) or (show_tags and xedc_meta.tags) %}
   <div class="xedc-meta__info">
-    {% if xedc_meta.categories %}
+    {% if show_classify and xedc_meta.categories %}
     <div class="xedc-meta__line xedc-meta__line--categories">
       <div class="xedc-meta__group">
         <span class="xedc-meta__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>分类：</span>
@@ -31,7 +34,7 @@
       </div>
     </div>
     {% endif %}
-    {% if xedc_meta.models %}
+    {% if show_classify and xedc_meta.models %}
     <div class="xedc-meta__line xedc-meta__line--models">
       <div class="xedc-meta__group">
         <span class="xedc-meta__label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>人物：</span>
@@ -39,7 +42,7 @@
       </div>
     </div>
     {% endif %}
-    {% if xedc_meta.tags %}
+    {% if show_tags and xedc_meta.tags %}
     <div class="xedc-meta__line xedc-meta__line--tags">
       <div class="xedc-meta__group">
         <span class="xedc-meta__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1"/></svg>标签：</span>

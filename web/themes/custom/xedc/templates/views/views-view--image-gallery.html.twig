@@ -131,14 +131,33 @@
     {% endblock %}
 
     {% block views_rows %}
-      {% if rows %}
+      {% if meitu_cards %}
+        <div {{ views_rows_attributes.addClass(views_rows_classes).addClass('meitu-grid') }}>
+          {% for card in meitu_cards %}
+            {% include '@xedc/templates/includes/meitu-card.html.twig' with {
+              url: card.url,
+              title: card.title,
+              img: card.img,
+              count: card.count,
+              category: card.category,
+              date: card.date,
+              loading: card.loading,
+              fetchpriority: card.fetchpriority,
+              width: card.width,
+              height: card.height
+            } only %}
+          {% endfor %}
+        </div>
+      {% elseif rows %}
         <div {{ views_rows_attributes.addClass(views_rows_classes) }}>
           {{ rows }}
         </div>
       {% elseif empty %}
-        <div {{ views_empty_attributes.addClass(views_empty_classes) }}>
+        <div {{ views_empty_attributes.addClass(views_empty_classes).addClass('photo-empty') }}>
           {{ empty }}
         </div>
+      {% else %}
+        <p class="photo-empty">暂无美图</p>
       {% endif %}
     {% endblock %}
 

@@ -51,6 +51,22 @@ type_settings:
         - published
       to: draft
       weight: 6
+    keep_needs_review:
+      label: 保持待审核
+      from:
+        - needs_review
+      to: needs_review
+      weight: 2
+    publish:
+      label: 直接发布
+      from:
+        - draft
+        - published
+        - changes_requested
+        - rejected
+        - needs_review
+      to: published
+      weight: -1
     reject:
       label: 拒绝
       from:

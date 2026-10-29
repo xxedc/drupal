@@ -112,25 +112,8 @@ body:has(.sr-page) h1.page-title { margin-top: .125rem; }
 }
 .sr-tabs::-webkit-scrollbar { display: none; }
 .sr-tab {
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
-  flex: none;
-  padding: 7px 14px;
-  border: 1px solid var(--bs-border-color);
-  border-radius: 999px;
-  background: var(--bs-body-bg);
-  color: var(--bs-secondary-color);
-  font-size: 14px;
-  line-height: 1.25;
   text-decoration: none;
-  transition: background .15s ease, color .15s ease, border-color .15s ease;
-}
-.sr-tab:hover { background: var(--bs-tertiary-bg); color: var(--bs-body-color); }
-.sr-tab.is-active {
-  background: var(--bs-body-color);
-  border-color: var(--bs-body-color);
-  color: var(--bs-body-bg);
 }
 .sr-tab-count {
   font-size: 12px;
@@ -210,22 +193,15 @@ body:has(.sr-page) h1.page-title { margin-top: .125rem; }
 .sr-kw { color: var(--bs-body-color); font-weight: 500; }
 .sr-sorts {
   display: inline-flex;
+  align-items: center;
   flex: none;
-  padding: 2px;
-  border: 1px solid var(--bs-border-color);
-  border-radius: 999px;
-  background: var(--bs-body-bg);
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
-.sr-sort {
-  padding: 4px 12px;
-  border-radius: 999px;
-  color: var(--bs-secondary-color);
-  font-size: 12px;
-  line-height: 1.4;
-  text-decoration: none;
-}
-.sr-sort:hover { color: var(--bs-body-color); }
-.sr-sort.is-active { background: var(--bs-tertiary-bg); color: var(--bs-body-color); font-weight: 600; }
+.sr-sort { text-decoration: none; }
 
 /* Results grid */
 .sr-grid {
@@ -501,8 +477,7 @@ body:has(.sr-page) h1.page-title { margin-top: .125rem; }
   .sr-input { padding-left: 40px; font-size: 14px; }
   .sr-clear { width: 30px; height: 30px; }
   .sr-submit { height: 36px; padding: 0 14px; font-size: 13px; }
-  .sr-tabs { gap: 6px; -webkit-mask-image: linear-gradient(90deg, var(--bs-black) 86%, transparent); mask-image: linear-gradient(90deg, var(--bs-black) 86%, transparent); }
-  .sr-tab { padding: 6px 12px; font-size: 13px; }
+  .sr-tabs { gap: 8px; -webkit-mask-image: linear-gradient(90deg, var(--bs-black) 86%, transparent); mask-image: linear-gradient(90deg, var(--bs-black) 86%, transparent); }
   .sr-models { gap: 10px; margin-bottom: 16px; }
   .sr-model-card { padding: 10px 12px; gap: 10px; border-radius: 14px; }
   .sr-model-avatar { width: 52px; height: 52px; font-size: 19px; }

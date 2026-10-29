@@ -10,7 +10,7 @@ field_name: field_featured
 entity_type: node
 bundle: photo
 label: 推荐
-description: ''
+description: 勾选后，该图片在对应分类栏目列表页排在最前面。
 required: false
 translatable: false
 default_value:

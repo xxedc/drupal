@@ -23,14 +23,12 @@ class HomeCards {
   ) {}
 
   /**
-   * Slideshow photos promoted to the front page.
+   * Homepage carousel photos.
    *
-   * The content admin bulk actions "将内容推荐到首页" / "从首页移除内容"
-   * toggle the core promote flag (node_promote_action / node_unpromote_action).
-   * Only published photos with promote = 1 are shown. field_slideshow is not
-   * the source of truth, and hot photos are not used to fill empty slots, so
-   * removing a node from the front page takes it out of the carousel.
-   * Photos only: slide images come from field_cover_image.
+   * Only published photos with field_slideshow checked are shown.
+   * field_featured is the category-list pin and is not read here.
+   * Empty slots are not filled with other photos.
+   * Slide images come from field_cover_image.
    *
    * @return array<int, array<string, mixed>>
    *   Card rows, at most $limit.
@@ -40,7 +38,7 @@ class HomeCards {
       ->accessCheck(TRUE)
       ->condition('type', 'photo')
       ->condition('status', NodeInterface::PUBLISHED)
-      ->condition('promote', NodeInterface::PROMOTED)
+      ->condition('field_slideshow', 1)
       ->sort('created', 'DESC')
       ->range(0, $limit)
       ->execute();

@@ -1,0 +1,21 @@
+uuid: 7b959312-b6e9-4fab-97e0-ecb81b3c3b27
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: meitu_card_cover
+label: '美图卡片 480×800'
+effects:
+  8acf2217-ad58-44bc-b0ae-3b534715f58f:
+    uuid: 8acf2217-ad58-44bc-b0ae-3b534715f58f
+    id: image_scale_and_crop
+    weight: 1
+    data:
+      width: 480
+      height: 800
+      anchor: center-top
+  44ed0626-6a42-4e89-a0b4-18496497d480:
+    uuid: 44ed0626-6a42-4e89-a0b4-18496497d480
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp

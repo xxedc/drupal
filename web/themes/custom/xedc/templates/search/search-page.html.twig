@@ -18,7 +18,7 @@
   <div class="sr-tabs-wrap">
     <nav class="sr-tabs" aria-label="搜索类型">
       {% for tab in tabs %}
-        <a class="sr-tab{{ tab.active ? ' is-active' }}" href="{{ tab.url }}">{{ tab.label }}{% if q %}<span class="sr-tab-count">{{ tab.count }}</span>{% endif %}</a>
+        <a class="sr-tab xedc-pill{{ tab.active ? ' is-active' }}" href="{{ tab.url }}">{{ tab.label }}{% if q %}<span class="sr-tab-count">{{ tab.count }}</span>{% endif %}</a>
       {% endfor %}
     </nav>
   </div>
@@ -47,7 +47,7 @@
       {% if type != 'model' %}
         <div class="sr-sorts" aria-label="排序">
           {% for item in sorts %}
-            <a class="sr-sort{{ item.active ? ' is-active' }}" href="{{ item.url }}">{{ item.label }}</a>
+            <a class="sr-sort xedc-pill{{ item.active ? ' is-active' }}" href="{{ item.url }}">{{ item.label }}</a>
           {% endfor %}
         </div>
       {% endif %}

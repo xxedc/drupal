@@ -212,6 +212,13 @@
   color: #171717;
 }
 
+.comment-form__notice {
+  margin: 0 0 .75rem;
+  color: #71717a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .comment-form .comment-form__error {
   margin-top: .35rem;
   color: #b91c1c;

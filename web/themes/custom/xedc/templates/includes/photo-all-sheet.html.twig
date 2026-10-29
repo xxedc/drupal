@@ -1,0 +1,19 @@
+{% if items %}
+<div class="img-sheet" id="img-sheet" hidden aria-hidden="true">
+  <div class="img-sheet__backdrop" data-img-sheet-close></div>
+  <div class="img-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="img-sheet-title">
+    <div class="img-sheet__head">
+      <h2 class="img-sheet__title" id="img-sheet-title">全部图片</h2>
+      <span class="img-sheet__count">{{ items|length }} 张</span>
+      <button type="button" class="img-sheet__close" data-img-sheet-close aria-label="关闭">×</button>
+    </div>
+    <div class="img-sheet__grid">
+      {% for item in items %}
+        <button type="button" class="img-sheet__item" data-img-index="{{ loop.index0 }}" aria-label="第 {{ loop.index }} 张{% if item.alt %}：{{ item.alt }}{% endif %}">
+          <img src="{{ item.thumb }}" alt="" loading="lazy" decoding="async">
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}

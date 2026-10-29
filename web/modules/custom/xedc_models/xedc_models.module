@@ -1,5 +1,30 @@
 <?php
 
+/**
+ * Keeps a model pill on the current photo list via ?model=.
+ */
+function xedc_models_views_query_alter(\Drupal\views\ViewExecutable $view, \Drupal\views\Plugin\views\query\QueryPluginBase $query): void {
+  if ($view->id() !== 'image_gallery' || !$query instanceof \Drupal\views\Plugin\views\query\Sql) {
+    return;
+  }
+  $raw = \Drupal::request()->query->get('model');
+  if (!is_scalar($raw) || !ctype_digit((string) $raw) || (int) $raw < 1) {
+    return;
+  }
+  $join = \Drupal::service('plugin.manager.views.join')->createInstance('standard', [
+    'type' => 'INNER',
+    'table' => 'node__field_model',
+    'field' => 'entity_id',
+    'left_table' => 'node_field_data',
+    'left_field' => 'nid',
+    'extra' => [
+      ['field' => 'field_model_target_id', 'value' => (int) $raw],
+      ['field' => 'deleted', 'value' => 0],
+    ],
+  ]);
+  $query->addRelationship('xedc_photo_model', $join, 'node_field_data');
+}
+
 function xedc_models_theme() {
   return [
     'xedc_models_page' => [

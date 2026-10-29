@@ -109,6 +109,8 @@ module:
   views_infinite_scroll: 0
   views_ui: 0
   workflows: 0
+  workspaces: 0
+  workspaces_ui: 0
   xa_views: 0
   xedc_home: 0
   xedc_member: 0

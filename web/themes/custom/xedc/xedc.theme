@@ -83,7 +83,7 @@ function xedc_preprocess_page(&$variables) {
     if (\Drupal::moduleHandler()->moduleExists('xedc_home')) {
       $cards = \Drupal::service('xedc_home.cards');
       $variables['home_slides'] = $cards->slideshow();
-      $variables['home_photos'] = $cards->fromView('block_photos', 'field_cover_image', 'images_450x800', 'photo');
+      $variables['home_photos'] = $cards->fromView('block_photos', 'field_cover_image', 'meitu_card_cover', 'photo');
       $variables['home_videos'] = $cards->fromView('block_videos', 'field_video_cover', 'video_cover', 'video');
       $variables['home_articles'] = $cards->fromView('block_articles', 'field_cover', 'large', 'article');
       $block = \Drupal::service('plugin.manager.block')->createInstance('xedc_home_photo_categories');
@@ -219,7 +219,7 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
       }
       $items = [];
       foreach (\Drupal\taxonomy\Entity\Term::loadMultiple(array_keys($count)) as $tt) {
-        $items[] = ['t' => $tt->label(), 'u' => $tt->toUrl()->toString(), 'a' => FALSE, 'n' => $count[$tt->id()]];
+        $items[] = ['id' => (int) $tt->id(), 't' => $tt->label(), 'n' => $count[$tt->id()]];
       }
       usort($items, fn($x, $y) => $y['n'] <=> $x['n']);
       return $items;
@@ -228,12 +228,32 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
     $tags = [];
   }
 
-  // 顶部条：栏目页且有人物 -> 人物；否则 -> 栏目。
-  $more = [];
+  // 顶部条：栏目页且有人物 -> 人物；否则 -> 栏目。横条只露前若干项，其余进弹出层。
+  // 模特筛选留在当前栏目页，用 ?model= 收窄列表。
+  $model_id = 0;
   if ($is_cat) {
-    $tabs = [['t' => '全部', 'u' => \Drupal\Core\Url::fromRoute('entity.taxonomy_term.canonical', ['taxonomy_term' => $cur], ['query' => $sq($sort)])->toString(), 'a' => TRUE]];
-    $tabs = array_merge($tabs, array_slice($models, 0, 6));
-    $more = array_slice($models, 6);
+    $raw_model = $q->get('model');
+    if (is_scalar($raw_model) && ctype_digit((string) $raw_model)) {
+      $model_id = (int) $raw_model;
+    }
+    $tabs = [['t' => '全部', 'u' => \Drupal\Core\Url::fromRoute('<current>', [], ['query' => $sq($sort)])->toString(), 'a' => $model_id === 0]];
+    foreach ($models as $item) {
+      $query = $sq($sort);
+      $query['model'] = $item['id'];
+      $tabs[] = [
+        't' => $item['t'],
+        'u' => \Drupal\Core\Url::fromRoute('<current>', [], ['query' => $query])->toString(),
+        'a' => $model_id === $item['id'],
+      ];
+    }
+    if ($model_id > 0) {
+      $base_sq = $sq;
+      $sq = function ($s) use ($base_sq, $model_id) {
+        $query = $base_sq($s);
+        $query['model'] = $model_id;
+        return $query;
+      };
+    }
   }
   else {
     $tabs = [['t' => '全部', 'u' => \Drupal\Core\Url::fromUserInput('/meitu', ['query' => $sq($sort)])->toString(), 'a' => !$cur]];
@@ -248,22 +268,59 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
     ['t' => '最热', 'u' => \Drupal\Core\Url::fromRoute('<current>', [], ['query' => $sq('totalcount')])->toString(), 'a' => $sort === 'totalcount'],
   ];
 
-  $tpl = '<style>.photo-tabs .xedc-more{display:contents}.photo-tabs .xedc-more summary{cursor:pointer;list-style:none;white-space:nowrap;padding:.35rem .9rem;border:1px dashed rgba(128,128,128,.5);border-radius:999px;font-size:.85rem;opacity:.75}.photo-tabs .xedc-more[open] summary{display:none}</style>';
-  $tpl .= '<div class="photo-bar"><nav class="photo-tabs">{% for i in tabs %}';
-  $tpl .= '<a href="{{ i.u }}"{% if i.a %} class="is-active"{% endif %}>{{ i.t }}</a>{% endfor %}';
-  $tpl .= '{% if more %}<details class="xedc-more"><summary>更多标签</summary>{% for i in more %}<a href="{{ i.u }}">{{ i.t }}</a>{% endfor %}</details>{% endif %}</nav>';
-  $tpl .= '<nav class="photo-sorts">{% for i in sorts %}';
-  $tpl .= '<a href="{{ i.u }}"{% if i.a %} class="is-active"{% endif %}>{{ i.t }}</a>{% endfor %}</nav></div>';
+  $label = $is_cat ? '模特' : '分类';
+  $sheet_title = $is_cat ? '全部模特' : '全部分类';
+  $bar_limit = 6;
+  $lead = $tabs[0] ?? NULL;
+  $rest = array_slice($tabs, 1);
+  $bar = array_slice($rest, 0, $bar_limit);
+  $seen = [];
+  foreach ($bar as $item) {
+    $seen[$item['u']] = TRUE;
+  }
+  foreach ($rest as $item) {
+    if (!empty($item['a']) && empty($seen[$item['u']])) {
+      $bar[] = $item;
+      break;
+    }
+  }
+  $show_more = count($rest) > $bar_limit;
+
+  $pill = '<a class="xedc-pill{{ i.a ? \' is-active\' : \'\' }}" href="{{ i.u }}"{% if i.a %} aria-current="page"{% endif %}>{{ i.t }}</a>';
+  $tpl = '<div class="photo-bar"><div class="photo-tabs-wrap">';
+  $tpl .= '<div class="photo-tabs-scroll"><nav class="photo-tabs" aria-label="{{ label }}">';
+  $tpl .= '{% if lead %}<a class="xedc-pill{{ lead.a ? \' is-active\' : \'\' }}" href="{{ lead.u }}"{% if lead.a %} aria-current="page"{% endif %}>{{ lead.t }}</a>{% endif %}';
+  $tpl .= '{% for i in bar %}' . $pill . '{% endfor %}';
+  $tpl .= '</nav><span class="photo-tabs-fade" hidden></span></div>';
+  $tpl .= '{% if show_more %}<button type="button" class="xedc-pill photo-more" aria-haspopup="dialog" aria-expanded="false" aria-controls="photo-filter-sheet">更多</button>{% endif %}';
+  $tpl .= '</div><nav class="photo-sorts" aria-label="排序">';
+  $tpl .= '{% for i in sorts %}<a class="xedc-pill{{ i.a ? \' is-active\' : \'\' }}" href="{{ i.u }}"{% if i.a %} aria-current="page"{% endif %}>{{ i.t }}</a>{% endfor %}</nav></div>';
+  $tpl .= '{% if show_more %}<div class="photo-sheet" id="photo-filter-sheet" hidden>';
+  $tpl .= '<div class="photo-sheet__backdrop" data-photo-sheet-close></div>';
+  $tpl .= '<div class="photo-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="photo-filter-sheet-title">';
+  $tpl .= '<div class="photo-sheet__head"><h2 id="photo-filter-sheet-title">{{ sheet_title }}</h2>';
+  $tpl .= '<button type="button" class="photo-sheet__close" data-photo-sheet-close aria-label="关闭">&times;</button></div>';
+  $tpl .= '<label class="photo-sheet__search"><span class="visually-hidden">搜索{{ label }}</span>';
+  $tpl .= '<input type="search" placeholder="搜索{{ label }}" autocomplete="off" enterkeyhint="search"></label>';
+  $tpl .= '<div class="photo-sheet__grid">{% for i in tabs %}' . $pill . '{% endfor %}</div>';
+  $tpl .= '<p class="photo-sheet__empty" hidden>没有匹配的{{ label }}</p></div></div>{% endif %}';
   $form['pills'] = ['#type' => 'inline_template', '#template' => $tpl,
-    '#context' => ['tabs' => $tabs, 'more' => $more, 'sorts' => $sorts], '#weight' => -10];
+    '#context' => [
+      'lead' => $lead,
+      'bar' => $bar,
+      'tabs' => $tabs,
+      'sorts' => $sorts,
+      'label' => $label,
+      'sheet_title' => $sheet_title,
+      'show_more' => $show_more,
+    ], '#weight' => -10];
 
   // 标签行（栏目页，最多 6 个，其余折叠）。
   if ($tags) {
-    $css = '.xedc-chips{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.75rem 0}.xedc-chips-title{font-size:.8rem;opacity:.6;margin-right:.25rem}.xedc-chip{padding:.35rem .9rem;border:1px solid rgba(128,128,128,.35);border-radius:999px;font-size:.85rem;color:inherit;text-decoration:none;white-space:nowrap}.xedc-chip:hover{background:rgba(128,128,128,.12)}.xedc-chips .xedc-more{display:contents}.xedc-chips .xedc-more summary{cursor:pointer;list-style:none;padding:.35rem .9rem;border:1px dashed rgba(128,128,128,.5);border-radius:999px;font-size:.85rem;opacity:.75}.xedc-chips .xedc-more[open] summary{display:none}';
-    $t2 = '<style>' . $css . '</style><div class="xedc-chips"><span class="xedc-chips-title">标签</span>';
-    $t2 .= '{% for c in tags|slice(0, 6) %}<a class="xedc-chip" href="{{ c.u }}">{{ c.t }}</a>{% endfor %}';
-    $t2 .= '{% if tags|length > 6 %}<details class="xedc-more"><summary>更多标签</summary>';
-    $t2 .= '{% for c in tags|slice(6) %}<a class="xedc-chip" href="{{ c.u }}">{{ c.t }}</a>{% endfor %}</details>{% endif %}</div>';
+    $t2 = '<div class="xedc-chips"><span class="xedc-chips-title">标签</span>';
+    $t2 .= '{% for c in tags|slice(0, 6) %}<a class="xedc-pill" href="{{ c.u }}">{{ c.t }}</a>{% endfor %}';
+    $t2 .= '{% if tags|length > 6 %}<details class="xedc-more"><summary class="xedc-pill">更多标签</summary>';
+    $t2 .= '{% for c in tags|slice(6) %}<a class="xedc-pill" href="{{ c.u }}">{{ c.t }}</a>{% endfor %}</details>{% endif %}</div>';
     $form['chips'] = ['#type' => 'inline_template', '#template' => $t2,
       '#context' => ['tags' => $tags], '#weight' => -5];
   }
@@ -273,6 +330,7 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
   }
   $form['#cache']['contexts'][] = 'url.path';
   $form['#cache']['contexts'][] = 'url.query_args:sort_by';
+  $form['#cache']['contexts'][] = 'url.query_args:model';
   $form['#cache']['tags'][] = 'node_list';
   $form['#cache']['tags'][] = 'taxonomy_term_list';
 }
@@ -280,9 +338,23 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
 function xedc_form_comment_form_alter(array &$form, $form_state, $form_id) {
   $form['#attached']['library'][] = 'xedc/comment-form';
   $form_object = $form_state->getFormObject();
-  $is_edit = $form_object instanceof \Drupal\comment\CommentForm
-    && $form_object->getEntity() instanceof \Drupal\comment\CommentInterface
-    && !$form_object->getEntity()->isNew();
+  $comment = $form_object instanceof \Drupal\comment\CommentForm ? $form_object->getEntity() : NULL;
+  $is_edit = $comment instanceof \Drupal\comment\CommentInterface && !$comment->isNew();
+  if (!$is_edit && $comment instanceof \Drupal\comment\CommentInterface) {
+    $form['pid'] = [
+      '#type' => 'hidden',
+      '#default_value' => $comment->hasParentComment() ? (int) $comment->getParentComment()->id() : 0,
+    ];
+    $form['#entity_builders'][] = '_xedc_comment_apply_pid';
+    $form['actions']['submit']['#ajax'] = [
+      'callback' => '_xedc_comment_ajax_callback',
+      'disable-refocus' => TRUE,
+      'progress' => [
+        'type' => 'throbber',
+        'message' => '',
+      ],
+    ];
+  }
   $form["actions"]["submit"]["#value"] = $is_edit ? t('保存修改') : t('发表评论');
   if ($is_edit) {
     $form['#attributes']['class'][] = 'comment-form--edit';
@@ -332,6 +404,108 @@ function _xedc_comment_form_placeholder_after_build(array $form, \Drupal\Core\Fo
   return $form;
 }
 
+/**
+ * Copies the reply parent onto a new comment.
+ *
+ * The reply link sets input[name="pid"] without leaving the page.
+ */
+function _xedc_comment_apply_pid($entity_type, $entity, array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
+  if (!$entity instanceof \Drupal\comment\CommentInterface || !$entity->isNew()) {
+    return;
+  }
+  $pid = (int) $form_state->getValue('pid');
+  if ($pid <= 0) {
+    $entity->set('pid', NULL);
+    return;
+  }
+  $parent = \Drupal\comment\Entity\Comment::load($pid);
+  $same = $parent instanceof \Drupal\comment\CommentInterface
+    && (int) $parent->getCommentedEntityId() === (int) $entity->getCommentedEntityId()
+    && $parent->getCommentedEntityTypeId() === $entity->getCommentedEntityTypeId()
+    && $parent->getFieldName() === $entity->getFieldName();
+  $entity->set('pid', $same ? $pid : NULL);
+}
+
+/**
+ * Ajax callback: insert the new comment beside the form, without a redirect.
+ */
+function _xedc_comment_ajax_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): \Drupal\Core\Ajax\AjaxResponse {
+  $response = new \Drupal\Core\Ajax\AjaxResponse();
+  $messenger = \Drupal::messenger();
+  if ($form_state->hasAnyErrors()) {
+    $messages = [];
+    foreach ($form_state->getErrors() as $message) {
+      $text = trim(strip_tags((string) $message));
+      if ($text !== '') {
+        $messages[] = $text;
+      }
+    }
+    if ($messages) {
+      $form['xedc_error'] = [
+        '#type' => 'html_tag',
+        '#tag' => 'div',
+        '#value' => implode(' ', $messages),
+        '#attributes' => [
+          'class' => ['comment-form__error'],
+          'role' => 'alert',
+        ],
+        '#weight' => -100,
+      ];
+    }
+    $messenger->deleteByType('error');
+    $response->addCommand(new \Drupal\Core\Ajax\ReplaceCommand('form.comment-form', $form));
+    return $response;
+  }
+
+  $form_object = $form_state->getFormObject();
+  $comment = $form_object instanceof \Drupal\comment\CommentForm ? $form_object->getEntity() : NULL;
+  if (!$comment instanceof \Drupal\comment\CommentInterface || !$comment->id()) {
+    $messenger->deleteAll();
+    $response->addCommand(new \Drupal\Core\Ajax\ReplaceCommand('form.comment-form', $form));
+    return $response;
+  }
+
+  $visible = $comment->isPublished() && $comment->access('view');
+  if ($visible) {
+    $build = \Drupal::entityTypeManager()->getViewBuilder('comment')->view($comment);
+    $response->addCommand(new \Drupal\Core\Ajax\BeforeCommand('form.comment-form', $build));
+  }
+  else {
+    $response->addCommand(new \Drupal\Core\Ajax\BeforeCommand('form.comment-form', [
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => (string) t('评论已提交，审核通过后才会显示。'),
+      '#attributes' => [
+        'class' => ['comment-form__notice'],
+        'role' => 'status',
+      ],
+    ]));
+  }
+  $messenger->deleteAll();
+  $response->addCommand(new \Drupal\Core\Ajax\ReplaceCommand('form.comment-form', _xedc_comment_fresh_form($comment)));
+  $response->addCommand(new \Drupal\Core\Ajax\InvokeCommand('form.comment-form', 'xedcCommentDone', []));
+  return $response;
+}
+
+/**
+ * Builds an empty comment form that is not tied to the submission just saved.
+ */
+function _xedc_comment_fresh_form(\Drupal\comment\CommentInterface $comment): array {
+  $entity = $comment->getCommentedEntity();
+  $fresh = \Drupal\comment\Entity\Comment::create([
+    'entity_type' => $entity->getEntityTypeId(),
+    'entity_id' => $entity->id(),
+    'field_name' => $comment->getFieldName(),
+    'comment_type' => $comment->bundle(),
+  ]);
+  $form_object = \Drupal::entityTypeManager()->getFormObject('comment', 'default');
+  $form_object->setEntity($fresh);
+  $form_state = new \Drupal\Core\Form\FormState();
+  $form_state->setUserInput([]);
+  $form_state->disableRedirect();
+  return \Drupal::formBuilder()->buildForm($form_object, $form_state);
+}
+
 function xedc_preprocess_node(array &$variables) {
   _xedc_vd_preprocess($variables);
   _xedc_add_meta($variables);
@@ -339,8 +513,17 @@ function xedc_preprocess_node(array &$variables) {
   if ($node->bundle() !== 'photo' || $variables['view_mode'] !== 'full') {
     return;
   }
+  $variables['img_summary'] = '';
   if ($node->hasField('field_summary') && !$node->get('field_summary')->isEmpty()) {
-    $variables['img_summary'] = $node->get('field_summary')->view(['label' => 'hidden']);
+    $summary = trim(str_replace(["\r\n", "\r"], "\n", (string) $node->get('field_summary')->value));
+    if ($summary !== '') {
+      $variables['img_summary'] = $summary;
+    }
+  }
+  $variables['img_gallery'] = _xedc_photo_gallery_items($node, $variables);
+  $variables['img_show_cover'] = !empty($variables['img_show_cover']);
+  if (isset($variables['xedc_meta']) && is_array($variables['xedc_meta'])) {
+    $variables['xedc_meta']['count'] = count($variables['img_gallery']);
   }
   if (isset($variables['content']['field_images'])) {
     $variables['content']['field_images']['#post_render'][] = [XedcPhotoGalleryLazy::class, 'render'];
@@ -378,6 +561,96 @@ function xedc_preprocess_node(array &$variables) {
   }
   $variables['related'] = $ids ? $st->loadMultiple($ids) : [];
   $variables['#cache']['tags'][] = 'node_list:photo';
+}
+
+/**
+ * Gallery items in field_images order.
+ *
+ * The cover is included only when that file is not already in field_images.
+ * Lightbox uses max_1300x1300. Sheet thumbs use max_650x650 (scale, no crop).
+ */
+function _xedc_photo_gallery_items($node, array &$variables): array {
+  $full_style = \Drupal\image\Entity\ImageStyle::load('max_1300x1300');
+  $thumb_style = \Drupal\image\Entity\ImageStyle::load('max_650x650');
+  $generator = \Drupal::service('file_url_generator');
+  $variables['#cache']['tags'][] = 'config:image.style.max_1300x1300';
+  $variables['#cache']['tags'][] = 'config:image.style.max_650x650';
+  $variables['img_show_cover'] = FALSE;
+
+  $file_of = static function ($media) {
+    if (!$media instanceof \Drupal\media\MediaInterface) {
+      return NULL;
+    }
+    $fid = $media->getSource()->getSourceFieldValue($media);
+    if (!$fid) {
+      return NULL;
+    }
+    $file = \Drupal\file\Entity\File::load($fid);
+    return $file instanceof \Drupal\file\FileInterface ? $file : NULL;
+  };
+  $pack = function ($media) use ($file_of, $full_style, $thumb_style, $generator, &$variables) {
+    $file = $file_of($media);
+    if (!$file || !$media instanceof \Drupal\media\MediaInterface) {
+      return NULL;
+    }
+    $uri = $file->getFileUri();
+    $full = $full_style ? $full_style->buildUrl($uri) : $generator->generateAbsoluteString($uri);
+    $thumb = $thumb_style ? $thumb_style->buildUrl($uri) : $full;
+    $original = $generator->generateString($uri);
+    $alt = '';
+    if ($media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+      $alt = trim((string) $media->get('field_media_image')->alt);
+    }
+    $variables['#cache']['tags'][] = 'media:' . $media->id();
+    $variables['#cache']['tags'][] = 'file:' . $file->id();
+    return [
+      'thumb' => $generator->transformRelative($thumb),
+      'full' => $generator->transformRelative($full),
+      'original' => $generator->transformRelative($original),
+      'alt' => $alt,
+    ];
+  };
+
+  $images = [];
+  $seen = [];
+  if ($node->hasField('field_images') && !$node->get('field_images')->isEmpty()) {
+    foreach ($node->get('field_images')->referencedEntities() as $media) {
+      if (!$media instanceof \Drupal\media\MediaInterface || !$media->access('view')) {
+        continue;
+      }
+      $item = $pack($media);
+      if (!$item) {
+        continue;
+      }
+      $images[] = $item;
+      $seen[(int) $media->id()] = TRUE;
+      $file = $file_of($media);
+      if ($file) {
+        $seen['f' . $file->id()] = TRUE;
+      }
+    }
+  }
+
+  $cover_items = [];
+  if ($node->hasField('field_cover_image') && !$node->get('field_cover_image')->isEmpty()) {
+    $cover = $node->get('field_cover_image')->entity;
+    if (!$cover instanceof \Drupal\media\MediaInterface || !$cover->access('view')) {
+      $cover = NULL;
+    }
+    $cover_file = $file_of($cover);
+    $redundant = $cover instanceof \Drupal\media\MediaInterface && (
+      isset($seen[(int) $cover->id()]) ||
+      ($cover_file && isset($seen['f' . $cover_file->id()]))
+    );
+    if (!$redundant) {
+      $item = $pack($cover);
+      if ($item) {
+        $cover_items[] = $item;
+        $variables['img_show_cover'] = TRUE;
+      }
+    }
+  }
+  return array_merge($cover_items, $images);
 }
 
 require_once __DIR__ . '/includes/auth.inc';
@@ -489,11 +762,11 @@ function _xedc_photo_build_rows(array &$variables, \Drupal\views\ViewExecutable 
   if (empty($view->result)) {
     return;
   }
-  $style = \Drupal\image\Entity\ImageStyle::load('photo_card_640');
+  $style = \Drupal\image\Entity\ImageStyle::load('meitu_card_cover');
   $file_url = \Drupal::service('file_url_generator');
   $date_formatter = \Drupal::service('date.formatter');
-  $rows = [];
-  $tags = ['taxonomy_term_list'];
+  $cards = [];
+  $tags = ['taxonomy_term_list', 'config:image.style.meitu_card_cover'];
   $index = 0;
 
   foreach ($view->result as $result) {
@@ -518,48 +791,26 @@ function _xedc_photo_build_rows(array &$variables, \Drupal\views\ViewExecutable 
         }
       }
     }
-    $badge = _xedc_photo_card_badge($node, $hidden_tids);
-    $date = $date_formatter->format($node->getCreatedTime(), 'custom', 'Y-m-d');
-    $image_count = $node->hasField('field_images') ? (int) $node->get('field_images')->count() : 0;
-    $model_name = '';
-    if ($node->hasField('field_model') && !$node->get('field_model')->isEmpty()) {
-      foreach ($node->get('field_model')->referencedEntities() as $model) {
-        if ($model instanceof \Drupal\taxonomy\TermInterface) {
-          $model_name = $model->label();
-          break;
-        }
-      }
-    }
     $eager = $index < 2;
-    $html = '<div class="views-row"><a class="photo-card-link" href="' . \Drupal\Component\Utility\Html::escape($url) . '">';
-    $html .= '<div class="views-field views-field-field-cover-image"><div class="field-content">';
-    if ($cover_url) {
-      $html .= '<img src="' . \Drupal\Component\Utility\Html::escape($cover_url) . '" width="640" height="853" alt="' . \Drupal\Component\Utility\Html::escape($title) . '" loading="' . ($eager ? 'eager' : 'lazy') . '"' . ($eager ? ' fetchpriority="high"' : '') . ' class="img-fluid">';
-    }
-    $html .= '</div>';
-    if ($model_name !== '') {
-      $html .= '<span class="photo-model-badge">' . \Drupal\Component\Utility\Html::escape($model_name) . '</span>';
-    }
-    if ($image_count > 0) {
-      $html .= '<span class="photo-count-badge">' . $image_count . 'P</span>';
-    }
-    $html .= '</div>';
-    $html .= '<div class="views-field views-field-title"><h2 class="field-content">' . \Drupal\Component\Utility\Html::escape($title) . '</h2></div>';
-    $html .= '<div class="views-field views-field-created"><time class="field-content" datetime="' . $date . '">' . $date . '</time></div>';
-    if ($badge !== '') {
-      $html .= '<div class="views-field views-field-field-categories"><span class="field-content">' . \Drupal\Component\Utility\Html::escape($badge) . '</span></div>';
-    }
-    $html .= '</a></div>';
-    $rows[] = [
-      '#markup' => \Drupal\Core\Render\Markup::create($html),
-      '#cache' => ['tags' => array_merge($node->getCacheTags(), $media_tags)],
+    $cards[] = [
+      'url' => $url,
+      'title' => $title,
+      'img' => $cover_url,
+      'count' => $node->hasField('field_images') ? (int) $node->get('field_images')->count() : 0,
+      'category' => _xedc_photo_card_badge($node, $hidden_tids),
+      'date' => $date_formatter->format($node->getCreatedTime(), 'custom', 'Y-m-d'),
+      'loading' => $eager ? 'eager' : 'lazy',
+      'fetchpriority' => $eager ? 'high' : '',
+      'width' => $cover_url ? 480 : 0,
+      'height' => $cover_url ? 800 : 0,
     ];
     $tags = array_merge($tags, $node->getCacheTags(), $media_tags);
     $index++;
   }
 
-  if ($rows) {
-    $variables['rows'] = $rows;
+  if ($cards) {
+    $variables['meitu_cards'] = $cards;
+    $variables['rows'] = [];
     $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $tags);
   }
 }
@@ -1377,8 +1628,16 @@ function xedc_preprocess_node__article__full(array &$variables): void {
 if (!class_exists('XedcPhotoGalleryLazy')) {
   class XedcPhotoGalleryLazy implements \Drupal\Core\Security\TrustedCallbackInterface {
     public static function render($children, $element) {
-      $children = str_replace('loading="eager"', 'loading="lazy"', $children);
-      return str_replace(' fetchpriority="high"', '', $children);
+      $index = 0;
+      $out = preg_replace_callback('/<img\b[^>]*>/i', static function (array $matches) use (&$index) {
+        $index++;
+        if ($index === 1) {
+          return $matches[0];
+        }
+        $tag = str_replace('loading="eager"', 'loading="lazy"', $matches[0]);
+        return str_replace(' fetchpriority="high"', '', $tag);
+      }, $children);
+      return is_string($out) ? $out : $children;
     }
     public static function trustedCallbacks() {
       return ['render'];

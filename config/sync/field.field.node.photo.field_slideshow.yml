@@ -10,7 +10,7 @@ field_name: field_slideshow
 entity_type: node
 bundle: photo
 label: 首页轮播
-description: ''
+description: 勾选后，该图片显示在首页轮播图中。
 required: false
 translatable: false
 default_value:

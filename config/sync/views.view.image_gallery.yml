@@ -5,7 +5,7 @@ dependencies:
   config:
     - field.storage.node.field_categories
     - field.storage.node.field_cover_image
-    - image.style.images_450x800
+    - image.style.meitu_card_cover
     - node.type.photo
   module:
     - media
@@ -82,7 +82,7 @@ display:
           type: media_thumbnail
           settings:
             image_link: ''
-            image_style: photo_card_640
+            image_style: meitu_card_cover
             image_loading:
               attribute: lazy
           group_column: target_id
@@ -282,13 +282,13 @@ display:
         options:
           offset: 0
           pagination_heading_level: h4
-          items_per_page: 16
+          items_per_page: 12
           total_pages: null
           id: 0
           tags:
-            next: ››
-            previous: ‹‹
-            first: '« 首页'
+            next: 下一页
+            previous: 上一页
+            first: 首页
             last: 尾页
           expose:
             items_per_page: false
@@ -326,7 +326,7 @@ display:
           admin_label: ''
           plugin_id: text_custom
           empty: true
-          content: 该分类下暂无图片
+          content: 暂无美图
           tokenize: false
       sorts:
         created:
@@ -526,6 +526,62 @@ display:
     position: 3
     display_options:
       title: '%1'
+      sorts:
+        field_featured_value:
+          id: field_featured_value
+          table: node__field_featured
+          field: field_featured_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: standard
+          order: DESC
+          expose:
+            label: ''
+            field_identifier: ''
+          exposed: false
+        created:
+          id: created
+          table: node_field_data
+          field: created
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: created
+          plugin_id: date
+          order: DESC
+          expose:
+            label: 最新
+            field_identifier: created
+          exposed: true
+          granularity: second
+        totalcount_1:
+          id: totalcount_1
+          table: node_counter
+          field: totalcount
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: standard
+          order: DESC
+          expose:
+            label: ''
+            field_identifier: ''
+          exposed: false
+        totalcount:
+          id: totalcount
+          table: node_counter
+          field: totalcount
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: standard
+          order: DESC
+          expose:
+            label: 最热
+            field_identifier: totalcount
+          exposed: true
       arguments:
         tid:
           id: tid
@@ -569,6 +625,7 @@ display:
           not: false
       defaults:
         title: false
+        sorts: false
         arguments: false
       display_extenders:
         metatag_display_extender:
@@ -588,3 +645,4 @@ display:
       tags:
         - 'config:field.storage.node.field_categories'
         - 'config:field.storage.node.field_cover_image'
+        - 'config:field.storage.node.field_featured'

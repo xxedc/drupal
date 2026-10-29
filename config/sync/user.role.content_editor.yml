@@ -101,6 +101,8 @@ permissions:
   - 'update content translations'
   - 'use xedc_editorial transition approve'
   - 'use xedc_editorial transition create_new_draft'
+  - 'use xedc_editorial transition keep_needs_review'
+  - 'use xedc_editorial transition publish'
   - 'use xedc_editorial transition reject'
   - 'use xedc_editorial transition request_changes'
   - 'view all revisions'

@@ -1,37 +1,83 @@
 {{ attach_library('xedc/photo-detail') }}
 {% set classes = ['node','node--type-'~node.bundle|clean_class,'img-detail'] %}
+{% set gallery = img_gallery|default([]) %}
 <article{{ attributes.addClass(classes) }}>
   <div class="img-detail__layout">
-    <div class="img-detail__main">
-      <header class="img-detail__head">
-        <h1 class="img-detail__title">{{ label }}</h1>
-      </header>
-      <div class="img-detail__gallery">{{ content.field_cover_image }}{{ content.field_images }}</div>
-      <nav class="img-nav">
-        {% if nav_prev %}<a class="img-nav__a" href="{{ path('entity.node.canonical', {'node': nav_prev.id}) }}"><small>上一篇</small>{{ nav_prev.label }}</a>{% else %}<span></span>{% endif %}
-        {% if nav_next %}<a class="img-nav__a img-nav__a--r" href="{{ path('entity.node.canonical', {'node': nav_next.id}) }}"><small>下一篇</small>{{ nav_next.label }}</a>{% endif %}
-      </nav>
-      <section class="img-detail__comments" aria-label="评论">
-        {{ content.field_comment }}
-      </section>
+    <header class="img-detail__head">
+      <h1 class="img-detail__title">{{ label }}</h1>
+    </header>
+    <div class="img-detail__gallery" data-img-count="{{ gallery|length }}" data-img-gallery="{{ gallery|json_encode|e('html_attr') }}">
+      {% if img_show_cover %}
+        {{ content.field_cover_image }}
+      {% endif %}
+      {{ content.field_images }}
     </div>
-    <aside class="img-detail__aside">
-      <div class="img-detail__panel">
-        {% include "@xedc/node/xedc-meta.html.twig" with {part: 'stats'} %}
-        {% include "@xedc/node/xedc-meta.html.twig" with {part: 'info'} %}
-        {% if img_summary|default('') %}
-          <div class="img-detail__desc-group">
-            <h3 class="img-detail__group-title">内容描述</h3>
-            <div class="img-detail__desc">{{ img_summary }}</div>
-            <button type="button" class="img-detail__desc-toggle" hidden aria-expanded="true">收起</button>
+    <aside class="img-detail__panel">
+      {% if xedc_meta %}
+        <div class="img-detail__meta-row">
+          <p class="img-detail__facts">
+            <span>{{ xedc_meta.count }} 张</span>
+            <span class="img-detail__facts-sep" aria-hidden="true">·</span>
+            <span>{{ xedc_meta.size }}</span>
+            <span class="img-detail__facts-sep" aria-hidden="true">·</span>
+            <time datetime="{{ xedc_meta.date }}">{{ xedc_meta.date }}</time>
+          </p>
+          <div class="img-detail__meta-actions">
+            {% if gallery %}
+              <button type="button" class="xedc-pill img-detail__all" data-img-all aria-haspopup="dialog" aria-controls="img-sheet" aria-expanded="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span>全部</span>
+              </button>
+              <a class="xedc-pill img-detail__original" href="{{ gallery[0].original|default(gallery[0].full) }}" target="_blank" rel="noopener">原图</a>
+            {% endif %}
           </div>
-        {% endif %}
-        {% if xedc_member_favorite|default('') %}
-          <div class="img-detail__fav">{{ xedc_member_favorite }}</div>
-        {% endif %}
-      </div>
+        </div>
+      {% endif %}
+      {% if img_summary|default('')|trim != '' %}
+        <div class="img-detail__desc-group">
+          <div class="img-detail__desc" id="img-detail-desc">{{ img_summary }}</div>
+          <button type="button" class="img-detail__desc-toggle" hidden aria-expanded="false" aria-controls="img-detail-desc">展开</button>
+        </div>
+      {% endif %}
+      {% if xedc_meta and (xedc_meta.categories or xedc_meta.models) %}
+        <div class="img-detail__pills img-detail__pills--classify">
+          {% if xedc_meta.categories %}
+            <span class="img-detail__prefix">分类：</span>
+            {% for c in xedc_meta.categories %}
+              <a class="xedc-pill" href="{{ c.url }}">{{ c.label }}</a>
+            {% endfor %}
+          {% endif %}
+          {% if xedc_meta.models %}
+            <span class="img-detail__prefix">模特：</span>
+            {% for m in xedc_meta.models %}
+              <a class="xedc-pill" href="{{ m.url }}">{{ m.label }}</a>
+            {% endfor %}
+          {% endif %}
+        </div>
+      {% endif %}
+      {% if xedc_meta and xedc_meta.tags %}
+        <div class="img-detail__pills img-detail__pills--tags">
+          {% for t in xedc_meta.tags %}
+            <a class="xedc-pill img-detail__tag" href="{{ t.url }}">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1"/></svg>
+              <span>{{ t.label }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% if xedc_member_favorite|default('') %}
+        <div class="img-detail__fav">{{ xedc_member_favorite }}</div>
+      {% endif %}
     </aside>
+    <nav class="img-nav">
+      {% if nav_prev %}<a class="img-nav__a" href="{{ path('entity.node.canonical', {'node': nav_prev.id}) }}"><small>上一篇</small>{{ nav_prev.label }}</a>{% else %}<span></span>{% endif %}
+      {% if nav_next %}<a class="img-nav__a img-nav__a--r" href="{{ path('entity.node.canonical', {'node': nav_next.id}) }}"><small>下一篇</small>{{ nav_next.label }}</a>{% endif %}
+    </nav>
+    <section class="img-detail__comments" aria-label="评论">
+      {{ content.field_comment }}
+    </section>
   </div>
+  {% include '@xedc/includes/photo-all-sheet.html.twig' with { items: gallery } %}
   {% if related %}
     <section class="img-rel">
       <h2 class="img-rel__t">相关推荐</h2>

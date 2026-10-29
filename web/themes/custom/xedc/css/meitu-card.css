@@ -1,0 +1,146 @@
+/* 首页、美图列表、分类术语页共用。列数：手机 2，宽度不够时 3，桌面 4。 */
+.meitu-grid,
+.xedc-view-photos .view-content.meitu-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:0;
+  min-width:0;
+}
+@media(min-width:768px){
+  .meitu-grid,
+  .xedc-view-photos .view-content.meitu-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:20px;
+  }
+}
+@media(min-width:1100px){
+  .meitu-grid,
+  .xedc-view-photos .view-content.meitu-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:20px;
+  }
+}
+@media(max-width:767.98px){
+  .xedc-home .meitu-grid>:nth-child(n+5){display:none}
+}
+
+.meitu-card{
+  min-width:0;
+  border:0;
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--bs-body-bg,#fff);
+  color:var(--bs-body-color,#18181b);
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+@media(hover:hover){
+  .meitu-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(0,0,0,.1);
+  }
+}
+[data-bs-theme=dark] .meitu-card,
+[data-theme=dark] .meitu-card{box-shadow:0 1px 3px rgba(0,0,0,.35)}
+[data-bs-theme=dark] .meitu-card:hover,
+[data-theme=dark] .meitu-card:hover{box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.meitu-card:focus-within{outline:2px solid var(--bs-body-color,#18181b);outline-offset:2px}
+
+.meitu-card__link,
+.meitu-card__link:hover,
+.meitu-card__link:focus{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  min-width:0;
+  color:inherit;
+  text-decoration:none;
+}
+.meitu-card__media{
+  position:relative;
+  display:block;
+  aspect-ratio:3/5;
+  overflow:hidden;
+  background:var(--bs-tertiary-bg,#f4f4f5);
+}
+.meitu-card__img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center top;
+  display:block;
+  transition:opacity .3s ease;
+}
+.meitu-card__img.xedc-img-pending{opacity:0}
+.meitu-card__cat,
+.meitu-card__count{
+  position:absolute;
+  z-index:2;
+  max-width:calc(100% - 16px);
+  pointer-events:none;
+}
+.meitu-card__cat{
+  top:8px;
+  left:8px;
+  padding:2px 8px;
+  border-radius:6px;
+  background:rgba(255,255,255,.88);
+  color:#3f3f46;
+  font-size:12px;
+  font-weight:500;
+  line-height:1.4;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.meitu-card__count{
+  right:8px;
+  bottom:8px;
+  padding:2px 6px;
+  border-radius:4px;
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  font-size:12px;
+  font-weight:600;
+  line-height:1.4;
+}
+.meitu-card__cat:empty,
+.meitu-card__count:empty,
+.meitu-card__date:empty{display:none}
+.meitu-card__body{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+  padding:10px 12px 12px;
+}
+.meitu-card__title{
+  margin:0;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  color:var(--bs-body-color,#18181b);
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  line-clamp:2;
+  overflow:hidden;
+  overflow-wrap:anywhere;
+}
+.meitu-card__date{
+  font-size:12px;
+  font-weight:400;
+  line-height:1.4;
+  color:#a1a1aa;
+}
+[data-bs-theme=dark] .meitu-card__date,
+[data-theme=dark] .meitu-card__date{color:#71717a}
+
+@media(prefers-reduced-motion:reduce){
+  .meitu-card,
+  .meitu-card__img{transition:none}
+  .meitu-card:hover{transform:none}
+}
