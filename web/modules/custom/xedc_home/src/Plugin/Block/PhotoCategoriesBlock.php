@@ -11,11 +11,11 @@ use Drupal\xedc_home\HomeCards;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Three photo categories with up to three photos each.
+ * Photo category chips: term name plus published photo count.
  */
 #[Block(
   id: 'xedc_home_photo_categories',
-  admin_label: new TranslatableMarkup('图片分类栏目'),
+  admin_label: new TranslatableMarkup('图片分类标签'),
   category: new TranslatableMarkup('XEDC'),
 )]
 class PhotoCategoriesBlock extends BlockBase implements ContainerFactoryPluginInterface {

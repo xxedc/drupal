@@ -1,28 +1,16 @@
-<section class="xedc-section xedc-cats-wrap">
-  <div class="xedc-cats">
+{#
+  图片分类标签：只显示术语名称，不显示内容数量。
+  cat.url 为术语别名（Pathauto）。
+  手机端默认两行，超出由 home-hero.js 在右侧显示「更多」；PC 始终全部展示。
+#}
+{% if categories %}
+{{ attach_library('xedc/home') }}
+<section class="xedc-section xedc-tax" data-xedc-tax aria-label="图片分类">
+  <div class="xedc-tax__list">
     {% for cat in categories %}
-      <div class="xedc-cat">
-        <h2 class="xedc-cat__name"><a href="{{ cat.url }}">{{ cat.name }}</a></h2>
-        {% if cat.photos %}
-          <div class="xedc-cat__grid">
-            {% for item in cat.photos %}
-              <article class="xedc-card">
-                <a href="{{ item.url }}">
-                  <span class="xedc-card__media">
-                    {% if item.img %}
-                      <img src="{{ item.img }}" alt="{{ item.title }}"{% if item.width %} width="{{ item.width }}" height="{{ item.height }}"{% endif %} loading="lazy">
-                    {% endif %}
-                    {% if item.count %}
-                      <span class="xedc-badge">{{ item.count }}张</span>
-                    {% endif %}
-                  </span>
-                  <span class="xedc-card__title">{{ item.model }}</span>
-                </a>
-              </article>
-            {% endfor %}
-          </div>
-        {% endif %}
-      </div>
+      <a class="xedc-tax__chip" href="{{ cat.url }}">{{ cat.name }}</a>
     {% endfor %}
   </div>
+  <button type="button" class="xedc-tax__more" aria-expanded="false">更多</button>
 </section>
+{% endif %}

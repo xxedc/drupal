@@ -2,9 +2,7 @@
 
 namespace Drupal\xedc_home;
 
-use Drupal\Core\Database\Connection;
 use Drupal\Core\Datetime\DateFormatterInterface;
-use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\file\FileInterface;
@@ -12,7 +10,6 @@ use Drupal\image\Entity\ImageStyle;
 use Drupal\media\MediaInterface;
 use Drupal\node\NodeInterface;
 use Drupal\views\Views;
-use Psr\Log\LoggerInterface;
 
 /**
  * Builds homepage cards from Views and a short slideshow query.
@@ -21,42 +18,33 @@ class HomeCards {
 
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
-    protected Connection $database,
     protected FileUrlGeneratorInterface $fileUrlGenerator,
     protected DateFormatterInterface $dateFormatter,
-    protected EntityFieldManagerInterface $entityFieldManager,
-    protected LoggerInterface $logger,
   ) {}
 
   /**
-   * Slideshow photos: flagged first, then hottest published photos.
+   * Slideshow photos promoted to the front page.
+   *
+   * The content admin bulk actions "将内容推荐到首页" / "从首页移除内容"
+   * toggle the core promote flag (node_promote_action / node_unpromote_action).
+   * Only published photos with promote = 1 are shown. field_slideshow is not
+   * the source of truth, and hot photos are not used to fill empty slots, so
+   * removing a node from the front page takes it out of the carousel.
+   * Photos only: slide images come from field_cover_image.
    *
    * @return array<int, array<string, mixed>>
    *   Card rows, at most $limit.
    */
   public function slideshow(int $limit = 5): array {
-    $picked = [];
-    if ($this->hasField('field_slideshow')) {
-      $flagged = $this->entityTypeManager->getStorage('node')->getQuery()
-        ->accessCheck(TRUE)
-        ->condition('type', 'photo')
-        ->condition('status', 1)
-        ->condition('field_slideshow', 1)
-        ->sort('created', 'DESC')
-        ->range(0, $limit)
-        ->execute();
-      foreach ($flagged as $nid) {
-        $picked[] = (int) $nid;
-      }
-    }
-    $need = $limit - count($picked);
-    if ($need > 0) {
-      foreach ($this->hotPhotoIds($picked, $need) as $nid) {
-        if (!in_array($nid, $picked, TRUE)) {
-          $picked[] = $nid;
-        }
-      }
-    }
+    $nids = $this->entityTypeManager->getStorage('node')->getQuery()
+      ->accessCheck(TRUE)
+      ->condition('type', 'photo')
+      ->condition('status', NodeInterface::PUBLISHED)
+      ->condition('promote', NodeInterface::PROMOTED)
+      ->sort('created', 'DESC')
+      ->range(0, $limit)
+      ->execute();
+    $picked = array_map('intval', array_values($nids));
     return $this->cardsInOrder($picked, 'field_cover_image', 'xa_hero', 'slide');
   }
 
@@ -85,10 +73,14 @@ class HomeCards {
   }
 
   /**
-   * First three photo categories, each with up to three photos.
+   * Photo categories that have at least one published photo.
    *
-   * @return array<int, array<string, mixed>>
-   *   Category rows with name, url, and photos.
+   * Terms come from the photo_category vocabulary referenced by
+   * field_categories. Counts include published photo nodes only.
+   * Order is vocabulary weight, then name. The URL is the term alias.
+   *
+   * @return array<int, array{name: string, url: string, count: int}>
+   *   Category chips.
    */
   public function categories(): array {
     $term_storage = $this->entityTypeManager->getStorage('taxonomy_term');
@@ -96,8 +88,7 @@ class HomeCards {
       ->accessCheck(TRUE)
       ->condition('vid', 'photo_category')
       ->sort('weight', 'ASC')
-      ->sort('tid', 'ASC')
-      ->range(0, 3)
+      ->sort('name', 'ASC')
       ->execute();
     if (!$tids) {
       return [];
@@ -110,84 +101,24 @@ class HomeCards {
         continue;
       }
       $term = $terms[$tid];
-      $query = $node_storage->getQuery()
+      // Count published photos only so empty terms stay off the front page.
+      $count = (int) $node_storage->getQuery()
         ->accessCheck(TRUE)
-        ->condition('status', 1)
         ->condition('type', 'photo')
-        ->condition('field_categories', $tid);
-      if ($this->hasField('field_featured')) {
-        $query->sort('field_featured', 'DESC');
+        ->condition('status', NodeInterface::PUBLISHED)
+        ->condition('field_categories', $tid)
+        ->count()
+        ->execute();
+      if ($count < 1) {
+        continue;
       }
-      $query->sort('created', 'DESC')->range(0, 3);
-      $nids = array_map('intval', array_values($query->execute()));
       $out[] = [
         'name' => $term->label(),
         'url' => $term->toUrl()->toString(),
-        'photos' => $this->cardsInOrder($nids, 'field_cover_image', 'images_450x800', 'photo'),
+        'count' => $count,
       ];
     }
     return $out;
-  }
-
-  /**
-   * Hottest published photos by statistics totalcount, then created.
-   *
-   * @param int[] $exclude
-   *   Node IDs already chosen.
-   *
-   * @return int[]
-   *   Node IDs.
-   */
-  protected function hotPhotoIds(array $exclude, int $limit): array {
-    if ($limit < 1) {
-      return [];
-    }
-    try {
-      if (!$this->database->schema()->tableExists('node_counter')) {
-        return $this->latestPhotoIds($exclude, $limit);
-      }
-      $query = $this->database->select('node_field_data', 'n');
-      $query->addTag('node_access');
-      $query->leftJoin('node_counter', 'c', 'c.nid = n.nid');
-      $query->addField('n', 'nid');
-      $query->condition('n.type', 'photo');
-      $query->condition('n.status', 1);
-      $query->condition('n.default_langcode', 1);
-      if ($exclude) {
-        $query->condition('n.nid', $exclude, 'NOT IN');
-      }
-      $query->addExpression('COALESCE(c.totalcount, 0)', 'hot');
-      $query->orderBy('hot', 'DESC');
-      $query->orderBy('n.created', 'DESC');
-      $query->range(0, $limit);
-      return array_map('intval', $query->execute()->fetchCol());
-    }
-    catch (\Exception $e) {
-      $this->logger->error('Hot photo query failed, using latest photos: @message', ['@message' => $e->getMessage()]);
-      return $this->latestPhotoIds($exclude, $limit);
-    }
-  }
-
-  /**
-   * Latest published photos, excluding the given IDs.
-   *
-   * @param int[] $exclude
-   *   Node IDs already chosen.
-   *
-   * @return int[]
-   *   Node IDs.
-   */
-  protected function latestPhotoIds(array $exclude, int $limit): array {
-    $query = $this->entityTypeManager->getStorage('node')->getQuery()
-      ->accessCheck(TRUE)
-      ->condition('type', 'photo')
-      ->condition('status', 1)
-      ->sort('created', 'DESC')
-      ->range(0, $limit);
-    if ($exclude) {
-      $query->condition('nid', $exclude, 'NOT IN');
-    }
-    return array_map('intval', array_values($query->execute()));
   }
 
   /**
@@ -352,14 +283,6 @@ class HomeCards {
       return $text;
     }
     return mb_substr($text, 0, $length) . '…';
-  }
-
-  /**
-   * Whether a node field storage exists.
-   */
-  protected function hasField(string $name): bool {
-    $definitions = $this->entityFieldManager->getFieldStorageDefinitions('node');
-    return isset($definitions[$name]);
   }
 
 }

@@ -1,8 +1,4 @@
 services:
-  logger.channel.xedc_home:
-    parent: logger.channel_base
-    arguments: ['xedc_home']
-
   xedc_home.cache_subscriber:
     class: Drupal\xedc_home\EventSubscriber\HomeCacheSubscriber
     arguments: ['@datetime.time', '@current_user', '@path.matcher']
@@ -13,8 +9,5 @@ services:
     class: Drupal\xedc_home\HomeCards
     arguments:
       - '@entity_type.manager'
-      - '@database'
       - '@file_url_generator'
       - '@date.formatter'
-      - '@entity_field.manager'
-      - '@logger.channel.xedc_home'

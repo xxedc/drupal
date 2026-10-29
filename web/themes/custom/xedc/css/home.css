@@ -2,11 +2,11 @@
 .xedc-home{overflow-x:clip;max-width:100%}
 .xedc-section{margin:36px 0}
 @media(min-width:992px){.xedc-section{margin:56px 0}}
-.xedc-section__head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
-.xedc-section__head h2,.xedc-cat__name{font-size:20px;font-weight:700;line-height:1.3;margin:0;color:var(--bs-body-color)}
-.xedc-section__head a,.xedc-cat__name a{font-size:14px;color:var(--bs-secondary-color);text-decoration:none;white-space:nowrap}
-.xedc-cat__name a{display:block;overflow:hidden;text-overflow:ellipsis;font-size:22px;font-weight:800;color:var(--bs-body-color)}
-.xedc-cat__name a:hover,.xedc-section__head a:hover{color:var(--bs-body-color)}
+/* 标题与「查看更多」同一行垂直居中。颜色走主题变量，亮色/暗色不用分开写。 */
+.xedc-section__head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.xedc-section__head h2{font-size:20px;font-weight:700;line-height:1.25;margin:0;color:var(--bs-body-color)}
+.xedc-section__head a{display:inline-flex;align-items:center;font-size:14px;line-height:1.25;color:var(--bs-secondary-color);text-decoration:none;white-space:nowrap}
+.xedc-section__head a:hover{color:var(--bs-body-color)}
 .xedc-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0}
 .xedc-chips a{flex:none;padding:6px 14px;border:1px solid var(--bs-border-color);border-radius:999px;font-size:14px;text-decoration:none;color:inherit}
 .xedc-chips a.is-active{background:var(--bs-primary);color:var(--bs-primary-color,var(--bs-body-bg));border-color:var(--bs-primary)}
@@ -20,7 +20,8 @@
 .xedc-grid--video{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overflow:visible;scroll-snap-type:none}
 .xedc-grid--video>.xedc-card{flex:none;width:auto;min-width:0}
 @media(min-width:1100px){.xedc-grid--video{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}}
-.xedc-card{position:relative;border:1px solid var(--bs-border-color);border-radius:8px;overflow:hidden;background:var(--bs-body-bg);color:var(--bs-body-color);box-shadow:0 1px 2px rgb(0 0 0 / .06),0 8px 20px -12px rgb(0 0 0 / .28);transition:transform .2s,box-shadow .2s}
+/* 首页卡片去掉描边，亮色/暗色都只靠阴影分层。 */
+.xedc-card{position:relative;border:0;border-radius:8px;overflow:hidden;background:var(--bs-body-bg);color:var(--bs-body-color);box-shadow:0 1px 2px rgb(0 0 0 / .06),0 8px 20px -12px rgb(0 0 0 / .28);transition:transform .2s,box-shadow .2s}
 .xedc-card:hover,.xedc-article:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgb(0 0 0 / .1)}
 [data-bs-theme=dark] .xedc-card,[data-bs-theme=dark] .xedc-article,[data-theme=dark] .xedc-card,[data-theme=dark] .xedc-article{box-shadow:0 1px 2px rgb(0 0 0 / .4),0 8px 20px -12px rgb(0 0 0 / .55)}
 [data-bs-theme=dark] .xedc-card:hover,[data-bs-theme=dark] .xedc-article:hover,[data-theme=dark] .xedc-card:hover,[data-theme=dark] .xedc-article:hover{box-shadow:0 8px 24px rgb(0 0 0 / .45)}
@@ -40,7 +41,7 @@
 }
 .xedc-articles{display:grid;gap:12px}
 @media(min-width:992px){.xedc-articles{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}
-.xedc-article{display:flex;gap:12px;align-items:center;padding:12px;margin:0;border:1px solid var(--bs-border-color);border-radius:8px;background:var(--bs-body-bg);color:var(--bs-body-color);box-shadow:0 1px 2px rgb(0 0 0 / .06),0 8px 20px -12px rgb(0 0 0 / .28);text-decoration:none;min-width:0}
+.xedc-article{display:flex;gap:12px;align-items:center;padding:12px;margin:0;border:0;border-radius:8px;background:var(--bs-body-bg);color:var(--bs-body-color);box-shadow:0 1px 2px rgb(0 0 0 / .06),0 8px 20px -12px rgb(0 0 0 / .28);text-decoration:none;min-width:0}
 .xedc-article img{width:120px;height:90px;aspect-ratio:4/3;object-fit:cover;border-radius:8px;flex:none}
 .xedc-article__body{min-width:0;display:flex;flex-direction:column;gap:4px}
 .xedc-article .xedc-card__title{padding:0}
@@ -53,39 +54,91 @@
 .xedc-backdrop{z-index:1 !important}
 .xedc-menu{z-index:2 !important}
 }
-.xedc-cats-wrap{min-width:0;max-width:100%}
-.xedc-cats{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;max-width:100%;padding-bottom:8px}
-.xedc-cats::-webkit-scrollbar{display:none}
-.xedc-cat{flex:0 0 76%;min-width:0;scroll-snap-align:start}
-.xedc-cat__name{margin:0 0 12px;overflow:hidden}
-.xedc-cat__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.xedc-cat .xedc-card__media{aspect-ratio:3/4}
-.xedc-home .xedc-cat .xedc-card .xedc-card__title{min-height:calc(1.4em + 16px);padding:8px;-webkit-line-clamp:1;line-clamp:1}
-@media(min-width:992px){
-.xedc-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;overflow:visible;padding-bottom:0}
-.xedc-cat{flex:none}
+/* 分类标签只显示术语名。行距、标签间距、与右侧「更多」的间距共用 --xedc-tax-gap。颜色走主题变量。 */
+.xedc-tax{--xedc-chip-h:32px;--xedc-tax-gap:12px;display:flex;align-items:flex-end;gap:var(--xedc-tax-gap);padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.xedc-tax__list{display:flex;flex:1 1 auto;min-width:0;align-items:center;align-content:flex-start;flex-wrap:wrap;gap:var(--xedc-tax-gap);overflow:visible}
+.xedc-tax__chip{display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;height:var(--xedc-chip-h);margin:0;padding:0 14px;border:1px solid var(--bs-border-color);border-radius:999px;background:transparent;color:var(--bs-body-color);font-size:14px;font-weight:500;line-height:1;text-decoration:none;white-space:nowrap;box-shadow:none;transition:background .15s,border-color .15s,color .15s}
+/* 悬停只铺一层浅底，不改字重、不加阴影。 */
+.xedc-tax__chip:hover{background:var(--bs-tertiary-bg);border-color:var(--bs-border-color);color:var(--bs-body-color);text-decoration:none}
+.xedc-tax__chip:focus-visible{outline:2px solid var(--bs-body-color);outline-offset:2px}
+/* 「更多」默认不显示。手机超出两行后贴在栏目右侧，与标签底对齐，不另起一行。 */
+.xedc-tax__more{display:none;margin:0;box-sizing:border-box;height:var(--xedc-chip-h);padding:0 14px;border:1px solid var(--bs-border-color);border-radius:999px;background:transparent;color:var(--bs-secondary-color);font-size:13px;font-weight:500;line-height:1;white-space:nowrap;cursor:pointer;box-shadow:none}
+.xedc-tax__more:hover{background:var(--bs-tertiary-bg);border-color:var(--bs-border-color);color:var(--bs-body-color)}
+.xedc-tax__more:focus-visible{outline:2px solid var(--bs-body-color);outline-offset:2px}
+@media(max-width:991.98px){
+.xedc-tax.is-collapsible:not(.is-open) .xedc-tax__list{max-height:calc(var(--xedc-chip-h) * 2 + var(--xedc-tax-gap));overflow:hidden}
+.xedc-tax.is-collapsible .xedc-tax__more{display:inline-flex;align-items:center;flex:none}
 }
-.path-frontpage .xn{border-bottom-color:transparent;box-shadow:none}
-.xedc-hero{position:relative;width:100%;max-width:100%;overflow:hidden;background:#111;color:#fff;border:0;outline:none}
-.xedc-hero__track{display:flex;height:48vh;min-height:180px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;overscroll-behavior-x:contain;border:0}
+@media(min-width:992px){
+/* PC 间距略松于手机，并展示全部标签。「更多」在下方规则里隐藏。 */
+.xedc-tax{--xedc-tax-gap:14px}
+.xedc-tax__list{overflow:visible;max-height:none}
+.xedc-tax__chip{padding:0 16px}
+.xedc-tax__more{display:none}
+}
+/* 首页顶栏底边去掉，避免压在轮播上方形成一条线。仅首页。 */
+.path-frontpage header.xn{border-bottom:0;box-shadow:none}
+/* 左右留白：移动端 16px，桌面 24px。圆角和阴影让轮播自成一块。 */
+/* overflow:clip 裁圆角，但不成为滚动容器，避免把页面的上下滑动吃掉。左右滑动由脚本接管。 */
+.xedc-hero{position:relative;width:auto;max-width:100%;margin:0 16px 12px;overflow:clip;background:#111;color:#fff;border:0;outline:none;border-radius:12px;box-shadow:0 10px 28px -16px rgb(0 0 0 / .45);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+[data-bs-theme=dark] .xedc-hero,[data-theme=dark] .xedc-hero{box-shadow:0 14px 32px -12px rgb(0 0 0 / .72)}
+@media(min-width:992px){.xedc-hero{margin-inline:24px;border-radius:16px}}
+/* 手机偏方，改为 4:3；平板 16:9。桌面仍固定 450px。 */
+/* 圆角只留在 .xedc-hero 上裁切。轨道不再套圆角，避免拖动时把图片层压窄。 */
+/* 只允许横向滚。overflow-y 必须写 hidden，否则规范会把它算成 auto，按住图片会拉出底色。
+   overscroll-behavior 关掉回弹，避免橡皮筋把 .xedc-hero 的 #111 拉出来。 */
+.xedc-hero__track{display:flex;height:auto;aspect-ratio:4/3;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:auto;scrollbar-width:none;overscroll-behavior:none;touch-action:pan-y;border:0;border-radius:0}
 .xedc-hero__track::-webkit-scrollbar{display:none}
-@media(min-width:992px){.xedc-hero__track{height:450px}}
+@media(min-width:768px){.xedc-hero__track{aspect-ratio:16/9}}
+@media(min-width:992px){.xedc-hero__track{height:450px;aspect-ratio:auto}}
 .xedc-hero.is-single .xedc-hero__track{overflow:hidden;scroll-snap-type:none}
-.xedc-hero__slide{position:relative;flex:0 0 100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;color:#fff;text-decoration:none;outline:none}
-.xedc-hero__slide:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:-3px}
-.xedc-hero__slide img{position:absolute;inset:0;width:100%;max-width:none;height:100%;object-fit:cover;object-position:center center;display:block;border:0}
+/* 下划线画在祖先 <a> 上，子元素 text-decoration:none 去不掉。状态选择器压过 Bootstrap 的 a:hover。 */
+.xedc-hero a.xedc-hero__slide,
+.xedc-hero a.xedc-hero__slide:hover,
+.xedc-hero a.xedc-hero__slide:focus,
+.xedc-hero a.xedc-hero__slide:focus-visible,
+.xedc-hero a.xedc-hero__slide:visited,
+.xedc-hero a.xedc-hero__slide:active{position:relative;flex:0 0 100%;width:100%;min-width:100%;max-width:100%;height:100%;min-height:100%;overflow:hidden;border:0;border-bottom:0;border-radius:0;box-shadow:none;background-image:none;scroll-snap-align:start;scroll-snap-stop:always;color:#fff;text-decoration:none;text-decoration-line:none;text-decoration-thickness:0;text-decoration-color:transparent;text-underline-offset:0;text-shadow:none;filter:none;outline:none;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
+.xedc-hero a.xedc-hero__slide:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:-3px}
+/* 竖图 cover：手机略偏上；桌面横幅更扁，焦点再下移，避免只剩眼睛。
+   出血 2px，滑动时的亚像素缝由外层 overflow 裁掉，避免露出 #111。 */
+.xedc-hero__slide img{position:absolute;top:-2px;left:-2px;width:calc(100% + 4px);height:calc(100% + 4px);min-width:calc(100% + 4px);min-height:calc(100% + 4px);max-width:none;max-height:none;object-fit:cover;object-position:center 32%;display:block;border:0;border-radius:0;pointer-events:none;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+@media(min-width:992px){.xedc-hero__slide img{object-position:center 38%}}
 .xedc-hero__shade{position:absolute;left:0;right:0;bottom:0;height:48%;background:linear-gradient(to top,rgba(0,0,0,.42) 0%,rgba(0,0,0,.18) 34%,rgba(0,0,0,.05) 68%,rgba(0,0,0,0) 100%);pointer-events:none}
-.xedc-hero__caption{position:absolute;left:0;right:0;bottom:0;z-index:1;display:flex;flex-direction:column;gap:2px;padding:.85rem 1.25rem 1.35rem;pointer-events:none}
+.xedc-hero__caption{position:absolute;left:0;right:0;bottom:0;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:.85rem 1.25rem 2.15rem;pointer-events:none}
 @media(min-width:992px){
 .xedc-hero__caption{left:50%;right:auto;width:min(1280px,calc(100% - 2rem));transform:translateX(-50%);padding-inline:0}
 }
-.xedc-hero__title{font-size:.9375rem;font-weight:600;line-height:1.35;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 10px rgba(0,0,0,.45)}
-@media(min-width:992px){.xedc-hero__title{font-size:1.25rem}}
-.xedc-hero__desc{font-size:.8125rem;font-weight:400;line-height:1.4;color:rgba(255,255,255,.86);text-shadow:0 1px 8px rgba(0,0,0,.4);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-.xedc-hero__dots{position:absolute;left:0;right:0;bottom:8px;z-index:2;display:flex;justify-content:center;align-items:center;gap:4px}
-.xedc-hero__dot{width:5px;height:5px;padding:0;border:0;border-radius:999px;background:rgba(255,255,255,.5);box-shadow:0 0 0 .5px rgba(0,0,0,.2);cursor:pointer}
-.xedc-hero__dot.is-active{width:12px;background:#fff}
+/* 标题在链接里，下划线画在 <a> 上。贴字半透明底，阴影只留在 padding 内，避免 overflow 把模糊裁成字下一条线。无边框。叠在图片上，亮色/暗色同一套深底白字。 */
+.xedc-hero__title{display:block;width:fit-content;max-width:100%;box-sizing:border-box;padding:2px 8px 4px;border:0;border-bottom:0;border-radius:4px;background-color:rgb(0 0 0 / .42);background-image:none;font-size:.9375rem;font-weight:600;line-height:1.35;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none;text-decoration-line:none;text-decoration-thickness:0;text-decoration-color:transparent;text-underline-offset:0;box-shadow:none;text-shadow:0 1px 1px rgb(0 0 0 / .45);filter:none}
+.xedc-hero a.xedc-hero__slide::before,
+.xedc-hero a.xedc-hero__slide::after,
+.xedc-hero__title::before,.xedc-hero__title::after,.xedc-hero__desc::before,.xedc-hero__desc::after,.xedc-hero__caption::before,.xedc-hero__caption::after{content:none;display:none;border:0;box-shadow:none;background:none;text-shadow:none}
+.xedc-hero__desc{align-self:stretch;width:100%;min-width:0;display:-webkit-box;font-size:.8125rem;font-weight:400;line-height:1.4;color:rgba(255,255,255,.86);text-shadow:none;text-decoration:none;text-decoration-line:none;text-decoration-thickness:0;text-decoration-color:transparent;border:0;border-bottom:0;box-shadow:none;background-image:none;filter:none;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+/* 摘要不加底、不加阴影，避免再出现字下一条线。标题样式在上一则，这里不重置。 */
+.xedc-hero .xedc-hero__caption,.xedc-hero .xedc-hero__desc{text-shadow:none;text-decoration:none;text-decoration-line:none;text-decoration-thickness:0;text-underline-offset:0;border:0;border-bottom:0;box-shadow:none;background-image:none;filter:none}
+.xedc-hero .xedc-hero__title{text-decoration:none;text-decoration-line:none;text-decoration-thickness:0;text-underline-offset:0;border:0;border-bottom:0;box-shadow:none;background-image:none;filter:none}
+@media(min-width:992px){
+.xedc-hero .xedc-hero__title{font-size:1.25rem}
+}
+/* 指示点叠在图片上。深色胶囊托底，当前页用实心长点。不跟页面亮/暗底色走。 */
+.xedc-hero__dots{position:absolute;left:50%;right:auto;bottom:10px;z-index:2;display:flex;justify-content:center;align-items:center;gap:6px;width:max-content;margin:0;padding:5px 9px;border:0;border-radius:999px;background:rgb(0 0 0 / .38);transform:translateX(-50%)}
+.xedc-hero__dot{width:7px;height:7px;padding:0;border:0;border-radius:999px;background:rgb(255 255 255 / .62);box-shadow:none;cursor:pointer}
+.xedc-hero__dot.is-active{width:18px;background:#fff}
+/* 左右切换。按钮叠在图片上，用半透明深色，不跟页面亮/暗底色走。 */
+.xedc-hero__nav{position:absolute;top:50%;z-index:3;display:grid;place-items:center;width:32px;height:32px;margin:0;padding:0;border:0;border-radius:999px;background:rgba(0,0,0,.32);color:#fff;box-shadow:none;cursor:pointer;opacity:.72;transform:translateY(-50%);transition:opacity .15s,background .15s}
+.xedc-hero__nav--prev{left:10px}
+.xedc-hero__nav--next{right:10px}
+.xedc-hero__nav svg{display:block;width:16px;height:16px}
+.xedc-hero__nav:hover{background:rgba(0,0,0,.5);opacity:1}
+.xedc-hero__nav:focus-visible{outline:2px solid #fff;outline-offset:2px;opacity:1}
+@media(min-width:992px){
+.xedc-hero__nav{width:40px;height:40px;opacity:.88}
+.xedc-hero__nav svg{width:18px;height:18px}
+.xedc-hero__nav--prev{left:16px}
+.xedc-hero__nav--next{right:16px}
+}
 @media(prefers-reduced-motion:reduce){
 .xedc-hero__track{scroll-behavior:auto}
-.xedc-card,.xedc-article{transition:none}
+.xedc-hero__nav,.xedc-card,.xedc-article,.xedc-tax__chip{transition:none}
 }
