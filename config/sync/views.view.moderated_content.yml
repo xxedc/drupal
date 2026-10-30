@@ -9,6 +9,8 @@ dependencies:
     - content_moderation
     - node
     - user
+    - views_bulk_operations
+    - xedc_moderation
   enforced:
     module:
       - content_moderation
@@ -30,6 +32,83 @@ display:
     display_options:
       title: 等待审核的内容
       fields:
+        views_bulk_operations_bulk_form:
+          id: views_bulk_operations_bulk_form
+          table: views
+          field: views_bulk_operations_bulk_form
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: views_bulk_operations_bulk_form
+          label: 批量审核
+          exclude: false
+          alter:
+            alter_text: false
+            text: ''
+            make_link: false
+            path: ''
+            absolute: false
+            external: false
+            replace_spaces: false
+            path_case: none
+            trim_whitespace: false
+            alt: ''
+            rel: ''
+            link_class: ''
+            prefix: ''
+            suffix: ''
+            target: ''
+            nl2br: false
+            max_length: 0
+            word_boundary: true
+            ellipsis: true
+            more_link: false
+            more_link_text: ''
+            more_link_path: ''
+            strip_tags: false
+            trim: false
+            preserve_tags: ''
+            html: false
+          element_type: ''
+          element_class: ''
+          element_label_type: ''
+          element_label_class: ''
+          element_label_colon: false
+          element_wrapper_type: ''
+          element_wrapper_class: ''
+          element_default_classes: true
+          empty: ''
+          hide_empty: false
+          empty_zero: false
+          hide_alter_empty: true
+          batch: true
+          batch_size: 10
+          form_step: false
+          ajax_loader: false
+          buttons: false
+          action_title: 批量审核
+          clear_on_exposed: true
+          show_multipage_selection_box: default
+          show_select_all: default
+          selected_actions:
+            -
+              action_id: 'xedc_moderation_set_state:published'
+              preconfiguration:
+                add_confirmation: true
+                confirm_help_text: '确认将选中的 %count 条内容改为已发布？'
+                label_override: 改为已发布
+            -
+              action_id: 'xedc_moderation_set_state:rejected'
+              preconfiguration:
+                add_confirmation: true
+                confirm_help_text: '确认将选中的 %count 条内容改为已拒绝？'
+                label_override: 改为已拒绝
+            -
+              action_id: 'xedc_moderation_set_state:draft'
+              preconfiguration:
+                add_confirmation: true
+                confirm_help_text: '确认将选中的 %count 条内容改为草稿？当前工作流不允许的条目会跳过。'
+                label_override: 改为草稿
         title:
           id: title
           table: node_field_revision
@@ -729,6 +808,7 @@ display:
           row_class: ''
           default_row_class: true
           columns:
+            views_bulk_operations_bulk_form: views_bulk_operations_bulk_form
             title: title
             type: type
             name: name
@@ -736,6 +816,13 @@ display:
             changed: changed
           default: changed
           info:
+            views_bulk_operations_bulk_form:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
             title:
               sortable: true
               default_sort_order: asc

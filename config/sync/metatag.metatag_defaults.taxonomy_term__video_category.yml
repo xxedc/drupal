@@ -1,0 +1,10 @@
+uuid: c22af633-8d23-4560-bc26-6ba7aa9997d8
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: taxonomy_term__video_category
+label: '分类术语: 视频栏目'
+tags:
+  title: '[term:name] - 视频分类 | [site:name]'
+  description: '[term:description]'
+  canonical_url: '[term:url]'

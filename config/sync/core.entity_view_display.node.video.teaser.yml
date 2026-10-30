@@ -1,0 +1,70 @@
+uuid: f5bb4500-d4f9-4581-949c-ad16441e54b9
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.video.field_body
+    - field.field.node.video.field_categories
+    - field.field.node.video.field_duration
+    - field.field.node.video.field_tags
+    - field.field.node.video.field_video_cover
+    - field.field.node.video.field_video_file
+    - field.field.node.video.field_video_url
+    - image.style.video_cover
+    - node.type.video
+  module:
+    - media
+    - user
+id: node.video.teaser
+targetEntityType: node
+bundle: video
+mode: teaser
+content:
+  content_moderation_control:
+    settings: {  }
+    third_party_settings: {  }
+    weight: -20
+    region: content
+  field_categories:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_duration:
+    type: number_integer
+    label: hidden
+    settings:
+      thousand_separator: ''
+      prefix_suffix: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_video_cover:
+    type: media_thumbnail
+    label: hidden
+    settings:
+      image_link: ''
+      image_style: video_cover
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  field_body: true
+  field_video_file: true
+  field_video_url: true
+  langcode: true
+  links: true

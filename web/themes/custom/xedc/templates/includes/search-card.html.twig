@@ -1,0 +1,37 @@
+{#
+  搜索结果卡片。
+  变量 card：url、title、cover、alt、type、image_count、duration、author、model、date、initial。
+  title 由 PHP 输出带 <mark class="highlight sr-mark"> 的 Markup。
+  不输出栏目文字：美图只在右下角显示张数，视频只在右下角显示时长，文章不显示类型标识。
+  sr-* 类留给 search-page.js 和原有样式。
+#}
+<li class="sr-item">
+  <a class="sr-card search-card" href="{{ card.url }}">
+    <span class="sr-cover search-card__media">
+      {% if card.cover %}
+        <img class="sr-img" src="{{ card.cover }}" alt="{{ card.alt }}" loading="lazy" width="640" height="853">
+      {% else %}
+        <span class="sr-ph" aria-hidden="true">{{ card.initial }}</span>
+      {% endif %}
+      {% if card.type == 'photo' and card.image_count %}
+        <span class="sr-badge sr-video-meta">{{ card.image_count }}张</span>
+      {% elseif card.type == 'video' and card.duration %}
+        <span class="sr-badge sr-video-meta">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+          <span>{{ card.duration }}</span>
+        </span>
+      {% endif %}
+    </span>
+    <span class="sr-body">
+      <strong class="sr-title card-title">{{ card.title }}</strong>
+      <span class="sr-meta card-meta">
+        {% if card.author %}
+          <span class="card-author">{{ card.author }}</span>
+        {% elseif card.model %}
+          <span class="card-author">{{ card.model }}</span>
+        {% endif %}
+        {% if card.date %}<time datetime="{{ card.date }}">{{ card.date }}</time>{% endif %}
+      </span>
+    </span>
+  </a>
+</li>

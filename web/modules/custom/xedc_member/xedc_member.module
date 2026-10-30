@@ -218,6 +218,7 @@ function xedc_member_form_node_form_alter(array &$form, FormStateInterface $form
   if (isset($form['moderation_state'])) {
     xedc_member_translate_moderation_widget($form['moderation_state'], $node->isNew());
   }
+  $form['#after_build'][] = 'xedc_member_submission_moderation_default';
 
   $form['#attributes']['class'][] = 'xm-submission-form';
   $form['#attributes']['class'][] = 'xm-submission-form--' . $node->bundle();
@@ -283,7 +284,9 @@ function xedc_member_translate_moderation_widget(array &$element, bool $is_new):
   }
   if (isset($element['state']['#title'])) {
     $element['state']['#title'] = $is_new ? t('保存为') : t('变更为');
-    $element['state']['#description'] = t('可先保存草稿。');
+    $element['state']['#description'] = $is_new
+      ? t('提交后进入待审核，也可以先保存为草稿。')
+      : t('可先保存草稿。');
   }
   if (isset($element['#title']) && (isset($element['current']) || isset($element['state']))) {
     $element['#title'] = t('审核状态');
@@ -299,6 +302,54 @@ function xedc_member_translate_moderation_widget(array &$element, bool $is_new):
       continue;
     }
     xedc_member_translate_moderation_widget($child, $is_new);
+  }
+}
+
+/**
+ * Defaults a new member submission to needs-review.
+ */
+function xedc_member_submission_moderation_default(array $form, FormStateInterface $form_state): array {
+  $account = \Drupal::currentUser();
+  if ($account->hasPermission('administer nodes') || $account->hasPermission('use xedc_editorial transition publish')) {
+    return $form;
+  }
+  $input = $form_state->getUserInput();
+  if ($form_state->isSubmitted() || isset($input['moderation_state'])) {
+    return $form;
+  }
+  $state = &$form['moderation_state']['widget'][0]['state'];
+  if (!is_array($state) || empty($state['#options']['needs_review'])) {
+    return $form;
+  }
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof \Drupal\Core\Entity\EntityFormInterface) {
+    return $form;
+  }
+  $node = $form_object->getEntity();
+  if (!$node instanceof NodeInterface || !$node->isNew()) {
+    return $form;
+  }
+  $state['#default_value'] = 'needs_review';
+  $state['#value'] = 'needs_review';
+  return $form;
+}
+
+/**
+ * Implements hook_node_presave().
+ *
+ * Members can save a draft or submit for review. They cannot publish.
+ */
+function xedc_member_node_presave(NodeInterface $node): void {
+  if (!in_array($node->bundle(), FavoriteManager::ALLOWED_BUNDLES, TRUE) || !$node->hasField('moderation_state')) {
+    return;
+  }
+  $account = \Drupal::currentUser();
+  // Cron and other anonymous saves must not rewrite an existing state.
+  if ($account->isAnonymous() || $account->hasPermission('administer nodes') || $account->hasPermission('use xedc_editorial transition publish')) {
+    return;
+  }
+  if ((string) $node->get('moderation_state')->value === 'published') {
+    $node->set('moderation_state', 'needs_review');
   }
 }
 

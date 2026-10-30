@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Bulk moderation helpers for the moderated content view.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function xedc_moderation_form_views_form_moderated_content_moderated_content_alter(array &$form, $form_state, $form_id): void {
+  $select = &$form['header']['views_bulk_operations_bulk_form']['action'];
+  if (isset($select['#options'][''])) {
+    $select['#options'][''] = t('-- 选择操作 --');
+  }
+}

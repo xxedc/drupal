@@ -18,6 +18,11 @@ class RouteSubscriber extends RouteSubscriberBase {
         '_xt_display_id' => $orig['display_id'] ?? '',
       ]);
     }
+    // taxonomy_term 与 image_gallery 都声明了 taxonomy/term/%。
+    // 公开地址只走 canonical，避免第二条路由抢走图片栏目。
+    if ($collection->get('view.taxonomy_term.page_1')) {
+      $collection->remove('view.taxonomy_term.page_1');
+    }
   }
 
   public static function getSubscribedEvents(): array {

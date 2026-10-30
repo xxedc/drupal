@@ -31,6 +31,7 @@ function xedc_home_theme($existing, $type, $theme, $path) {
  * Keeps the two flags stored as 0 so "推荐" sorts after real recommendations.
  */
 function xedc_home_node_presave(NodeInterface $node): void {
+  _xedc_home_publish_new_staff_node($node);
   if ($node->bundle() !== 'photo') {
     return;
   }
@@ -114,8 +115,7 @@ function _xedc_home_featured_sort(Sql $query): void {
  * draft / needs-review transitions from the authenticated role.
  */
 function xedc_home_form_node_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
-  $account = \Drupal::currentUser();
-  if (!$account->hasPermission('administer nodes')) {
+  if (!_xedc_home_is_staff_publisher()) {
     return;
   }
   $form['#after_build'][] = '_xedc_home_staff_moderation_default';
@@ -125,8 +125,7 @@ function xedc_home_form_node_form_alter(array &$form, FormStateInterface $form_s
  * Defaults staff saves to the published moderation state.
  */
 function _xedc_home_staff_moderation_default(array $form, FormStateInterface $form_state): array {
-  $input = $form_state->getUserInput();
-  if ($form_state->isSubmitted() || isset($input['moderation_state'])) {
+  if ($form_state->isSubmitted() && !$form_state->isRebuilding()) {
     return $form;
   }
   $state = &$form['moderation_state']['widget'][0]['state'];
@@ -142,11 +141,38 @@ function _xedc_home_staff_moderation_default(array $form, FormStateInterface $fo
     return $form;
   }
   $current = $node->isNew() ? '' : (string) $node->get('moderation_state')->value;
-  if ($node->isNew() || $current === '' || $current === 'draft') {
-    $state['#default_value'] = 'published';
-    $state['#description'] = t('保存后直接发布，不进入审核。');
+  if (!$node->isNew() && $current !== '' && $current !== 'draft') {
+    return $form;
   }
+  // The moderation widget writes #value during build, so #default_value alone
+  // still renders the workflow's initial draft.
+  $state['#default_value'] = 'published';
+  $state['#value'] = 'published';
+  $state['#description'] = t('保存后直接发布，不进入审核。');
   return $form;
+}
+
+/**
+ * Staff accounts publish new moderated content instead of leaving a draft.
+ */
+function _xedc_home_publish_new_staff_node(NodeInterface $node): void {
+  if (!$node->isNew() || !$node->hasField('moderation_state') || !in_array($node->bundle(), ['article', 'photo', 'video'], TRUE)) {
+    return;
+  }
+  if (!_xedc_home_is_staff_publisher()) {
+    return;
+  }
+  $node->set('moderation_state', 'published');
+  $node->setPublished();
+  $node->isDefaultRevision(TRUE);
+}
+
+/**
+ * Administrators and content editors can publish directly.
+ */
+function _xedc_home_is_staff_publisher(): bool {
+  $account = \Drupal::currentUser();
+  return $account->hasPermission('administer nodes') || $account->hasPermission('use xedc_editorial transition publish');
 }
 
 /**

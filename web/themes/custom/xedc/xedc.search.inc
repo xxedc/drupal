@@ -120,9 +120,9 @@ function _xedc_search_query(string $q, string $type = 'all') {
   $query->join('node_field_data', 'n', '[n].[nid] = [i].[sid] AND [n].[langcode] = [i].[langcode]');
   $query->condition('n.status', 1)->addTag('node_access');
   $query->searchExpression($q, 'node_search');
-  if (in_array($type, ['photo', 'video', 'article'], TRUE)) {
-    $query->condition('n.type', $type);
-  }
+  // 搜索页只展示美图、视频、文章。索引里的 page 等类型不参与分页，否则一页会不足 12 条。
+  $bundles = in_array($type, ['photo', 'video', 'article'], TRUE) ? [$type] : ['photo', 'video', 'article'];
+  $query->condition('n.type', $bundles, 'IN');
   return $query;
 }
 
@@ -143,7 +143,7 @@ function _xedc_search_count(string $q, string $type = 'all'): int {
 /**
  * Returns result node IDs for content search.
  */
-function _xedc_search_result_nids(string $q, string $type, string $sort, int $limit = 24): array {
+function _xedc_search_result_nids(string $q, string $type, string $sort, int $limit = 12): array {
   if ($q === '' || !in_array($type, ['all', 'photo', 'video', 'article'], TRUE)) {
     return [];
   }
@@ -155,7 +155,7 @@ function _xedc_search_result_nids(string $q, string $type, string $sort, int $li
     $query->orderBy('n.created', 'DESC')->groupBy('n.created');
   }
   $pager = $query->extend(PagerSelectExtender::class);
-  $pager->limit($limit);
+  $pager->element(0)->limit($limit);
   $result = $pager->execute();
   $nids = [];
   if ($result) {
@@ -189,7 +189,7 @@ function _xedc_search_highlight(string $text, string $q): Markup {
       continue;
     }
     $escaped = Html::escape($part);
-    $out .= ($index % 2 === 1) ? '<mark class="sr-mark">' . $escaped . '</mark>' : $escaped;
+    $out .= ($index % 2 === 1) ? '<mark class="highlight sr-mark">' . $escaped . '</mark>' : $escaped;
   }
   return Markup::create($out);
 }
@@ -289,30 +289,14 @@ function _xedc_search_duration(NodeInterface $node): string {
   if (!$node->hasField('field_duration') || $node->get('field_duration')->isEmpty()) {
     return '';
   }
-  $value = $node->get('field_duration')->value;
-  if (is_numeric($value)) {
-    $seconds = (int) $value;
-    return gmdate($seconds >= 3600 ? 'H:i:s' : 'i:s', $seconds);
-  }
-  return trim((string) $value);
-}
-
-/**
- * Builds the two-line article summary shown in article search results.
- */
-function _xedc_search_summary(NodeInterface $node, string $q): Markup|string {
-  if (!$node->hasField('field_summary') || $node->get('field_summary')->isEmpty()) {
+  $seconds = (int) $node->get('field_duration')->value;
+  if ($seconds <= 0) {
     return '';
   }
-  $text = strip_tags((string) $node->get('field_summary')->value);
-  $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
-  if ($text === '') {
-    return '';
+  if ($seconds >= 3600) {
+    return sprintf('%02d:%02d:%02d', intdiv($seconds, 3600), intdiv($seconds % 3600, 60), $seconds % 60);
   }
-  if (mb_strlen($text) > 100) {
-    $text = mb_substr($text, 0, 100) . '…';
-  }
-  return _xedc_search_highlight($text, $q);
+  return sprintf('%02d:%02d', intdiv($seconds, 60), $seconds % 60);
 }
 
 /**
@@ -324,7 +308,6 @@ function _xedc_search_cards(array $nids, string $q, string $type): array {
   }
   $nodes = Node::loadMultiple($nids);
   $date_formatter = \Drupal::service('date.formatter');
-  $types = _xedc_search_types();
   $cards = [];
   $tags = ['node_list'];
   foreach ($nodes as $node) {
@@ -348,19 +331,38 @@ function _xedc_search_cards(array $nids, string $q, string $type): array {
         }
       }
     }
-    $summary = ($type === 'article' && $bundle === 'article') ? _xedc_search_summary($node, $q) : '';
+    $author = '';
+    if ($node->hasField('field_author') && !$node->get('field_author')->isEmpty()) {
+      $author = trim((string) $node->get('field_author')->value);
+    }
+    if ($author === '' && $model !== '') {
+      $author = $model;
+    }
+    if ($author === '' && $bundle === 'video') {
+      $owner = $node->getOwner();
+      if ($owner && (int) $owner->id() > 0) {
+        $tags = Cache::mergeTags($tags, $owner->getCacheTags());
+        if ($owner->hasField('displayname') && !$owner->get('displayname')->isEmpty()) {
+          $author = trim((string) $owner->get('displayname')->value);
+        }
+      }
+    }
+    $image_count = 0;
+    if ($bundle === 'photo' && $node->hasField('field_images')) {
+      $image_count = (int) $node->get('field_images')->count();
+    }
     $cards[] = [
       'url' => $node->toUrl()->toString(),
       'title' => _xedc_search_highlight($title, $q),
       'cover' => $cover,
       'alt' => $title,
       'type' => $bundle,
-      'type_label' => $types[$bundle] ?? '',
+      'image_count' => $image_count,
       'video' => $bundle === 'video',
       'duration' => $bundle === 'video' ? _xedc_search_duration($node) : '',
+      'author' => $author,
       'model' => $model,
       'date' => $date,
-      'summary' => $summary,
       'initial' => mb_substr($title, 0, 1),
     ];
   }
@@ -495,7 +497,7 @@ function _xedc_search_model_content_count(array $groups): int {
 /**
  * Returns a page of content attached to matched model groups.
  */
-function _xedc_search_model_nids(array $groups, int $limit = 24): array {
+function _xedc_search_model_nids(array $groups, int $limit = 12): array {
   $tids = _xedc_search_model_tids($groups);
   if (!$tids) {
     return [];
@@ -510,6 +512,7 @@ function _xedc_search_model_nids(array $groups, int $limit = 24): array {
   $query->fields('n', ['nid'])
     ->distinct()
     ->orderBy('n.created', 'DESC')
+    ->element(0)
     ->limit($limit);
   $nids = [];
   foreach ($query->execute() as $row) {
@@ -551,6 +554,47 @@ function _xedc_search_hot_models(int $limit = 6): array {
   }
   usort($models, fn($a, $b) => $b['count'] <=> $a['count']);
   return $models;
+}
+
+/**
+ * Builds xa-pager data from the search pager (element 0).
+ *
+ * Page numbers in the template are 1-based. The page query parameter stays
+ * 0-based, matching PagerSelectExtender and _xedc_search_params().
+ */
+function _xedc_search_xa_pager(string $q, string $type, string $sort): array {
+  $pager = \Drupal::service('pager.manager')->getPager(0);
+  if (!$pager) {
+    return [];
+  }
+  $per = (int) $pager->getLimit();
+  $total = (int) $pager->getTotalItems();
+  if ($per < 1 || $total <= $per) {
+    return [];
+  }
+  $last = (int) ceil($total / $per);
+  $cur = (int) $pager->getCurrentPage() + 1;
+  $href = function (int $n) use ($q, $type, $sort) {
+    return _xedc_search_url($q, $type, $sort, $n > 1 ? $n - 1 : 0);
+  };
+  $win = array_unique(array_filter([1, $cur - 1, $cur, $cur + 1, $last], fn($n) => $n >= 1 && $n <= $last));
+  sort($win);
+  $items = [];
+  $prev = 0;
+  foreach ($win as $n) {
+    if ($prev && $n - $prev > 1) {
+      $items[] = ['gap' => TRUE];
+    }
+    $items[] = ['n' => $n, 'url' => $href($n), 'active' => $n === $cur];
+    $prev = $n;
+  }
+  return [
+    'items' => $items,
+    'cur' => $cur,
+    'last' => $last,
+    'prev' => $cur > 1 ? $href($cur - 1) : '',
+    'next' => $cur < $last ? $href($cur + 1) : '',
+  ];
 }
 
 /**
@@ -638,7 +682,7 @@ function _xedc_search_build_page(): array {
     '#info_count' => $info_count,
     '#cards' => $cards,
     '#models' => $model_cards,
-    '#pager' => $cards ? ['#type' => 'pager'] : [],
+    '#xa_pager' => $cards ? _xedc_search_xa_pager($q, $type, $sort) : [],
     '#hot_models' => _xedc_search_hot_models(6),
     '#explore' => $explore,
     '#attached' => ['library' => ['xedc/search-page']],

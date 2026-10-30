@@ -1,0 +1,22 @@
+uuid: d47651b7-de2d-4eb6-94e1-296370881f2b
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.video_category
+  module:
+    - text
+id: taxonomy_term.video_category.default
+targetEntityType: taxonomy_term
+bundle: video_category
+mode: default
+content:
+  description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  langcode: true

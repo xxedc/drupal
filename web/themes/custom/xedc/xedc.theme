@@ -28,7 +28,7 @@ function xedc_theme($existing, $type, $theme, $path) {
         'info_count' => 0,
         'cards' => [],
         'models' => [],
-        'pager' => [],
+        'xa_pager' => [],
         'hot_models' => [],
         'explore' => [],
       ],
@@ -675,7 +675,8 @@ function xedc_preprocess_page_title(array &$variables) {
   if (preg_match('#^/taxonomy/term/(\d+)$#', $path, $m)) {
     $t = \Drupal\taxonomy\Entity\Term::load($m[1]);
     if ($t) {
-      $variables['title'] = $t->bundle() === 'tags' ? '' : $t->label();
+      // 视频栏目的 H1 在 taxonomy-term--video-category 里，避免和页面标题重复。
+      $variables['title'] = in_array($t->bundle(), ['tags', 'video_category'], TRUE) ? '' : $t->label();
     }
   }
   if (_xedc_is_photo_list_route() && ($page = _xedc_photo_current_page()) > 0) {
@@ -1226,6 +1227,104 @@ function _xedc_vd_cards(array $nids) {
 }
 
 require_once __DIR__ . '/xedc.search.inc';
+
+/**
+ * 视频列表页加载网格样式。
+ */
+function xedc_preprocess_views_view__video_list(array &$variables): void {
+  _xedc_video_page_attach($variables);
+}
+
+/**
+ * 视频分类术语页复用同一套网格。该 View 只给 video_category 使用。
+ */
+function xedc_preprocess_views_view__taxonomy_term(array &$variables): void {
+  _xedc_video_page_attach($variables);
+}
+
+/**
+ * 给视频列表容器加上页面 class，并加载布局 CSS。
+ */
+function _xedc_video_page_attach(array &$variables): void {
+  $attributes = $variables['attributes'] ?? NULL;
+  if (is_object($attributes) && method_exists($attributes, 'addClass')) {
+    $attributes->addClass('xedc-video-page');
+  }
+  $variables['#attached']['library'][] = 'xedc/video_list';
+}
+
+/**
+ * 视频 teaser 卡片数据。时长来自 field_duration（秒），封面用 video_cover。
+ */
+function xedc_preprocess_node__video__teaser(array &$variables): void {
+  $node = $variables['node'];
+  $variables['vc_cover'] = '';
+  $variables['vc_cover_alt'] = $node->label();
+  $variables['vc_duration'] = '';
+  $variables['vc_category'] = NULL;
+  $variables['vc_tags'] = [];
+
+  $seconds = 0;
+  if ($node->hasField('field_duration') && !$node->get('field_duration')->isEmpty()) {
+    $seconds = (int) $node->get('field_duration')->value;
+  }
+  if ($seconds > 0) {
+    if ($seconds >= 3600) {
+      $variables['vc_duration'] = sprintf('%d:%02d:%02d', intdiv($seconds, 3600), intdiv($seconds % 3600, 60), $seconds % 60);
+    }
+    else {
+      $variables['vc_duration'] = sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
+    }
+  }
+
+  if ($node->hasField('field_video_cover') && !$node->get('field_video_cover')->isEmpty()) {
+    $media = $node->get('field_video_cover')->entity;
+    if ($media instanceof \Drupal\media\MediaInterface && $media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+      $item = $media->get('field_media_image')->first();
+      $file = $item ? $item->entity : NULL;
+      if ($file instanceof \Drupal\file\FileInterface) {
+        $alt = trim((string) $item->alt);
+        if ($alt !== '') {
+          $variables['vc_cover_alt'] = $alt;
+        }
+        $style = \Drupal\image\Entity\ImageStyle::load('video_cover');
+        $gen = \Drupal::service('file_url_generator');
+        $uri = $file->getFileUri();
+        $url = $style ? $style->buildUrl($uri) : $gen->generateAbsoluteString($uri);
+        $variables['vc_cover'] = $gen->transformRelative($url);
+        $tags = array_merge($file->getCacheTags(), $media->getCacheTags());
+        if ($style) {
+          $tags = array_merge($tags, $style->getCacheTags());
+        }
+        $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $tags);
+      }
+    }
+  }
+
+  if ($node->hasField('field_categories') && !$node->get('field_categories')->isEmpty()) {
+    $term = $node->get('field_categories')->entity;
+    if ($term instanceof \Drupal\taxonomy\TermInterface) {
+      $variables['vc_category'] = [
+        'name' => $term->label(),
+        'url' => $term->toUrl()->toString(),
+      ];
+      $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $term->getCacheTags());
+    }
+  }
+
+  if ($node->hasField('field_tags') && !$node->get('field_tags')->isEmpty()) {
+    foreach ($node->get('field_tags')->referencedEntities() as $tag) {
+      if (!$tag instanceof \Drupal\taxonomy\TermInterface) {
+        continue;
+      }
+      $variables['vc_tags'][] = [
+        'name' => $tag->label(),
+        'url' => $tag->toUrl()->toString(),
+      ];
+      $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $tag->getCacheTags());
+    }
+  }
+}
 
 /**
  * 文章列表卡片数据。

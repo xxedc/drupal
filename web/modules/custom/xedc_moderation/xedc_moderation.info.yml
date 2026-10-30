@@ -1,0 +1,10 @@
+name: XEDC Moderation
+type: module
+description: 'Bulk moderation actions for the moderated content list.'
+package: XEDC
+core_version_requirement: ^11
+dependencies:
+  - drupal:content_moderation
+  - drupal:node
+  - drupal:workflows
+  - views_bulk_operations:views_bulk_operations

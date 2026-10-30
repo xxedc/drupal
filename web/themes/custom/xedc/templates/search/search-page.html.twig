@@ -43,7 +43,7 @@
 
   {% if q %}
     <div class="sr-info">
-      <p class="sr-info-text">找到 <strong>{{ info_count }}</strong> 条与「<span class="sr-kw">{{ q }}</span>」相关的结果</p>
+      <p class="sr-info-text">找到 <strong>{{ info_count }}</strong> 条与「<mark class="highlight sr-mark">{{ q }}</mark>」相关的结果</p>
       {% if type != 'model' %}
         <div class="sr-sorts" aria-label="排序">
           {% for item in sorts %}
@@ -57,30 +57,12 @@
   {% if cards %}
     <ul class="sr-grid">
       {% for card in cards %}
-        <li class="sr-item">
-          <a class="sr-card" href="{{ card.url }}">
-            <span class="sr-cover">
-              {% if card.cover %}<img class="sr-img" src="{{ card.cover }}" alt="{{ card.alt }}" loading="lazy" width="640" height="853">{% else %}<span class="sr-ph" aria-hidden="true">{{ card.initial }}</span>{% endif %}
-              <span class="sr-type">{{ card.type_label }}</span>
-              {% if card.video %}
-                <span class="sr-video-meta" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-                  {% if card.duration %}<span>{{ card.duration }}</span>{% endif %}
-                </span>
-              {% endif %}
-            </span>
-            <span class="sr-body">
-              <strong class="sr-title">{{ card.title }}</strong>
-              {% if card.summary %}<span class="sr-summary">{{ card.summary }}</span>{% endif %}
-              <span class="sr-meta">
-                {% if card.model %}<span class="sr-model">{{ card.model }}</span>{% else %}<time datetime="{{ card.date }}">{{ card.date }}</time>{% endif %}
-              </span>
-            </span>
-          </a>
-        </li>
+        {% include "@xedc/templates/includes/search-card.html.twig" %}
       {% endfor %}
     </ul>
-    {{ pager }}
+    <div class="sr-pager">
+      {% include "@xedc/templates/views/xa-pager.html.twig" %}
+    </div>
   {% elseif q %}
     <div class="sr-empty">
       <span class="sr-empty-icon">{{ i_search }}</span>

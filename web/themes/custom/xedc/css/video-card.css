@@ -1,0 +1,222 @@
+/* 视频卡片。由 node--video--teaser 按需加载，列表页和分类页共用。 */
+.vcard {
+  --vc-card: #fff;
+  --vc-fg: #1c1917;
+  --vc-muted: #737373;
+  --vc-pill-bg: #f3f4f6;
+  --vc-pill-fg: #3f3f46;
+  --vc-border: rgba(28, 25, 23, .08);
+  --vc-shadow: 0 1px 2px rgba(28, 25, 23, .05);
+  --vc-shadow-hover: 0 10px 24px rgba(28, 25, 23, .1);
+  --vc-radius: 12px;
+  --vc-move: .22s;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  color: var(--vc-fg);
+  background: var(--vc-card);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius);
+  box-shadow: var(--vc-shadow);
+  overflow: hidden;
+  transition: transform var(--vc-move), box-shadow var(--vc-move);
+}
+
+.vcard a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.vcard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--vc-shadow-hover);
+}
+
+.vcard__thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #e7e5e4;
+}
+
+.vcard__thumb img,
+.vcard__placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.vcard__thumb img {
+  object-fit: cover;
+  transition: transform var(--vc-move);
+}
+
+.vcard:hover .vcard__thumb img {
+  transform: scale(1.04);
+}
+
+.vcard__play {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--vc-move);
+}
+
+.vcard__play svg {
+  width: 22px;
+  height: 22px;
+  padding: 14px;
+  box-sizing: content-box;
+  color: #fff;
+  background: rgba(0, 0, 0, .48);
+  border-radius: 50%;
+  transform: translateX(1px);
+}
+
+.vcard:hover .vcard__play,
+.vcard:focus-within .vcard__play {
+  opacity: 1;
+}
+
+.vcard__dur {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 2;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(0, 0, 0, .72);
+  border-radius: 6px;
+}
+
+.vcard__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 14px 16px;
+}
+
+.vcard__cat {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+}
+
+.vcard__cat a,
+.vcard__cat span {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 8px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--vc-pill-fg);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: var(--vc-pill-bg);
+  border-radius: 999px;
+}
+
+.vcard__title {
+  margin: 0;
+  color: var(--vc-fg);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-height: calc(1.45em * 2);
+}
+
+.vcard__title a:hover {
+  text-decoration: underline;
+  text-underline-offset: .15em;
+}
+
+.vcard__tags {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0 8px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.vcard__tags a {
+  min-width: 0;
+  overflow: hidden;
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--vc-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.vcard__tags a::before {
+  content: "#";
+}
+
+:is([data-theme="dark"], [data-bs-theme="dark"]) .vcard {
+  --vc-card: #1c1917;
+  --vc-fg: #fafaf9;
+  --vc-muted: #a8a29e;
+  --vc-pill-bg: #292524;
+  --vc-pill-fg: #e7e5e4;
+  --vc-border: rgba(255, 255, 255, .08);
+  --vc-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  --vc-shadow-hover: 0 12px 28px rgba(0, 0, 0, .45);
+}
+
+:is([data-theme="dark"], [data-bs-theme="dark"]) .vcard__thumb {
+  background: #292524;
+}
+
+@media (max-width: 640px) {
+  .vcard__body {
+    gap: 4px;
+    padding: 8px 10px 10px;
+  }
+
+  .vcard__title {
+    font-size: 13px;
+  }
+
+  .vcard__play svg {
+    width: 16px;
+    height: 16px;
+    padding: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vcard,
+  .vcard__thumb img,
+  .vcard__play {
+    transition: none;
+  }
+
+  .vcard:hover {
+    transform: none;
+  }
+
+  .vcard:hover .vcard__thumb img {
+    transform: none;
+  }
+}

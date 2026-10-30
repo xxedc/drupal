@@ -69,12 +69,28 @@ class TagsController extends ControllerBase {
       if ($term->bundle() === 'models') {
         return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $term->id()])->toString(), 301);
       }
+      // 只把视频栏目交给 taxonomy_term View。图片等栏目继续用原来的 image_gallery。
+      if ($term->bundle() === 'video_category') {
+        $video_view = \Drupal\views\Views::getView('taxonomy_term');
+        if ($video_view) {
+          $build = $video_view->buildRenderable('page_1', [(string) $term->id()]);
+          if ($build) {
+            return $build;
+          }
+        }
+        return $this->entityTypeManager()->getViewBuilder('taxonomy_term')->view($term, 'default');
+      }
       $route = $route_match->getRouteObject();
       $vid = $route->getDefault('_xt_view_id');
+      $display = $route->getDefault('_xt_display_id') ?: 'default';
+      if ($vid === 'taxonomy_term') {
+        $vid = 'image_gallery';
+        $display = 'page_3';
+      }
       if ($vid) {
         $view = \Drupal\views\Views::getView($vid);
         if ($view) {
-          $build = $view->buildRenderable($route->getDefault('_xt_display_id') ?: 'default', [$term->id()]);
+          $build = $view->buildRenderable($display, [$term->id()]);
           if ($build) {
             return $build;
           }

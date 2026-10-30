@@ -102,7 +102,7 @@
     lb.setAttribute('aria-modal', 'true');
     lb.setAttribute('aria-label', '图片预览');
     lb.setAttribute('aria-hidden', 'true');
-    lb.innerHTML = '<div class="img-lb__bar"><span class="img-lb__count"></span><div class="img-lb__actions"><a class="xedc-pill img-lb__original" href="" target="_blank" rel="noopener">原图</a><button type="button" class="xedc-pill img-lb__all" data-img-all aria-haspopup="dialog" aria-controls="img-sheet" aria-expanded="false">' + GRID_SVG + '<span>全部</span></button><button type="button" class="img-lb__close" aria-label="关闭">×</button></div></div><button type="button" class="img-lb__nav img-lb__prev" aria-label="上一张">‹</button><img class="img-lb__img" alt=""><button type="button" class="img-lb__nav img-lb__next" aria-label="下一张">›</button>';
+    lb.innerHTML = '<div class="img-lb__bar"><span class="img-lb__count"></span><div class="img-lb__actions"><button type="button" class="xedc-pill img-lb__all" data-img-all aria-haspopup="dialog" aria-controls="img-sheet" aria-expanded="false">' + GRID_SVG + '<span>全部</span></button><button type="button" class="img-lb__close" aria-label="关闭">×</button></div></div><button type="button" class="img-lb__nav img-lb__prev" aria-label="上一张">‹</button><img class="img-lb__img" alt=""><button type="button" class="img-lb__nav img-lb__next" aria-label="下一张">›</button>';
     document.body.appendChild(lb);
     var img = lb.querySelector('.img-lb__img');
     img.addEventListener('error', function () {
@@ -215,12 +215,6 @@
     idx = (i + list.length) % list.length;
     var item = list[idx];
     lb.querySelector('.img-lb__count').textContent = (idx + 1) + ' / ' + list.length;
-    var original = lb.querySelector('.img-lb__original');
-    if (original) {
-      var href = item.original || item.full || '';
-      original.href = href;
-      original.hidden = href === '';
-    }
     var img = lb.querySelector('.img-lb__img');
     var apply = function () {
       img.dataset.fb = '';
@@ -267,12 +261,34 @@
     syncLock();
   }
 
+  function visibleIndex() {
+    var box = gallery();
+    if (!box) {
+      return -1;
+    }
+    var images = box.querySelectorAll('img');
+    var best = -1;
+    var bestScore = 0;
+    var viewH = window.innerHeight || document.documentElement.clientHeight;
+    for (var i = 0; i < images.length; i++) {
+      var rect = images[i].getBoundingClientRect();
+      var top = Math.max(rect.top, 0);
+      var bottom = Math.min(rect.bottom, viewH);
+      var score = bottom - top;
+      if (score > bestScore) {
+        bestScore = score;
+        best = i;
+      }
+    }
+    return best;
+  }
+
   function openSheet(opener) {
     if (!items().length || !ensureSheet()) {
       return;
     }
     sheetOpener = opener || null;
-    markActive(lb && lb.classList.contains('is-open') ? idx : -1);
+    markActive(lb && lb.classList.contains('is-open') ? idx : visibleIndex());
     sheet.hidden = false;
     sheet.setAttribute('aria-hidden', 'false');
     setExpanded(true);
@@ -538,8 +554,19 @@
     var root = context && context.querySelectorAll ? context : document;
     root.querySelectorAll('.img-more').forEach(function (button) {
       button.classList.add('xedc-pill');
-      button.classList.add('img-more');
     });
+  }
+
+  function watchMore(box) {
+    styleMore(box);
+    if (!window.MutationObserver || box.dataset.moreWatch === '1') {
+      return;
+    }
+    box.dataset.moreWatch = '1';
+    var observer = new MutationObserver(function () {
+      styleMore(box);
+    });
+    observer.observe(box, { childList: true, subtree: true });
   }
 
   function boot(root) {
@@ -559,6 +586,7 @@
       initDesc(context);
       initFavorite(context);
       styleMore(context);
+      once('xedc-photo-detail', '.img-detail__gallery', context).forEach(watchMore);
       once('xedc-photo-detail', '.img-detail', context).forEach(boot);
     }
   };

@@ -1,0 +1,9 @@
+{#
+/**
+ * @file
+ * 视频列表页外壳。当前 View 没有 Banner、热门榜、featured_video 等区域，
+ * 这里只保留 Views 自己的标题区、结果、空结果和分页。卡片在 node--video--teaser。
+ */
+#}
+{{ attach_library('xedc/video_list') }}
+{% include 'radix:views-view' %}

@@ -115,6 +115,7 @@ module:
   xedc_home: 0
   xedc_member: 0
   xedc_models: 0
+  xedc_moderation: 0
   xedc_quick: 0
   xedc_tags: 0
   pathauto: 1

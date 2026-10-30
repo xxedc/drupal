@@ -161,7 +161,7 @@ document.querySelectorAll('.cm__avatar:not(:has(img))').forEach(function (el) {
     items.forEach(function (el, i) { if (i >= PER) el.classList.add('is-hidden'); });
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'img-more';
+    btn.className = 'xedc-pill img-more';
     function label() { btn.textContent = '加载更多（还剩 ' + (items.length - shown) + ' 张）'; }
     label();
     btn.onclick = function () {

@@ -14,6 +14,7 @@ dependencies:
     - taxonomy.vocabulary.tags
     - workflows.workflow.xedc_editorial
   module:
+    - actions_permissions
     - comment
     - content_moderation
     - content_translation
@@ -32,6 +33,8 @@ dependencies:
     - redirect_404
     - system
     - taxonomy
+    - views_bulk_operations
+    - xedc_moderation
 _core:
   default_config_hash: og55Zu0F-q-X8zG0Ohrls49zws6IrmmosZS-30Es8vw
 id: content_editor
@@ -93,6 +96,7 @@ permissions:
   - 'edit any image media'
   - 'edit any video media'
   - 'edit terms in tags'
+  - 'execute xedc_moderation_set_state node'
   - 'ignore 404 requests'
   - 'notify of path changes'
   - 'revert all revisions'
