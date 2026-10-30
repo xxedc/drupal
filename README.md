@@ -4,7 +4,9 @@
 
 ## 快速恢复（新服务器）
 
-在全新的 Ubuntu 24.04 或 26.04 服务器上执行以下命令即可完成环境安装、代码部署、空站点安装和配置导入：
+在全新的 Ubuntu 24.04 或 26.04 服务器上执行以下命令即可完成环境安装、代码部署、空站点安装和配置导入。
+
+**注意：把下面命令中的 `example.com` 替换成你自己的真实域名。**
 
 ```bash
 curl -fsSL -o /root/install-restore.sh \
@@ -32,7 +34,7 @@ sudo /root/install-restore.sh example.com
 
 默认情况下，脚本会自动创建用户名为 `admin` 的管理员，并生成随机密码。
 
-如果你想自己指定管理员用户名和密码，可以在运行脚本时加上参数：
+如果你想自己指定管理员用户名和密码，可以在运行脚本时加上参数（同样把 `example.com` 换成你的域名）：
 
 ```bash
 sudo /root/install-restore.sh example.com --admin-user myadmin --admin-pass 'YourSecurePassword'
@@ -42,7 +44,7 @@ sudo /root/install-restore.sh example.com --admin-user myadmin --admin-pass 'You
 
 ## 申请 HTTPS 证书
 
-默认命令只会配置 HTTP。如果需要同时申请 Let's Encrypt 证书并启用 HTTPS，请加上 `--ssl` 参数：
+默认命令只会配置 HTTP。如果需要同时申请 Let's Encrypt 证书并启用 HTTPS，请加上 `--ssl` 参数（把 `example.com` 换成你的域名）：
 
 ```bash
 sudo /root/install-restore.sh example.com --ssl --email admin@example.com
