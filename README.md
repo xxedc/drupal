@@ -19,6 +19,26 @@ sudo /root/install-restore.sh example.com
 
 脚本链接：[install-restore.sh](install-restore.sh)
 
+## 安装完成后如何查看数据库账户和密码
+
+脚本会自动生成数据库账户、数据库密码，以及 Drupal 管理员账户（默认用户名 `admin`）和密码，并写入以下文件：
+
+```bash
+sudo cat /root/xedc-restore-credentials.txt
+```
+
+文件权限为 `600`，仅 root 可读。里面会清晰列出：
+
+- 数据库名、用户名、密码
+- Drupal 管理员用户名和密码
+- 站点域名等其他关键信息
+
+你也可以在运行脚本时自己指定管理员账户和密码：
+
+```bash
+sudo /root/install-restore.sh example.com --admin-user myadmin --admin-pass 'YourSecurePassword'
+```
+
 ## 重要说明
 
 - 仅恢复代码、主题、模块、`config/sync` 和翻译文件。不恢复用户内容、上传文件或数据库数据。
