@@ -1,6 +1,6 @@
 # 站点恢复
 
-用仓库根目录的 `install-restore.sh`，在全新 Ubuntu 24.04 或 26.04 上安装环境、拉取最新代码、构建主题 `xedc`，并导入 `config/sync`。
+用仓库根目录的 `install-restore.sh`，在全新 Ubuntu 24.04 或 26.04 上安装环境、拉取最新代码、构建主题 `xedc`，并用 `config/sync` 执行 `drush site:install --existing-config`。
 
 恢复的是代码和配置结构。不恢复用户、内容、上传文件或原数据库。每次运行都会重新 `git clone` 指定分支，并严格执行 `composer install`（不执行 `composer update`）。Drupal 版本以 `composer.lock` 为准，当前为 **11.4.11**。
 
@@ -24,7 +24,21 @@ sudo /root/install-restore.sh example.com --yes
 sudo /root/install-restore.sh example.com --reinstall --yes
 ```
 
-默认目录 `/var/www/drupal`。该目录已存在且未加 `--yes` 时，脚本立即退出，不安装软件包，也不重启服务。管理员和数据库口令写在 `/root/xedc-restore-credentials.txt`（权限 `600`）。
+默认目录 `/var/www/drupal`。该目录已存在且未加 `--yes` 时，脚本立即退出，不安装软件包，也不重启服务。管理员和数据库口令写在 `/root/xedc-restore-credentials.txt`（权限 `600`），其中包含配置导入状态。
+
+## 安装流程
+
+空库使用 `drush site:install --existing-config --config-dir=config/sync`，语言为 `zh-hans`。不再把 `standard` 当作安装参数，也不再分阶段 `--partial` 导入，更不会手工创建内容类型或词汇。
+
+安装前检查 `core.extension.yml`、`system.site.yml`、节点/分类 bundle 引用，以及模块和主题的 `.info.yml`。预检失败会写出具体错误并继续，避免还没写凭据文件就退出。
+
+若 `--existing-config` 失败，完整日志在 `/var/log/xedc-restore-install.log`，终端打印末尾 40 行，然后只回退一次：清空数据库，`drush site:install standard`，把 `system.site` 的 UUID 设为 `config/sync/system.site.yml` 里的值，再执行 `drush cim -y`。回退仍失败时输出错误摘要。无论导入成败，都会继续设置文件权限、cron 和凭据文件。
+
+成功后确认 `settings.php` 的 `config_sync_directory` 为 `../config/sync`。若 Drush 改写成 `sites/default/files` 下的随机目录，脚本改回该相对路径并删除多余目录，然后执行 `drush cr` 和 `drush config:status`。
+
+域名替换只发生在本次 `git clone` 的 `config/sync` 上，并且只处理本站旧域名。替换后用 python3 的 yaml（没有该模块时用 PHP Symfony Yaml）确认全部 YAML 仍可解析；解析失败则恢复原文件并报错。
+
+已有节点或非管理员用户、且没有 `--reinstall` 时，跳过安装和配置导入，不改数据库。`--reinstall` 会删库后重新走 `--existing-config`；库里已有内容时还要同时传入 `--yes`。没有内容的已安装站点会跳过 `site:install`，只做一次完整 `drush cim`。
 
 ## 域名会改哪些地址
 
@@ -60,11 +74,11 @@ sudo /root/install-restore.sh example.com --reinstall --yes
 
 ## 风险
 
-- `config/sync` 可能和原站点当时的实际配置不一致。`drush cim -y` 仍会导入，结果以仓库为准。
+- `config/sync` 可能和原站点当时的实际配置不一致。空库安装以仓库里的 `config/sync` 为准。
 - 不恢复用户数据和上传文件。旧目录会备份为 `*.bak.时间戳`，其中的文件不会自动进新站点。
-- 默认数据库名是 `drupal`。同名库若已有节点或额外用户，脚本会在改动服务前退出。
+- 默认数据库名是 `drupal`。同名库若已有节点或额外用户，且没有 `--reinstall`，脚本跳过安装，不删除数据。要删库重装必须同时传入 `--reinstall --yes`。
 - 每次克隆使用新的 `hash_salt`。锁定版本不是 11.4.11 时脚本停止。
-- 重复运行会再次克隆并导入。只有空站点（无节点、除匿名用户外只有一个账号）才会跳过 `site:install`。
+- 重复运行会再次克隆。已有内容时不重装；空站点会跳过 `site:install` 并重新导入配置。
 
 ## 执行后检查
 
