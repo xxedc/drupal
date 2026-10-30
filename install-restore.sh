@@ -21,6 +21,9 @@
 # 4. 仅当显式传入 --reinstall --yes 时才会删除已有数据库。
 #    若库里已有节点或除管理员以外的用户，且未同时传入这两个参数，脚本会拒绝继续。
 # 5. 始终使用 composer install 安装 composer.lock 中锁定的版本，不执行 composer update。
+# 6. 完整 drush cim 之前，先部分导入内容类型、词汇，再导入字段存储和字段实例。
+#    若完整导入因 Missing bundle entity、does not exist 等依赖问题失败，会自动重试一次。
+#    最终仍失败时记录错误摘要并继续收尾，不回滚已生成的数据库口令。
 #
 # 用法：
 #   sudo ./install-restore.sh example.com
@@ -65,6 +68,9 @@ WITH_WWW=1
 REINSTALL=0
 ASSUME_YES=0
 SSL_FAILED=0
+IMPORT_FAILED=0
+CREDENTIALS_WRITTEN=0
+CIM_LOG=""
 DID_INSTALL=0
 PUBLIC_BASE=""
 HASH_SALT=""
@@ -88,6 +94,7 @@ die() {
 }
 
 trap 'rc=$?; printf "\n[错误] 第 %s 行失败（状态 %s）：%s\n" "$LINENO" "$rc" "$BASH_COMMAND" >&2; if [[ -n "${BACKUP_PATH:-}" ]]; then printf "旧目录备份仍在：%s\n" "$BACKUP_PATH" >&2; fi' ERR
+trap 'write_credentials || true' EXIT
 
 usage() {
   cat <<'EOF'
@@ -96,6 +103,7 @@ usage() {
 在 Ubuntu 24.04 或 26.04 上安装运行环境，克隆 https://github.com/xxedc/drupal 的最新代码，
 按 composer.lock 安装 Drupal 11.4.11，构建 xedc 主题，安装空站点并导入 config/sync。
 导入前会把配置里属于本站的绝对地址改成本次域名，并保留第三方服务地址。
+完整导入前先部分导入内容类型、词汇和字段；依赖错误会自动重试一次。
 
 选项：
   --domain 域名         站点域名，也可作为第一个位置参数
@@ -1046,28 +1054,128 @@ install_site() {
   DID_INSTALL=1
 }
 
-import_config() {
-  local uuid
-  uuid=$(php -r '
-    foreach (file($argv[1]) as $line) {
-      if (preg_match("/^uuid:\\s*([0-9a-fA-F-]+)/", $line, $matches)) {
-        echo $matches[1];
-        exit(0);
-      }
-    }
-    exit(1);
-  ' "$APP_ROOT/config/sync/system.site.yml")
-  log "将站点 UUID 调整为 config/sync 中的 ${uuid}，否则配置导入会被拒绝。"
-  run_drush config:set system.site uuid "$uuid" -y
-  log "开始导入 ${APP_ROOT}/config/sync。"
-  log "提示：仓库配置与当前空站点的标准安装结果不同。drush cim -y 会在存在差异时继续，并以仓库配置为准。这不一定与原生产库完全一致。"
-  if ! run_drush cim -y; then
-    warn "第一次 drush cim 未成功。这通常是模块刚刚启用。将执行 updatedb 后再次导入。"
-    run_drush updatedb -y
-    run_drush cim -y
+partial_import_globs() {
+  local title="$1"
+  shift
+  local stage file glob
+  local -a files=()
+  stage=$(mktemp -d /tmp/xedc-cim-stage.XXXXXX)
+  shopt -s nullglob
+  for glob in "$@"; do
+    for file in "$APP_ROOT/config/sync/"$glob; do
+      if [[ -f "$file" ]]; then
+        files+=("$file")
+      fi
+    done
+  done
+  shopt -u nullglob
+  if [[ "${#files[@]}" -eq 0 ]]; then
+    log "${title}：没有匹配的配置文件，跳过。"
+    rm -rf "$stage"
+    return 0
   fi
-  run_drush updatedb -y
-  run_drush cr
+  log "${title}：部分导入 ${#files[@]} 个配置（drush cim --partial，不删除其余配置）。"
+  for file in "${files[@]}"; do
+    cp -f "$file" "$stage/"
+    log "  预处理 $(basename "$file")"
+  done
+  if run_drush cim --partial --source="$stage" -y; then
+    log "${title}：完成。"
+  else
+    warn "${title}：未成功。常见原因是对应模块尚未启用，或 bundle 仍未创建。继续后续步骤，完整导入会再处理这些依赖。"
+  fi
+  rm -rf "$stage"
+}
+
+import_error_is_dependency() {
+  local file="$1"
+  [[ -f "$file" ]] || return 1
+  grep -E -i -q 'Missing bundle entity|does not exist|entities exist of type|depends on|Unable to install|failed validation|incompatible' "$file"
+}
+
+run_full_import() {
+  local attempt="$1"
+  CIM_LOG=$(mktemp /tmp/xedc-cim.XXXXXX.log)
+  log "完整导入第 ${attempt} 次：drush cim -y（来源 ${APP_ROOT}/config/sync）。"
+  if run_drush cim -y >"$CIM_LOG" 2>&1; then
+    cat "$CIM_LOG"
+    log "完整导入第 ${attempt} 次成功。"
+    return 0
+  fi
+  cat "$CIM_LOG" >&2
+  warn "完整导入第 ${attempt} 次失败。日志：${CIM_LOG}"
+  return 1
+}
+
+summarize_import_failure() {
+  local reason="$1"
+  IMPORT_FAILED=1
+  warn "完整配置导入最终未成功。${reason}"
+  if [[ -n "${CIM_LOG:-}" && -f "$CIM_LOG" ]]; then
+    warn "错误摘要（日志末尾）："
+    tail -n 40 "$CIM_LOG" >&2 || true
+  fi
+  cat >&2 <<'EOF'
+
+可能原因：
+- 字段、视图或表单显示引用的内容类型、词汇或实体 bundle 仍未创建
+- 第一次导入刚启用模块，字段或 bundle 要等下一次导入才能写入
+- config/sync 与标准安装结果差异较大，含有当前站点无法满足的依赖
+
+已生成的数据库口令不会回滚。可在修正配置后重新执行本脚本。
+EOF
+}
+
+import_config() {
+  local uuid=""
+  if [[ -f "$APP_ROOT/config/sync/system.site.yml" ]]; then
+    uuid=$(php -r '
+      foreach (file($argv[1]) as $line) {
+        if (preg_match("/^uuid:\\s*([0-9a-fA-F-]+)/", $line, $matches)) {
+          echo $matches[1];
+          exit(0);
+        }
+      }
+      exit(1);
+    ' "$APP_ROOT/config/sync/system.site.yml" || true)
+  fi
+  if [[ -n "$uuid" ]]; then
+    log "将站点 UUID 调整为 config/sync 中的 ${uuid}，否则配置导入会被拒绝。"
+    if ! run_drush config:set system.site uuid "$uuid" -y; then
+      warn "未能写入系统 UUID，完整导入可能被拒绝。"
+    fi
+  else
+    warn "未能从 system.site.yml 读取 UUID。"
+  fi
+
+  log "配置导入分三步：先内容类型和词汇，再字段存储与字段实例，最后完整导入。"
+  log "提示：仓库配置与空站点的标准安装结果不同。有差异也会继续，并以仓库配置为准。"
+  partial_import_globs "步骤 1/3 内容类型与词汇" "node.type.*.yml" "taxonomy.vocabulary.*.yml"
+  partial_import_globs "步骤 2/3 字段存储" "field.storage.*.yml"
+  partial_import_globs "步骤 2/3 字段实例" "field.field.*.yml"
+
+  if run_full_import 1; then
+    log "完整导入已成功，不需要重试。"
+  elif import_error_is_dependency "$CIM_LOG"; then
+    warn "完整导入失败，且错误包含缺失 bundle、不存在的依赖或类似问题。执行 updatedb 后自动重试一次。"
+    if ! run_drush updatedb -y; then
+      warn "重试前的 drush updatedb 未成功，仍会再导入一次。"
+    fi
+    if run_full_import 2; then
+      log "重试后的完整导入已成功。"
+    else
+      summarize_import_failure "已因依赖问题自动重试一次，仍然失败。"
+    fi
+  else
+    summarize_import_failure "错误不像缺失 bundle 或依赖问题，因此没有自动重试。"
+  fi
+
+  if ! run_drush updatedb -y; then
+    warn "导入后的 drush updatedb 未成功。"
+  fi
+  if ! run_drush cr; then
+    warn "导入后的 drush cr 未成功。"
+  fi
 }
 
 ensure_theme() {
@@ -1411,27 +1519,46 @@ EOF
 }
 
 write_credentials() {
-  local admin_line
-  if [[ "$DID_INSTALL" -eq 1 ]]; then
+  local admin_line revision
+  if [[ "${CREDENTIALS_WRITTEN:-0}" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ -z "${DB_PASS:-}" && -z "${DRUPAL_ADMIN_PASS:-}" ]]; then
+    return 0
+  fi
+  if [[ "${DID_INSTALL:-0}" -eq 1 && -n "${DRUPAL_ADMIN_PASS:-}" ]]; then
     admin_line="管理员口令：${DRUPAL_ADMIN_PASS}"
+  elif [[ -n "${DRUPAL_ADMIN_PASS:-}" ]]; then
+    admin_line="管理员口令：${DRUPAL_ADMIN_PASS}（已生成；若站点安装未完成，该口令可能尚未写入数据库）"
   else
     admin_line="管理员口令：本次未重新安装站点，沿用数据库中的现有口令。"
   fi
+  revision="尚未克隆"
+  if [[ -d "${APP_ROOT:-}/.git" ]]; then
+    revision=$(git -C "$APP_ROOT" rev-parse HEAD 2>/dev/null || true)
+    revision=${revision:-未知}
+  fi
   umask 077
-  cat >"$CREDENTIALS_FILE" <<EOF
+  if ! cat >"$CREDENTIALS_FILE" <<EOF
 生成时间：$(date '+%F %T')
-站点地址：${PUBLIC_BASE}
-代码目录：${APP_ROOT}
-Git 提交：$(git -C "$APP_ROOT" rev-parse HEAD)
-数据库主机：${DB_HOST}:${DB_PORT}
-数据库名：${DB_NAME}
-数据库用户：${DB_USER}
-数据库口令：${DB_PASS}
-管理员用户：${DRUPAL_ADMIN_USER}
+站点地址：${PUBLIC_BASE:-尚未配置}
+代码目录：${APP_ROOT:-未知}
+Git 提交：${revision}
+数据库主机：${DB_HOST:-localhost}:${DB_PORT:-3306}
+数据库名：${DB_NAME:-}
+数据库用户：${DB_USER:-}
+数据库口令：${DB_PASS:-未生成}
+管理员用户：${DRUPAL_ADMIN_USER:-admin}
 ${admin_line}
-登录路径：${PUBLIC_BASE}/user/login
+登录路径：${PUBLIC_BASE:-}/user/login
+配置导入：$([[ "${IMPORT_FAILED:-0}" -eq 1 ]] && echo "未完全成功" || echo "未标记失败")
 EOF
-  chmod 600 "$CREDENTIALS_FILE"
+  then
+    warn "无法写入凭据文件 ${CREDENTIALS_FILE}。"
+    return 1
+  fi
+  chmod 600 "$CREDENTIALS_FILE" || true
+  CREDENTIALS_WRITTEN=1
   log "连接信息已写入 ${CREDENTIALS_FILE}（权限 600）。"
 }
 
@@ -1452,6 +1579,9 @@ EOF
   fi
   if [[ "$SSL_FAILED" -eq 1 ]]; then
     printf '\nHTTPS 证书没有申请成功，当前仅配置了 HTTP。\n'
+  fi
+  if [[ "$IMPORT_FAILED" -eq 1 ]]; then
+    printf '\n配置导入未完全成功。请根据上面的错误摘要检查 config/sync 依赖，然后重新执行本脚本。\n'
   fi
   cat <<'EOF'
 
@@ -1516,16 +1646,20 @@ main() {
   fi
   rewrite_site_urls
   import_config
-  ensure_theme
-  import_translations
-  verify_site_base_url
-  run_drush cr
-  fix_permissions
-  install_cron
-  write_credentials
+  if [[ "$IMPORT_FAILED" -eq 0 ]]; then
+    ensure_theme || warn "确认默认主题时出错，请稍后手动检查。"
+    import_translations || warn "翻译导入未完成。"
+    verify_site_base_url || warn "未能确认 sitemap base_url。"
+    run_drush cr || warn "最后一次缓存重建未成功。"
+  else
+    warn "由于配置导入未完成，跳过主题确认、翻译导入和 sitemap 校验。"
+  fi
+  fix_permissions || warn "收尾权限调整未完全成功。"
+  install_cron || warn "未能安装 cron。"
+  write_credentials || warn "凭据文件未能写入。"
   run_drush status --fields=bootstrap,drupal-version,db-status,uri || true
   print_summary
-  if [[ "$SSL_FAILED" -eq 1 ]]; then
+  if [[ "$SSL_FAILED" -eq 1 || "$IMPORT_FAILED" -eq 1 ]]; then
     exit 1
   fi
 }
