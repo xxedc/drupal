@@ -60,7 +60,7 @@
         var url = location.href.split('#')[0];
         function done() {
           var t = btn.textContent;
-          btn.textContent = '已复制';
+          btn.textContent = Drupal.t('已复制');
           setTimeout(function () { btn.textContent = t; }, 1500);
         }
         function fallback() {
@@ -126,7 +126,7 @@
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'xa-top';
-    b.setAttribute('aria-label', '回到顶部');
+    b.setAttribute('aria-label', Drupal.t('回到顶部'));
     b.textContent = '↑';
     document.body.appendChild(b);
     var on = false;

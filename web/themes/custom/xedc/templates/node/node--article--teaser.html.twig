@@ -11,7 +11,7 @@
     {% if xa_summary %}<p class="xa-card__summary">{{ xa_summary }}</p>{% endif %}
     <div class="xa-card__foot">
       {% for t in xa_tags %}<a class="xa-badge xa-badge--outline" href="{{ t.url }}">{{ t.name }}</a>{% endfor %}
-      <span class="xa-card__stats">{{ xa_views }} 阅读 · {{ xa_read }} 分钟</span>
+      <span class="xa-card__stats">{{ '@count 阅读'|t({'@count': xa_views}) }} · {{ '@count 分钟'|t({'@count': xa_read}) }}</span>
     </div>
   </div>
   {% if xa_cover %}

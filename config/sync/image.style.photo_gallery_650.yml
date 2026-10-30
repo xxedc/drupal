@@ -1,0 +1,21 @@
+uuid: 7c1a0e2b-4f63-4c1a-9a11-6e0b8d2a0650
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: photo_gallery_650
+label: '美图详情 650'
+effects:
+  a1b2c3d4-e5f6-4711-8111-111111111651:
+    uuid: a1b2c3d4-e5f6-4711-8111-111111111651
+    id: image_scale
+    weight: 1
+    data:
+      width: 650
+      height: 650
+      upscale: false
+  a1b2c3d4-e5f6-4711-8111-111111111652:
+    uuid: a1b2c3d4-e5f6-4711-8111-111111111652
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp

@@ -1,27 +1,27 @@
 <div class="xt xt-index" data-xt-index>
-  <nav class="xt-crumb" aria-label="面包屑">
+  <nav class="xt-crumb" aria-label="{{ '面包屑'|t }}">
     <ol>
-      <li><a href="{{ home_url }}">首页</a></li>
-      <li aria-current="page">标签</li>
+      <li><a href="{{ home_url }}">{{ '首页'|t }}</a></li>
+      <li aria-current="page">{{ '标签'|t }}</li>
     </ol>
   </nav>
 
   <header class="xt-head">
     <div>
-      <h1 class="xt-title">全部标签</h1>
-      <p class="xt-sub">共 <b>{{ total_tags }}</b> 个标签，<b>{{ total_items }}</b> 组内容</p>
+      <h1 class="xt-title">{{ '全部标签'|t }}</h1>
+      <p class="xt-sub">{{ '共 @tags 个标签，@items 组内容'|t({'@tags': total_tags, '@items': total_items}) }}</p>
     </div>
   </header>
 
   <div class="xt-toolbar">
     <label class="xt-search">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input type="search" placeholder="搜索标签" autocomplete="off" aria-label="搜索标签">
+      <input type="search" placeholder="{{ '搜索标签'|t }}" autocomplete="off" aria-label="{{ '搜索标签'|t }}">
     </label>
-    <div class="xt-seg" role="group" aria-label="排序">
-      <button type="button" class="is-active" data-sort="hot">热门</button>
-      <button type="button" data-sort="new">最新</button>
-      <button type="button" data-sort="name">名称</button>
+    <div class="xt-seg" role="group" aria-label="{{ '排序'|t }}">
+      <button type="button" class="is-active" data-sort="hot">{{ '热门'|t }}</button>
+      <button type="button" data-sort="new">{{ '最新'|t }}</button>
+      <button type="button" data-sort="name">{{ '名称'|t }}</button>
     </div>
   </div>
 
@@ -41,5 +41,5 @@
 
   <div class="xt-more-wrap" hidden><button type="button" class="xt-more"></button></div>
 
-  <div class="xt-empty" hidden>没有匹配的标签，换个关键词试试</div>
+  <div class="xt-empty" hidden>{{ '没有匹配的标签，换个关键词试试'|t }}</div>
 </div>

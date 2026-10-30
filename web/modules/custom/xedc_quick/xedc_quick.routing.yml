@@ -5,6 +5,13 @@ xedc_quick.page:
     _title: '快速发布图集'
   requirements:
     _permission: 'administer nodes'
+xedc_quick.suggest:
+  path: '/admin/quick-gallery/suggest'
+  defaults:
+    _controller: '\Drupal\xedc_quick\Controller\QuickController::suggest'
+  methods: [GET]
+  requirements:
+    _permission: 'administer nodes'
 xedc_quick.upload:
   path: '/admin/quick-gallery/upload'
   defaults:

@@ -1,0 +1,77 @@
+uuid: 53665a1d-8d7d-4338-9185-19be19c079b6
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.search_index
+    - field.field.node.article.field_author
+    - field.field.node.article.field_body
+    - field.field.node.article.field_categories
+    - field.field.node.article.field_source
+    - field.field.node.article.field_summary
+    - field.field.node.article.field_tags
+    - node.type.article
+  module:
+    - text
+    - user
+id: node.article.search_index
+targetEntityType: node
+bundle: article
+mode: search_index
+content:
+  field_author:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+      link_rel: canonical
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_body:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_categories:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_source:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+      link_rel: canonical
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_summary:
+    type: basic_string
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 5
+    region: content
+hidden:
+  field_cover: true
+  field_published_at: true
+  field_show_cover: true
+  field_source_url: true
+  field_views: true
+  langcode: true
+  links: true

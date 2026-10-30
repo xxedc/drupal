@@ -232,7 +232,7 @@
           if (!mq.matches) {
             root.classList.remove('is-collapsible', 'is-open');
             button.setAttribute('aria-expanded', 'false');
-            button.textContent = '更多';
+            button.textContent = Drupal.t('更多');
             return;
           }
           const overflow = list.scrollHeight > twoRowLimit() + 2;
@@ -240,7 +240,7 @@
           if (!overflow) {
             root.classList.remove('is-open');
             button.setAttribute('aria-expanded', 'false');
-            button.textContent = '更多';
+            button.textContent = Drupal.t('更多');
           }
         }
 
@@ -250,7 +250,7 @@
           }
           const open = root.classList.toggle('is-open');
           button.setAttribute('aria-expanded', open ? 'true' : 'false');
-          button.textContent = open ? '收起' : '更多';
+          button.textContent = open ? Drupal.t('收起') : Drupal.t('更多');
         });
 
         sync();

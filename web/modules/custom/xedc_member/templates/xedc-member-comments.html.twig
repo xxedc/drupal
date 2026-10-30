@@ -1,7 +1,7 @@
 <header class="xm-head">
   <div>
-    <h1 class="xm-title">我的评论</h1>
-    <p class="xm-sub">共 {{ total }} 条评论</p>
+    <h1 class="xm-title">{{ '我的评论'|t }}</h1>
+    <p class="xm-sub">{{ '共 @count 条评论'|t({'@count': total}) }}</p>
   </div>
 </header>
 
@@ -21,8 +21,8 @@
             <span>{{ item.parent_title }}</span>
           {% endif %}
           <span class="xm-comment-card__actions">
-            {% if item.comment_url %}<a href="{{ item.comment_url }}">查看评论</a>{% endif %}
-            {% if item.edit_url %}<a href="{{ item.edit_url }}">编辑</a>{% endif %}
+            {% if item.comment_url %}<a href="{{ item.comment_url }}">{{ '查看评论'|t }}</a>{% endif %}
+            {% if item.edit_url %}<a href="{{ item.edit_url }}">{{ '编辑'|t }}</a>{% endif %}
           </span>
         </div>
       </article>
@@ -32,11 +32,11 @@
 {% else %}
   <div class="xm-empty">
     <strong>{{ empty }}</strong>
-    <p>在内容页留言后，会出现在这里，也可以从这里回到原文。</p>
+    <p>{{ '在内容页留言后，会出现在这里，也可以从这里回到原文。'|t }}</p>
     <div class="xm-empty__links">
-      <a href="/meitu">看看美图</a>
-      <a href="/video">看看视频</a>
-      <a href="/articles">看看文章</a>
+      <a href="{{ path('view.image_gallery.page_1') }}">{{ '看看美图'|t }}</a>
+      <a href="{{ path('view.video_list.page_1') }}">{{ '看看视频'|t }}</a>
+      <a href="{{ path('view.article_list.page_1') }}">{{ '看看文章'|t }}</a>
     </div>
   </div>
 {% endif %}

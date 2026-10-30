@@ -10,7 +10,7 @@ xedc_models.detail:
   path: '/models/{taxonomy_term}'
   defaults:
     _controller: '\Drupal\xedc_models\Controller\ModelsController::detail'
-    _title: '模特'
+    _title_callback: '\Drupal\xedc_models\Controller\ModelsController::detailTitle'
   requirements:
     _permission: 'access content'
     taxonomy_term: '\d+'

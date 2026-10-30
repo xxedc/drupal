@@ -1,4 +1,10 @@
 services:
+  xedc_member.lazy_builders:
+    class: Drupal\xedc_member\MemberLazyBuilders
+    arguments:
+      - '@current_user'
+      - '@form_builder'
+
   xedc_member.favorite_manager:
     class: Drupal\xedc_member\Service\FavoriteManager
     arguments:

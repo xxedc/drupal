@@ -1,0 +1,278 @@
+<?php
+
+namespace Drupal\xedc_audit;
+
+use Drupal\audit\AuditAnalyzerPluginManager;
+use Drupal\audit\Service\AuditRunner;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Runs enabled audits and renders the combined report in memory.
+ */
+class AuditReportExporter {
+
+  /**
+   * JSON flags matching drush audit:run --format=json.
+   */
+  private const JSON_FLAGS = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE;
+
+  /**
+   * Columns of the flat CSV report.
+   */
+  private const CSV_HEADER = [
+    'audit_id',
+    'audit_name',
+    'status',
+    'score',
+    'grade',
+    'errors',
+    'warnings',
+    'notices',
+    'total_issues',
+    'severity',
+    'category',
+    'code',
+    'check',
+    'file',
+    'line',
+    'module',
+    'message',
+    'recommendation',
+    'data',
+  ];
+
+  protected LoggerInterface $logger;
+
+  public function __construct(
+    protected AuditRunner $runner,
+    protected AuditAnalyzerPluginManager $pluginManager,
+    LoggerChannelFactoryInterface $loggerFactory,
+  ) {
+    $this->logger = $loggerFactory->get('xedc_audit');
+  }
+
+  /**
+   * Runs every enabled analyzer.
+   *
+   * @return array<string, mixed>
+   *   Combined report: timestamp, count, failed, totals, results.
+   */
+  public function runAll(): array {
+    return $this->run('all');
+  }
+
+  /**
+   * Runs one analyzer, a comma-separated list, or "all".
+   *
+   * Scores are stored in State, the same way `drush audit:run` does.
+   * Nothing is written to the filesystem.
+   *
+   * @return array<string, mixed>
+   *   Combined report: timestamp, count, failed, totals, results.
+   */
+  public function run(string $analyzerId): array {
+    @set_time_limit(300);
+
+    $definitions = $this->pluginManager->getDefinitions();
+    $ids = $this->resolveIds($analyzerId, $definitions);
+    $results = [];
+    $failed = [];
+    foreach ($ids as $id) {
+      try {
+        $result = $this->runner->runAnalyzer($id, TRUE);
+      }
+      catch (\Throwable $e) {
+        $this->logger->error('Audit analyzer @id failed: @message', [
+          '@id' => $id,
+          '@message' => $e->getMessage(),
+        ]);
+        $result = NULL;
+      }
+      if ($result === NULL) {
+        $failed[] = $id;
+        continue;
+      }
+      $results[$id] = $this->stripInternalKeys($result);
+    }
+
+    $totals = [
+      'errors' => 0,
+      'warnings' => 0,
+      'notices' => 0,
+      'total_issues' => 0,
+      'acknowledged' => 0,
+    ];
+    foreach ($results as $result) {
+      $summary = $result['summary'] ?? [];
+      foreach ($totals as $key => $value) {
+        $totals[$key] += (int) ($summary[$key] ?? 0);
+      }
+    }
+
+    return [
+      'timestamp' => (new \DateTime())->format(\DateTime::ATOM),
+      'count' => count($results),
+      'failed' => $failed,
+      'totals' => $totals,
+      'results' => $results,
+    ];
+  }
+
+  /**
+   * Encodes a combined report as pretty JSON.
+   */
+  public function toJson(array $report): string {
+    $json = json_encode($report, self::JSON_FLAGS);
+    return $json === FALSE ? '{}' : $json;
+  }
+
+  /**
+   * Flattens a combined report to CSV, one row per finding.
+   */
+  public function toCsv(array $report): string {
+    $handle = fopen('php://memory', 'r+');
+    if ($handle === FALSE) {
+      return '';
+    }
+
+    fputcsv($handle, self::CSV_HEADER, ',', '"', '\\', "\n");
+    foreach ($report['results'] ?? [] as $id => $result) {
+      if (!is_array($result)) {
+        continue;
+      }
+      $findings = $result['findings'] ?? [];
+      if (!is_array($findings) || $findings === []) {
+        $this->writeCsvRow($handle, (string) $id, $result, []);
+        continue;
+      }
+      foreach ($findings as $finding) {
+        $this->writeCsvRow($handle, (string) $id, $result, is_array($finding) ? $finding : []);
+      }
+    }
+    foreach ($report['failed'] ?? [] as $id) {
+      $this->writeCsvRow($handle, (string) $id, [
+        'audit_name' => (string) $id,
+        'status' => 'failed',
+        'summary' => [],
+      ], []);
+    }
+
+    rewind($handle);
+    $csv = stream_get_contents($handle);
+    fclose($handle);
+    return $csv === FALSE ? '' : $csv;
+  }
+
+  /**
+   * Drops UI-only keys, matching the Drush JSON shape.
+   *
+   * @param array<string, mixed> $result
+   *   One analyzer result.
+   *
+   * @return array<string, mixed>
+   *   The result without internal keys.
+   */
+  protected function stripInternalKeys(array $result): array {
+    $cleaned = array_filter(
+      $result,
+      static fn(string $key): bool => !str_starts_with($key, '_'),
+      ARRAY_FILTER_USE_KEY,
+    );
+    unset($cleaned['results']);
+    return $cleaned;
+  }
+
+  /**
+   * Resolves "all", one ID, or a comma-separated list.
+   *
+   * Unknown IDs are omitted; the caller records an empty run as failure.
+   *
+   * @param array<string, mixed> $definitions
+   *   Enabled analyzer definitions.
+   *
+   * @return array<int, string>
+   *   Analyzer IDs to run.
+   */
+  protected function resolveIds(string $analyzerId, array $definitions): array {
+    if (strtolower(trim($analyzerId)) === 'all') {
+      uasort($definitions, static fn(array $a, array $b): int => ($a['weight'] ?? 0) <=> ($b['weight'] ?? 0));
+      return array_map('strval', array_keys($definitions));
+    }
+
+    $ids = [];
+    foreach (array_filter(array_map('trim', explode(',', $analyzerId))) as $id) {
+      if (isset($definitions[$id])) {
+        $ids[] = $id;
+      }
+      else {
+        $this->logger->error('Audit analyzer @id was not found.', ['@id' => $id]);
+      }
+    }
+    return $ids;
+  }
+
+  /**
+   * Writes one CSV row.
+   *
+   * @param resource $handle
+   *   The memory stream.
+   * @param array<string, mixed> $result
+   *   The analyzer result.
+   * @param array<string, mixed> $finding
+   *   One finding, or an empty array when the analyzer has none.
+   */
+  protected function writeCsvRow($handle, string $id, array $result, array $finding): void {
+    $summary = is_array($result['summary'] ?? NULL) ? $result['summary'] : [];
+    $score = is_array($result['score'] ?? NULL) ? $result['score'] : [];
+    $data = $finding['data'] ?? [];
+    if (!is_array($data)) {
+      $data = ['value' => $data];
+    }
+
+    $row = [
+      $id,
+      $this->cell($result['audit_name'] ?? $id),
+      $this->cell($result['status'] ?? ''),
+      $score['total'] ?? '',
+      $this->cell($score['grade'] ?? ''),
+      (int) ($summary['errors'] ?? 0),
+      (int) ($summary['warnings'] ?? 0),
+      (int) ($summary['notices'] ?? 0),
+      (int) ($summary['total_issues'] ?? 0),
+      $this->cell($finding['severity'] ?? ''),
+      $this->cell($finding['category'] ?? ''),
+      $this->cell($finding['code'] ?? ''),
+      $this->cell($finding['check'] ?? ''),
+      $this->cell($finding['file'] ?? ''),
+      $finding['line'] ?? '',
+      $this->cell($finding['module'] ?? ''),
+      $this->cell($finding['message'] ?? ''),
+      $this->cell($finding['recommendation'] ?? ''),
+      $data === [] ? '' : $this->cell(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE) ?: ''),
+    ];
+    fputcsv($handle, $row, ',', '"', '\\', "\n");
+  }
+
+  /**
+   * Renders a CSV cell and neutralizes spreadsheet formulas.
+   */
+  protected function cell(mixed $value): string {
+    if ($value === NULL) {
+      return '';
+    }
+    if (is_bool($value)) {
+      return $value ? 'true' : 'false';
+    }
+    if (is_array($value) || is_object($value)) {
+      $encoded = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+      $value = $encoded === FALSE ? '' : $encoded;
+    }
+    $string = (string) $value;
+    if ($string !== '' && in_array($string[0], ['=', '+', '-', '@', "\t"], TRUE)) {
+      return "'" . $string;
+    }
+    return $string;
+  }
+
+}

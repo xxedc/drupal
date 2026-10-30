@@ -20,9 +20,9 @@ class AuthCallbacks implements TrustedCallbackInterface {
         '#theme' => 'status_messages',
         '#message_list' => $all,
         '#status_headings' => [
-          'status' => '状态消息',
-          'error' => '错误消息',
-          'warning' => '警告消息',
+          'status' => t('状态消息'),
+          'error' => t('错误消息'),
+          'warning' => t('警告消息'),
         ],
         '#weight' => -900,
         '#cache' => ['max-age' => 0],

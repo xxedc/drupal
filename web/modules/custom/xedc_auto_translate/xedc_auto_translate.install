@@ -1,0 +1,129 @@
+<?php
+
+/**
+ * @file
+ * Enables languages, content translation and the language switcher block.
+ */
+
+declare(strict_types=1);
+
+use Drupal\block\Entity\Block;
+use Drupal\Core\Language\LanguageInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\language\Entity\ConfigurableLanguage;
+use Drupal\language\Entity\ContentLanguageSettings;
+
+/**
+ * Adds languages and turns on content translation for the public bundles.
+ */
+function xedc_auto_translate_install(): void {
+  foreach (['en', 'ru', 'ja'] as $langcode) {
+    if (!ConfigurableLanguage::load($langcode)) {
+      ConfigurableLanguage::createFromLangcode($langcode)->save();
+    }
+  }
+
+  $negotiation = \Drupal::configFactory()->getEditable('language.negotiation');
+  $prefixes = $negotiation->get('url.prefixes') ?? [];
+  unset($prefixes[LanguageInterface::LANGCODE_NOT_SPECIFIED]);
+  $prefixes['zh-hans'] = '';
+  $prefixes['en'] = 'en';
+  $prefixes['ru'] = 'ru';
+  $prefixes['ja'] = 'ja';
+  $negotiation->set('url.prefixes', $prefixes);
+  $domains = $negotiation->get('url.domains') ?? [];
+  foreach (['zh-hans', 'en', 'ru', 'ja'] as $langcode) {
+    $domains[$langcode] = $domains[$langcode] ?? '';
+  }
+  $negotiation->set('url.domains', $domains);
+  $negotiation->set('url.source', 'path_prefix');
+  $negotiation->save();
+
+  $bundles = [
+    'node' => ['photo', 'article', 'video', 'page'],
+    'taxonomy_term' => ['photo_category', 'article_category', 'video_category', 'models', 'tags'],
+    'menu_link_content' => [],
+  ];
+  $menu_storage = \Drupal::entityTypeManager()->getStorage('menu');
+  foreach (array_keys($menu_storage->loadMultiple()) as $menu_id) {
+    if (in_array($menu_id, ['main', 'footer', 'account'], TRUE)) {
+      $bundles['menu_link_content'][] = $menu_id;
+    }
+  }
+
+  $manager = \Drupal::service('content_translation.manager');
+  foreach ($bundles as $entity_type_id => $bundle_ids) {
+    foreach ($bundle_ids as $bundle) {
+      $manager->setEnabled($entity_type_id, $bundle, TRUE);
+      $settings = ContentLanguageSettings::loadByEntityTypeBundle($entity_type_id, $bundle);
+      $settings->setDefaultLangcode('site_default');
+      $settings->setLanguageAlterable(TRUE);
+      $settings->save();
+    }
+  }
+
+  $text_fields = [
+    'node.article.field_body',
+    'node.article.field_summary',
+    'node.article.field_source',
+    'node.photo.field_summary',
+    'node.video.field_body',
+    'node.page.field_body',
+  ];
+  foreach ($text_fields as $id) {
+    $field = FieldConfig::load($id);
+    if ($field && !$field->isTranslatable()) {
+      $field->setTranslatable(TRUE);
+      $field->save();
+    }
+  }
+
+  if (!Block::load('xedc_language_switcher')) {
+    Block::create([
+      'id' => 'xedc_language_switcher',
+      'plugin' => 'language_block:language_interface',
+      'theme' => 'xedc',
+      'region' => 'navbar_right',
+      'weight' => 0,
+      'settings' => [
+        'id' => 'language_block:language_interface',
+        'label' => '语言',
+        'label_display' => '0',
+        'provider' => 'language',
+      ],
+      'visibility' => [],
+    ])->save();
+  }
+}
+
+/**
+ * Adds Microsoft Translator and DeepL provider settings.
+ */
+function xedc_auto_translate_update_10001(): void {
+  $config = \Drupal::configFactory()->getEditable('xedc_auto_translate.settings');
+  if ($config->get('provider') === NULL) {
+    $config->set('provider', 'microsoft');
+  }
+  if ($config->get('microsoft_region') === NULL || $config->get('microsoft_region') === '') {
+    $config->set('microsoft_region', 'global');
+  }
+  if ($config->get('microsoft_endpoint') === NULL) {
+    $config->set('microsoft_endpoint', '');
+  }
+  if ($config->get('deepl_endpoint') === NULL) {
+    $config->set('deepl_endpoint', 'auto');
+  }
+  $config->clear('source_google');
+  $config->save(TRUE);
+  \Drupal::state()->delete('xedc_auto_translate.api_key');
+}
+
+/**
+ * Removes only the language switcher block created by this module.
+ */
+function xedc_auto_translate_uninstall(): void {
+  $block = Block::load('xedc_language_switcher');
+  if ($block) {
+    $block->delete();
+  }
+}

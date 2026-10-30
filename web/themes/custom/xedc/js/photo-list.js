@@ -5,6 +5,20 @@
     var view = document.querySelector('.xedc-view-photos');
     if (!view) return;
 
+    var header = view.querySelector('.view-header');
+    var title = document.querySelector('.block-page-title-block h1') || document.querySelector('h1');
+    if (header && title && !document.querySelector('.photo-titlebar')) {
+      var count = document.createElement('span');
+      count.className = 'photo-count';
+      count.textContent = header.textContent.trim();
+      var bar = document.createElement('div');
+      bar.className = 'photo-titlebar';
+      title.parentNode.insertBefore(bar, title);
+      bar.appendChild(title);
+      bar.appendChild(count);
+      header.style.display = 'none';
+    }
+
     view.querySelectorAll('.meitu-card__img').forEach(function (img) {
       if (img.complete) return;
       img.classList.add('xedc-img-pending');
@@ -20,7 +34,7 @@
     var backtop = document.createElement('button');
     backtop.type = 'button';
     backtop.className = 'xedc-backtop';
-    backtop.setAttribute('aria-label', '回到顶部');
+    backtop.setAttribute('aria-label', Drupal.t('回到顶部'));
     backtop.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>';
     backtop.addEventListener('click', function () {
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -22,11 +22,11 @@ use Drupal\search\SearchQuery;
  */
 function _xedc_search_types(): array {
   return [
-    'all' => '全部',
-    'photo' => '美图',
-    'video' => '视频',
-    'article' => '文章',
-    'model' => '模特',
+    'all' => t('全部'),
+    'photo' => t('美图'),
+    'video' => t('视频'),
+    'article' => t('文章'),
+    'model' => t('模特'),
   ];
 }
 
@@ -114,7 +114,7 @@ function _xedc_search_url(string $q, string $type = 'all', string $sort = 'relev
  * Builds the core search query used for content results and counts.
  */
 function _xedc_search_query(string $q, string $type = 'all') {
-  $query = \Drupal::database()
+  $query = _xedc_database()
     ->select('search_index', 'i')
     ->extend(SearchQuery::class);
   $query->join('node_field_data', 'n', '[n].[nid] = [i].[sid] AND [n].[langcode] = [i].[langcode]');
@@ -307,9 +307,21 @@ function _xedc_search_cards(array $nids, string $q, string $type): array {
     return [[], []];
   }
   $nodes = Node::loadMultiple($nids);
+  _xedc_warm_media_files($nodes, ['field_cover_image', 'field_video_cover', 'field_cover', 'field_images']);
+  $term_ids = [];
+  foreach ($nodes as $node) {
+    if ($node->hasField('field_model')) {
+      foreach ($node->get('field_model')->getValue() as $item) {
+        if (!empty($item['target_id'])) {
+          $term_ids[] = $item['target_id'];
+        }
+      }
+    }
+  }
+  _xedc_warm_targets('taxonomy_term', $term_ids);
   $date_formatter = \Drupal::service('date.formatter');
   $cards = [];
-  $tags = ['node_list'];
+  $tags = ['node_list:photo', 'node_list:article', 'node_list:video'];
   foreach ($nodes as $node) {
     if (!$node instanceof NodeInterface || !$node->isPublished()) {
       continue;
@@ -318,6 +330,7 @@ function _xedc_search_cards(array $nids, string $q, string $type): array {
     if (!in_array($bundle, ['photo', 'video', 'article'], TRUE)) {
       continue;
     }
+    $node = _xedc_translated($node);
     $title = $node->label();
     [$cover, $cover_tags] = _xedc_search_node_cover($node, $type);
     $tags = Cache::mergeTags($tags, $node->getCacheTags(), $cover_tags);
@@ -326,7 +339,7 @@ function _xedc_search_cards(array $nids, string $q, string $type): array {
     if ($node->hasField('field_model') && !$node->get('field_model')->isEmpty()) {
       foreach ($node->get('field_model')->referencedEntities() as $term) {
         if ($term instanceof \Drupal\taxonomy\TermInterface) {
-          $model = $term->label();
+          $model = _xedc_translated($term)->label();
           break;
         }
       }
@@ -376,7 +389,7 @@ function _xedc_search_model_groups(string $q): array {
   if ($q === '') {
     return [];
   }
-  $db = \Drupal::database();
+  $db = _xedc_database();
   $terms = $db->select('taxonomy_term_field_data', 't')
     ->fields('t', ['tid', 'name'])
     ->condition('vid', 'models')
@@ -431,30 +444,54 @@ function _xedc_search_model_groups(string $q): array {
     }
   }
 
-  foreach ($groups as &$group) {
-    $group['tids'] = array_values(array_unique($group['tids']));
-    $count_query = $db->select('node__field_model', 'm');
-    $count_query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
-    $count_query->condition('n.status', 1)
+  $all_tids = [];
+  foreach ($groups as $main => $group) {
+    $groups[$main]['tids'] = array_values(array_unique($group['tids']));
+    foreach ($groups[$main]['tids'] as $tid) {
+      $all_tids[(int) $tid] = (int) $tid;
+    }
+  }
+  $pairs = [];
+  if ($all_tids) {
+    $works = $db->select('node__field_model', 'm');
+    $works->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
+    $works->fields('m', ['field_model_target_id']);
+    $works->fields('n', ['nid', 'created']);
+    $works->condition('n.status', 1)
       ->condition('m.deleted', 0)
-      ->condition('m.field_model_target_id', $group['tids'], 'IN');
-    $count_query->addExpression('COUNT(DISTINCT n.nid)', 'cnt');
-    $group['count'] = (int) $count_query->execute()->fetchField();
-
-    $latest = $db->select('node__field_model', 'm');
-    $latest->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
-    $latest->condition('n.status', 1)
-      ->condition('m.deleted', 0)
-      ->condition('m.field_model_target_id', $group['tids'], 'IN');
-    $latest->fields('n', ['nid'])->orderBy('n.created', 'DESC')->range(0, 1);
-    $nid = (int) ($latest->execute()->fetchField() ?: 0);
-    $group['cover'] = '';
-    if ($nid) {
-      $node = Node::load($nid);
-      if ($node) {
-        [$cover] = _xedc_search_node_cover($node, 'photo');
-        $group['cover'] = $cover;
+      ->condition('m.field_model_target_id', array_values($all_tids), 'IN');
+    foreach ($works->execute() as $row) {
+      $pairs[(int) $row->field_model_target_id][(int) $row->nid] = (int) $row->created;
+    }
+  }
+  $cover_nids = [];
+  foreach ($groups as $main => $group) {
+    $nids = [];
+    $best_nid = 0;
+    $best_created = -1;
+    foreach ($group['tids'] as $tid) {
+      foreach ($pairs[(int) $tid] ?? [] as $nid => $created) {
+        $nids[$nid] = TRUE;
+        if ($created > $best_created) {
+          $best_created = $created;
+          $best_nid = $nid;
+        }
       }
+    }
+    $groups[$main]['count'] = count($nids);
+    $groups[$main]['cover_nid'] = $best_nid;
+    if ($best_nid) {
+      $cover_nids[$best_nid] = $best_nid;
+    }
+  }
+  $cover_nodes = $cover_nids ? Node::loadMultiple($cover_nids) : [];
+  _xedc_warm_media_files($cover_nodes, ['field_cover_image', 'field_images']);
+  foreach ($groups as &$group) {
+    $group['cover'] = '';
+    $node = $cover_nodes[$group['cover_nid']] ?? NULL;
+    if ($node) {
+      [$cover] = _xedc_search_node_cover($node, 'photo');
+      $group['cover'] = $cover;
     }
     $group['name_html'] = _xedc_search_highlight($group['name'], $q);
     $group['initial'] = mb_substr($group['name'], 0, 1);
@@ -485,12 +522,13 @@ function _xedc_search_model_content_count(array $groups): int {
   if (!$tids) {
     return 0;
   }
-  $query = \Drupal::database()->select('node__field_model', 'm');
+  $query = _xedc_database()->select('node__field_model', 'm');
   $query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
   $query->condition('n.status', 1)
     ->condition('m.deleted', 0)
     ->condition('m.field_model_target_id', $tids, 'IN');
   $query->addExpression('COUNT(DISTINCT n.nid)', 'cnt');
+  $query->addTag('node_access');
   return (int) $query->execute()->fetchField();
 }
 
@@ -502,7 +540,7 @@ function _xedc_search_model_nids(array $groups, int $limit = 12): array {
   if (!$tids) {
     return [];
   }
-  $query = \Drupal::database()
+  $query = _xedc_database()
     ->select('node__field_model', 'm')
     ->extend(PagerSelectExtender::class);
   $query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
@@ -513,6 +551,7 @@ function _xedc_search_model_nids(array $groups, int $limit = 12): array {
     ->distinct()
     ->orderBy('n.created', 'DESC')
     ->element(0)
+    ->addTag('node_access')
     ->limit($limit);
   $nids = [];
   foreach ($query->execute() as $row) {
@@ -525,13 +564,14 @@ function _xedc_search_model_nids(array $groups, int $limit = 12): array {
  * Returns popular models for empty search states.
  */
 function _xedc_search_hot_models(int $limit = 6): array {
-  $db = \Drupal::database();
+  $db = _xedc_database();
   $query = $db->select('node__field_model', 'm');
   $query->join('node_field_data', 'n', 'n.nid = m.entity_id AND n.default_langcode = 1');
   $query->condition('n.status', 1)->condition('m.deleted', 0);
   $query->addField('m', 'field_model_target_id', 'tid');
   $query->addExpression('COUNT(DISTINCT n.nid)', 'cnt');
   $query->groupBy('m.field_model_target_id')->orderBy('cnt', 'DESC')->range(0, $limit);
+  $query->addTag('node_access');
   $rows = $query->execute()->fetchAll();
   if (!$rows) {
     return [];
@@ -547,7 +587,7 @@ function _xedc_search_hot_models(int $limit = 6): array {
       continue;
     }
     $models[] = [
-      'name' => $term->label(),
+      'name' => _xedc_translated($term)->label(),
       'count' => $counts[$tid],
       'url' => Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $tid])->toString(),
     ];
@@ -651,23 +691,23 @@ function _xedc_search_build_page(): array {
   $sorts = [
     [
       'key' => 'relevance',
-      'label' => '相关',
+      'label' => t('相关'),
       'active' => $sort === 'relevance',
       'url' => _xedc_search_url($q, $type, 'relevance', 0),
     ],
     [
       'key' => 'latest',
-      'label' => '最新',
+      'label' => t('最新'),
       'active' => $sort === 'latest',
       'url' => _xedc_search_url($q, $type, 'latest', 0),
     ],
   ];
 
   $explore = [
-    ['label' => '最新美图', 'url' => Url::fromUserInput('/meitu')->toString()],
-    ['label' => '热门视频', 'url' => Url::fromUserInput('/video')->toString()],
-    ['label' => '最新文章', 'url' => Url::fromUserInput('/articles')->toString()],
-    ['label' => '全部模特', 'url' => Url::fromUserInput('/models')->toString()],
+    ['label' => t('最新美图'), 'url' => Url::fromUserInput('/meitu')->toString()],
+    ['label' => t('热门视频'), 'url' => Url::fromUserInput('/video')->toString()],
+    ['label' => t('最新文章'), 'url' => Url::fromUserInput('/articles')->toString()],
+    ['label' => t('全部模特'), 'url' => Url::fromUserInput('/models')->toString()],
   ];
 
   return [

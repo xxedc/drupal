@@ -1,37 +1,37 @@
 <header class="xm-head">
   <div>
-    <h1 class="xm-title">账号设置</h1>
-    <p class="xm-sub">管理你的个人资料、密码与登录状态。</p>
+    <h1 class="xm-title">{{ '账号设置'|t }}</h1>
+    <p class="xm-sub">{{ '管理你的个人资料、密码与登录状态。'|t }}</p>
   </div>
 </header>
 
 <section class="xm-panel">
   <div class="xm-panel__head">
-    <h2>账户信息</h2>
+    <h2>{{ '账户信息'|t }}</h2>
   </div>
   <dl class="xm-account">
-    <div><dt>用户名</dt><dd>{{ account.username }}</dd></div>
-    {% if account.nickname %}<div><dt>昵称</dt><dd>{{ account.nickname }}</dd></div>{% endif %}
-    <div><dt>邮箱</dt><dd>{{ account.mail }}</dd></div>
-    <div><dt>加入时间</dt><dd>{{ account.member_since }}</dd></div>
+    <div><dt>{{ '用户名'|t }}</dt><dd>{{ account.username }}</dd></div>
+    {% if account.nickname %}<div><dt>{{ '昵称'|t }}</dt><dd>{{ account.nickname }}</dd></div>{% endif %}
+    <div><dt>{{ '邮箱'|t }}</dt><dd>{{ account.mail }}</dd></div>
+    <div><dt>{{ '加入时间'|t }}</dt><dd>{{ account.member_since }}</dd></div>
   </dl>
 
   <ul class="xm-links">
     <li>
       <a href="{{ urls.profile }}">
-        <span><b>个人资料</b><small>修改昵称、头像和个人简介</small></span>
+        <span><b>{{ '个人资料'|t }}</b><small>{{ '修改昵称、头像和个人简介'|t }}</small></span>
         <span aria-hidden="true">→</span>
       </a>
     </li>
     <li>
       <a href="{{ urls.security }}">
-        <span><b>账户安全</b><small>修改邮箱和密码，需要验证当前密码</small></span>
+        <span><b>{{ '账户安全'|t }}</b><small>{{ '修改邮箱和密码，需要验证当前密码'|t }}</small></span>
         <span aria-hidden="true">→</span>
       </a>
     </li>
     <li>
       <a href="{{ urls.logout }}">
-        <span><b>退出登录</b><small>结束当前账号的登录状态</small></span>
+        <span><b>{{ '退出登录'|t }}</b><small>{{ '结束当前账号的登录状态'|t }}</small></span>
         <span aria-hidden="true">→</span>
       </a>
     </li>
@@ -40,8 +40,8 @@
 
 <section class="xm-panel">
   <div class="xm-panel__head">
-    <h2>隐私与记录</h2>
-    <a href="{{ urls.history }}">查看浏览历史</a>
+    <h2>{{ '隐私与记录'|t }}</h2>
+    <a href="{{ urls.history }}">{{ '查看浏览历史'|t }}</a>
   </div>
   {{ history_form }}
 </section>

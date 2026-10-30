@@ -49,7 +49,6 @@ permissions:
   - 'opt-in or out of matomo tracking'
   - 'post comments'
   - 'search content'
-  - 'skip comment approval'
   - 'use text format basic_html'
   - 'use xedc_editorial transition resubmit_for_review'
   - 'use xedc_editorial transition save_draft'

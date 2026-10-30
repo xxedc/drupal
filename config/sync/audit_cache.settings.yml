@@ -2,6 +2,6 @@ _core:
   default_config_hash: klj46-FHAzI9m5ZWptgokL4rcqcibNuG3hzIVIvpIt8
 ignore_bin_analysis: false
 ignore_backend_analysis: false
-ignore_fast_backend_warnings: false
+ignore_fast_backend_warnings: true
 ignore_tag_analysis: false
 ignore_tag_invalidation_analysis: false

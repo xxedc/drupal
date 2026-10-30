@@ -48,7 +48,12 @@ function _xedc_home_items($type, $field, $limit) {
         $e = $e->get('thumbnail')->entity;
       }
       if ($e instanceof \Drupal\file\FileInterface) {
-        $s = \Drupal\image\Entity\ImageStyle::load($type === 'photo' ? 'images_450x800' : 'large');
+        $style_name = match ($type) {
+          'photo' => 'images_450x800',
+          'video' => 'video_cover',
+          default => 'xa_cover',
+        };
+        $s = \Drupal\image\Entity\ImageStyle::load($style_name);
         $url = $s ? $s->buildUrl($e->getFileUri()) : \Drupal::service('file_url_generator')->generateString($e->getFileUri());
         if ($s) {
           [$style_width, $style_height] = _xedc_image_style_dimensions($s);

@@ -1,0 +1,9 @@
+uuid: 3eefdbb9-4bd2-49cb-820a-d5464676d624
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: ja
+label: Japanese(日语)
+direction: ltr
+weight: 3
+locked: false

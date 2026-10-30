@@ -1,7 +1,23 @@
 uuid: 5cee4e2e-9aba-426c-b509-a8385922d356
 langcode: zh-hans
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - scheduler
+third_party_settings:
+  scheduler:
+    expand_fieldset: always
+    fields_display_mode: fieldset
+    publish_enable: true
+    publish_past_date: error
+    publish_past_date_created: false
+    publish_required: false
+    publish_revision: true
+    publish_touch: false
+    show_message_after_update: true
+    unpublish_enable: false
+    unpublish_required: false
+    unpublish_revision: false
 name: 文章
 type: article
 description: null

@@ -11,10 +11,15 @@ tags:
   og_title: '[node:title]'
   og_description: '[node:title] - [node:field_categories:entity:name]'
   og_url: '[node:url]'
-  og_type: website
+  og_type: video.other
   og_image: '[node:field_video_cover:entity:field_media_image:xa_hero:url]'
   og_image_alt: '[node:title]'
   twitter_cards_type: summary_large_image
   twitter_cards_title: '[node:title]'
   twitter_cards_description: '[node:title] - [node:field_categories:entity:name]'
   twitter_cards_image: '[node:field_video_cover:entity:field_media_image:xa_hero:url]'
+  schema_video_object_type: VideoObject
+  schema_video_object_name: '[node:title]'
+  schema_video_object_description: '[node:title]'
+  schema_video_object_upload_date: '[node:created:custom:c]'
+  schema_video_object_thumbnail_url: '[node:field_video_cover:entity:field_media_image:xa_hero:url]'

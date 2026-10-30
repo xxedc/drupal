@@ -11,14 +11,14 @@ _core:
 id: redirect
 label: 重定向
 module: views
-description: 'List of redirects'
+description: 重定向列表
 tag: ''
 base_table: redirect
 base_field: rid
 display:
   default:
     id: default
-    display_title: Master
+    display_title: 主
     display_plugin: default
     position: 0
     display_options:
@@ -74,7 +74,7 @@ display:
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
-          action_title: 'With selection'
+          action_title: 对所选项目
           include_exclude: exclude
           selected_actions: {  }
         redirect_source__path:
@@ -337,7 +337,7 @@ display:
           admin_label: ''
           plugin_id: text_custom
           empty: true
-          content: 'There is no redirect yet.'
+          content: 还没有重定向。
           tokenize: false
       sorts: {  }
       arguments: {  }
@@ -441,7 +441,7 @@ display:
           exposed: true
           expose:
             operator_id: status_code_op
-            label: 'Status code'
+            label: 状态码
             description: ''
             use_operator: false
             operator: status_code_op
@@ -455,7 +455,7 @@ display:
               authenticated: authenticated
           is_grouped: true
           group_info:
-            label: 'Status code'
+            label: 状态码
             description: ''
             identifier: status_code
             optional: true
@@ -466,49 +466,49 @@ display:
             default_group_multiple: {  }
             group_items:
               1:
-                title: '300 Multiple Choices'
+                title: 300多种选择
                 operator: '='
                 value:
                   min: ''
                   max: ''
                   value: '300'
               2:
-                title: '301 Moved Permanently'
+                title: 301永久移动
                 operator: '='
                 value:
                   min: ''
                   max: ''
                   value: '301'
               3:
-                title: '302 Found'
+                title: 302临时重定向
                 operator: '='
                 value:
                   min: ''
                   max: ''
                   value: '302'
               4:
-                title: '303 See Other'
+                title: 303查看其它位置
                 operator: '='
                 value:
                   min: ''
                   max: ''
                   value: '303'
               5:
-                title: '304 Not Modified'
+                title: 304未修改
                 operator: '='
                 value:
                   min: ''
                   max: ''
                   value: '304'
               6:
-                title: '305 Use Proxy'
+                title: 305使用代理
                 operator: '='
                 value:
                   min: ''
                   max: ''
                   value: '305'
               7:
-                title: '307 Temporary Redirect'
+                title: 307临时重定向
                 operator: '='
                 value:
                   min: ''

@@ -1,4 +1,4 @@
 _core:
   default_config_hash: IVkcFGEIjnQYkyrn2Fh0Ysw2uXPzmRBKYWcMl8qcNDk
-recommended_cache_max_age: 21600
+recommended_cache_max_age: 86400
 ignore_bigpipe_sessionless: false

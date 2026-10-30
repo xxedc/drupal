@@ -9,22 +9,29 @@ label: 首页
 tags:
   abstract: 简介首页描述
   canonical_url: '[site:url]'
-  description: '在 XEDC 浏览精选美图、写真、风景壁纸、精彩视频与优质文章，按分类发现感兴趣的图片和内容，持续探索更多精彩。'
-  keywords: '美女,野兽'
+  description: '在 DcLili 浏览精选美图、写真、风景壁纸、精彩视频与优质文章，按分类发现感兴趣的图片和内容，持续探索更多精彩。'
   og_description: 发现精选图片、精彩视频与优质文章，探索更多有趣内容。
   og_determiner: Automatic
-  og_image_alt: 'XEDC 网站分享预览图片'
+  og_image_alt: 'DcLili 网站分享预览图片'
   og_locale: zh_CN
   og_site_name: DcLili
-  og_title: 'XEDC - 图片、视频与文章分享平台'
+  og_title: 'DcLili - 图片、视频与文章分享平台'
   og_type: website
   og_url: '[site:url]'
   rating: general
   referrer: strict-origin-when-cross-origin
-  rights: 'Copyright © 2026 XEDC. All rights reserved.'
+  rights: 'Copyright © 2026 DcLili. All rights reserved.'
   robots: 'index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large'
   shortlink: '[site:url]'
   title: 'DcLili - 精选美图、视频与优质文章'
   og_image: 'https://gitxx.xyz/themes/custom/xedc/screenshot.png'
   twitter_cards_type: summary_large_image
   twitter_cards_image: 'https://gitxx.xyz/themes/custom/xedc/screenshot.png'
+  schema_web_site_type: WebSite
+  schema_web_site_name: DcLili
+  schema_web_site_url: '[site:url]'
+  schema_web_site_potential_action: 'a:1:{i:0;a:3:{s:5:"@type";s:12:"SearchAction";s:6:"target";a:2:{s:5:"@type";s:10:"EntryPoint";s:11:"urlTemplate";s:47:"https://gitxx.xyz/search?q={search_term_string}";}s:11:"query-input";s:32:"required name=search_term_string";}}'
+  schema_organization_type: Organization
+  schema_organization_name: DcLili
+  schema_organization_url: '[site:url]'
+  schema_organization_logo: 'a:2:{s:5:"@type";s:11:"ImageObject";s:3:"url";s:45:"https://gitxx.xyz/themes/custom/xedc/logo.svg";}'

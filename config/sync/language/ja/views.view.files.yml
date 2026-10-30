@@ -1,0 +1,75 @@
+label: ファイル
+display:
+  default:
+    display_title: デフォルト
+    display_options:
+      title: ファイル
+      fields:
+        filename:
+          label: 名前
+          separator: ', '
+        status:
+          label: 状態
+          settings:
+            format_custom_false: 一時的
+            format_custom_true: 恒久的
+        changed:
+          label: 更新日
+        count:
+          label: 利用場所
+        operations:
+          label: 操作
+      pager:
+        options:
+          tags:
+            next: '次 ›'
+            previous: '‹ 前'
+          expose:
+            items_per_page_label: ページ毎の件数
+            items_per_page_options_all_label: '- 全て -'
+            offset_label: オフセット
+      exposed_form:
+        options:
+          submit_button: フィルター
+          reset_button_label: リセット
+          exposed_sorts_label: 並び替え基準
+          sort_asc_label: 昇順
+          sort_desc_label: 降順
+      filters:
+        filename:
+          expose:
+            label: ファイル名
+        filemime:
+          expose:
+            label: 'MIME タイプ'
+        status:
+          expose:
+            label: 状態
+  page_1:
+    display_options:
+      menu:
+        title: ファイル
+  page_2:
+    display_title: ファイルの用途
+    display_options:
+      title: ファイルの用途
+      fields:
+        entity_label:
+          label: エンティティ
+        type:
+          label: エンティティタイプ
+        count:
+          label: 使用回数
+      pager:
+        options:
+          tags:
+            next: '次 ›'
+            previous: '‹ 前'
+          expose:
+            items_per_page_label: ページ毎の件数
+            items_per_page_options_all_label: '- 全て -'
+            offset_label: オフセット
+      arguments:
+        fid:
+          exception:
+            title: すべて

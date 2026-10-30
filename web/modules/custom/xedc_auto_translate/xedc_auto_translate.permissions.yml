@@ -1,0 +1,4 @@
+administer xedc auto translation:
+  title: '管理自动翻译'
+  description: '配置 Microsoft Translator 或 DeepL，并手动翻译已有内容。'
+  restrict access: true

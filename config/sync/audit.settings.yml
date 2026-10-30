@@ -5,35 +5,46 @@ druscan:
   project_api_key: druscan_proj_ee65582e81caa0a3aeb714b789415c3c67f4eb07
   environment_api_key: druscan_env_df63ec494626f1684d05b40a2e6bb6790cb3c1d6
 user_type: mixed
-scan_directories: "web/modules/custom\r\nweb/themes/custom\r\n"
-exclude_patterns: "*Test.php\r\n*TestBase.php\r\ntests/\r\nnode_modules/\r\n*.js\r\n*.css\r\n"
+scan_directories: |
+  web/modules/custom
+  web/themes/custom/xedc
+exclude_patterns: |
+  *Test.php
+  *TestBase.php
+  *.test.php
+  tests/
+  node_modules/
+  build/
+  vendor/
+  *.js
+  *.css
 rule_overrides: ''
 allowed_modules: ''
 accept_environment_overrides: false
 execution_timeout: 60
 multipliers:
-  blocks: 2
-  cache: 3
-  complexity: 2
-  config_checks: 3
-  cron: 2
-  database: 3
-  duplication: 3
+  blocks: 1
+  cache: 5
+  complexity: 0
+  config_checks: 4
+  cron: 1
+  database: 2
+  duplication: 0
   entity: 1
-  fields: 2
-  i18n: 2
-  images: 3
-  menu: 3
-  modules: 3
-  performance: 4
-  phpcs: 2
-  phpstan: 2
-  phpunit: 2
-  security: 1
-  seo: 3
+  fields: 3
+  i18n: 4
+  images: 5
+  menu: 2
+  modules: 2
+  performance: 5
+  phpcs: 0
+  phpstan: 0
+  phpunit: 0
+  security: 5
+  seo: 5
   status: 4
-  twig: 2
+  twig: 3
   updates: 5
-  url: 3
-  views: 3
-  watchdog: 2
+  url: 4
+  views: 4
+  watchdog: 3

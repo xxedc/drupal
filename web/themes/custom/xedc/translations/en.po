@@ -1,0 +1,1312 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgid "登录"
+msgstr "Log in"
+
+msgid "注册"
+msgstr "Register"
+
+msgid "退出"
+msgstr "Log out"
+
+msgid "搜索"
+msgstr "Search"
+
+msgid "会员中心"
+msgstr "Account"
+
+msgid "语言"
+msgstr "Language"
+
+msgid "菜单"
+msgstr "Menu"
+
+msgid "打开菜单"
+msgstr "Open menu"
+
+msgid "关闭菜单"
+msgstr "Close menu"
+
+msgid "关闭"
+msgstr "Close"
+
+msgid "切换主题"
+msgstr "Toggle theme"
+
+msgid "切换到浅色"
+msgstr "Switch to light"
+
+msgid "切换到深色"
+msgstr "Switch to dark"
+
+msgid "搜索美图、视频、文章…"
+msgstr "Search photos, videos and articles…"
+
+msgid "搜索美图、视频、文章、模特…"
+msgstr "Search photos, videos, articles and models…"
+
+msgid "首页"
+msgstr "Home"
+
+msgid "美图"
+msgstr "Photos"
+
+msgid "视频"
+msgstr "Videos"
+
+msgid "文章"
+msgstr "Articles"
+
+msgid "模特"
+msgstr "Models"
+
+msgid "标签"
+msgstr "Tags"
+
+msgid "查看更多"
+msgstr "View more"
+
+msgid "最新美图"
+msgstr "Latest photos"
+
+msgid "热门视频"
+msgstr "Popular videos"
+
+msgid "最新文章"
+msgstr "Latest articles"
+
+msgid "关于我们"
+msgstr "About us"
+
+msgid "隐私政策"
+msgstr "Privacy policy"
+
+msgid "用户协议"
+msgstr "Terms of use"
+
+msgid "站点地图"
+msgstr "Sitemap"
+
+msgid "全部"
+msgstr "All"
+
+msgid "最新"
+msgstr "Latest"
+
+msgid "最热"
+msgstr "Popular"
+
+msgid "相关"
+msgstr "Relevant"
+
+msgid "展开"
+msgstr "Expand"
+
+msgid "收起"
+msgstr "Collapse"
+
+msgid "更多"
+msgstr "More"
+
+msgid "上一页"
+msgstr "Previous"
+
+msgid "下一页"
+msgstr "Next"
+
+msgid "上一篇"
+msgstr "Previous"
+
+msgid "下一篇"
+msgstr "Next"
+
+msgid "相关推荐"
+msgstr "Related"
+
+msgid "暂无美图"
+msgstr "No photos yet"
+
+msgid "暂无文章"
+msgstr "No articles yet"
+
+msgid "未分类"
+msgstr "Uncategorized"
+
+msgid "播放"
+msgstr "Play"
+
+msgid "暂停"
+msgstr "Pause"
+
+msgid "静音"
+msgstr "Mute"
+
+msgid "取消静音"
+msgstr "Unmute"
+
+msgid "设置"
+msgstr "Settings"
+
+msgid "倍速"
+msgstr "Speed"
+
+msgid "正常"
+msgstr "Normal"
+
+msgid "画中画"
+msgstr "Picture in picture"
+
+msgid "全屏"
+msgstr "Fullscreen"
+
+msgid "退出全屏"
+msgstr "Exit fullscreen"
+
+msgid "音量"
+msgstr "Volume"
+
+msgid "返回"
+msgstr "Back"
+
+msgid "当前时间"
+msgstr "Current time"
+
+msgid "时长"
+msgstr "Duration"
+
+msgid "拖动进度"
+msgstr "Seek"
+
+msgid "描述"
+msgstr "Description"
+
+msgid "分类："
+msgstr "Category:"
+
+msgid "模特："
+msgstr "Model:"
+
+msgid "人物："
+msgstr "People:"
+
+msgid "标签："
+msgstr "Tags:"
+
+msgid "评论"
+msgstr "Comments"
+
+msgid "图片数量"
+msgstr "Photos"
+
+msgid "发布时间"
+msgstr "Published"
+
+msgid "原图总大小"
+msgstr "Original size"
+
+msgid "原图:"
+msgstr "Original:"
+
+msgid "登录成功"
+msgstr "Signed in"
+
+msgid "回到顶部"
+msgstr "Back to top"
+
+msgid "已复制"
+msgstr "Copied"
+
+msgid "复制链接"
+msgstr "Copy link"
+
+msgid "分享"
+msgstr "Share"
+
+msgid "查看原文"
+msgstr "View source"
+
+msgid "摘要"
+msgstr "Summary"
+
+msgid "目录"
+msgstr "Contents"
+
+msgid "相关阅读"
+msgstr "Related reading"
+
+msgid "热门文章"
+msgstr "Popular articles"
+
+msgid "热门标签"
+msgstr "Popular tags"
+
+msgid "热门模特"
+msgstr "Popular models"
+
+msgid "搜索文章标题"
+msgstr "Search article titles"
+
+msgid "文章分类"
+msgstr "Article categories"
+
+msgid "分页"
+msgstr "Pagination"
+
+msgid "分类"
+msgstr "Category"
+
+msgid "浏览"
+msgstr "Browse"
+
+msgid "美图栏目"
+msgstr "Photo categories"
+
+msgid "文章栏目"
+msgstr "Article categories"
+
+msgid "视频栏目"
+msgstr "Video categories"
+
+msgid "关于 DcLili"
+msgstr "About DcLili"
+
+msgid "DcLili 的主要栏目与页面。"
+msgstr "Main sections and pages on DcLili."
+
+msgid "DcLili - 精选美图、视频与优质文章"
+msgstr "DcLili - Selected photos, videos and articles"
+
+msgid "主导航"
+msgstr "Main"
+
+msgid "图片分类"
+msgstr "Photo categories"
+
+msgid "全部图片"
+msgstr "All photos"
+
+msgid "全部模特"
+msgstr "All models"
+
+msgid "全部分类"
+msgstr "All categories"
+
+msgid "最新视频"
+msgstr "Latest videos"
+
+msgid "分类栏目"
+msgstr "Categories"
+
+msgid "搜索关键词"
+msgstr "Search keywords"
+
+msgid "清除关键词"
+msgstr "Clear keywords"
+
+msgid "搜索类型"
+msgstr "Search type"
+
+msgid "匹配的模特"
+msgstr "Matching models"
+
+msgid "排序"
+msgstr "Sort"
+
+msgid "表情"
+msgstr "Emoji"
+
+msgid "写下你的评论…"
+msgstr "Write a comment…"
+
+msgid "匿名"
+msgstr "Anonymous"
+
+msgid "阅读"
+msgstr "views"
+
+msgid "图片预览"
+msgstr "Image preview"
+
+msgid "上一张"
+msgstr "Previous"
+
+msgid "下一张"
+msgstr "Next"
+
+msgid "首页轮播"
+msgstr "Homepage carousel"
+
+msgid "美图列表"
+msgstr "Photo list"
+
+msgid "用户名"
+msgstr "Username"
+
+msgid "密码"
+msgstr "Password"
+
+msgid "忘记密码？"
+msgstr "Forgot password?"
+
+msgid "还没有账号？"
+msgstr "No account yet?"
+
+msgid "注册账号"
+msgstr "Create account"
+
+msgid "创建账号"
+msgstr "Create account"
+
+msgid "注册后即可评论、收藏和互动。"
+msgstr "Register to comment, save and interact."
+
+msgid "邮箱地址"
+msgstr "Email"
+
+msgid "请输入用户名"
+msgstr "Enter your username"
+
+msgid "请输入用户名或邮箱"
+msgstr "Enter username or email"
+
+msgid "请输入密码"
+msgstr "Enter your password"
+
+msgid "请输入邮箱地址"
+msgstr "Enter your email"
+
+msgid "已有账号？"
+msgstr "Already have an account?"
+
+msgid "新密码"
+msgstr "New password"
+
+msgid "确认新密码"
+msgstr "Confirm new password"
+
+msgid "确认密码"
+msgstr "Confirm password"
+
+msgid "至少 8 位，包含字母和数字"
+msgstr "At least 8 characters, with letters and numbers"
+
+msgid "请再次输入密码"
+msgstr "Enter the password again"
+
+msgid "找回密码"
+msgstr "Reset password"
+
+msgid "输入账号信息，我们会向账号绑定的邮箱发送重置链接。"
+msgstr "Enter your account details. We will email a reset link."
+
+msgid "用户名或邮箱"
+msgstr "Username or email"
+
+msgid "发送重置链接"
+msgstr "Send reset link"
+
+msgid "想起密码了？"
+msgstr "Remembered your password?"
+
+msgid "返回登录"
+msgstr "Back to log in"
+
+msgid "重置密码"
+msgstr "Reset password"
+
+msgid "正在验证链接，请稍候。若没有自动跳转，请点击下方按钮。"
+msgstr "Checking the link. If nothing happens, use the button below."
+
+msgid "继续设置新密码"
+msgstr "Continue to set a new password"
+
+msgid "密码至少 8 位，且必须同时包含字母和数字。"
+msgstr "Use at least 8 characters with both letters and numbers."
+
+msgid "设置新密码"
+msgstr "Set a new password"
+
+msgid "保存新密码"
+msgstr "Save new password"
+
+msgid "该重置链接已被使用或已过期，请在下方重新获取。"
+msgstr "This reset link was used or has expired. Request a new one below."
+
+msgid "状态消息"
+msgstr "Status message"
+
+msgid "错误消息"
+msgstr "Error message"
+
+msgid "警告消息"
+msgstr "Warning message"
+
+msgid "搜索：@query"
+msgstr "Search: @query"
+
+msgid "@title - 第 @page 页"
+msgstr "@title - page @page"
+
+msgid " - 第 @page 页"
+msgstr " - page @page"
+
+msgid "@title - 图@index"
+msgstr "@title - photo @index"
+
+msgid "@count 张"
+msgstr "@count photos"
+
+msgid "@count张"
+msgstr "@count"
+
+msgid "第 @index 张"
+msgstr "Photo @index"
+
+msgid "查看全部 @title"
+msgstr "View all @title"
+
+msgid "全部 @title"
+msgstr "All @title"
+
+msgid "展开 @title 分类"
+msgstr "Expand @title categories"
+
+msgid "展开分类"
+msgstr "Expand categories"
+
+msgid "展开二级分类"
+msgstr "Expand subcategory"
+
+msgid "搜索 @label"
+msgstr "Search @label"
+
+msgid "没有匹配的@label"
+msgstr "No matching @label"
+
+msgid "更多标签"
+msgstr "More tags"
+
+msgid "@count 阅读"
+msgstr "@count views"
+
+msgid "@count 分钟"
+msgstr "@count min"
+
+msgid "@count 分钟读完"
+msgstr "@count min read"
+
+msgid "@count 次播放"
+msgstr "@count plays"
+
+msgid "@count万"
+msgstr "@count0k"
+
+msgid "@count 个作品"
+msgstr "@count works"
+
+msgid "来源：@source"
+msgstr "Source: @source"
+
+msgid "回复 @name"
+msgstr "Reply to @name"
+
+msgid "没有找到「@query」相关内容"
+msgstr "No results for “@query”"
+
+msgid "搜索建议：检查是否有错别字，或换一个更短、更常见的关键词试试。"
+msgstr "Check the spelling, or try a shorter, more common keyword."
+
+msgid "搜索美图、视频、文章和模特"
+msgstr "Search photos, videos, articles and models"
+
+msgid "输入模特名、作品标题或关键词，开始发现内容。"
+msgstr "Enter a model, title or keyword to start exploring."
+
+msgid "加载更多（还剩 @count 张）"
+msgstr "Load more (@count left)"
+
+msgid "上一篇下一篇"
+msgstr "Previous and next"
+
+msgid "保存修改"
+msgstr "Save changes"
+
+msgid "发表评论"
+msgstr "Post comment"
+
+msgid "取消"
+msgstr "Cancel"
+
+msgid "编辑评论"
+msgstr "Edit comment"
+
+msgid "评论已提交，审核通过后才会显示。"
+msgstr "Comment submitted. It will appear after review."
+
+msgid "欢迎回来，@name"
+msgstr "Welcome back, @name"
+
+msgid "编辑资料"
+msgstr "Edit profile"
+
+msgid "我的收藏"
+msgstr "Favorites"
+
+msgid "我的评论"
+msgstr "My comments"
+
+msgid "我的投稿"
+msgstr "My submissions"
+
+msgid "浏览历史"
+msgstr "History"
+
+msgid "最近收藏"
+msgstr "Recent favorites"
+
+msgid "查看全部"
+msgstr "View all"
+
+msgid "还没有收藏"
+msgstr "No favorites yet"
+
+msgid "打开美图、视频或文章，点一下收藏就会出现在这里。"
+msgstr "Open a photo, video or article and tap favorite to see it here."
+
+msgid "看看美图"
+msgstr "Browse photos"
+
+msgid "看看视频"
+msgstr "Browse videos"
+
+msgid "看看文章"
+msgstr "Browse articles"
+
+msgid "共 @count 个收藏"
+msgstr "@count favorites"
+
+msgid "收藏筛选"
+msgstr "Filter favorites"
+
+msgid "打开内容页，点一下收藏，之后可以在这里回看。"
+msgstr "Open a page and tap favorite to find it here later."
+
+msgid "共 @count 条评论"
+msgstr "@count comments"
+
+msgid "查看评论"
+msgstr "View comment"
+
+msgid "编辑"
+msgstr "Edit"
+
+msgid "在内容页留言后，会出现在这里，也可以从这里回到原文。"
+msgstr "Comments you leave show up here, with a link back to the original."
+
+msgid "共 @count 条记录"
+msgstr "@count records"
+
+msgid "清空历史"
+msgstr "Clear history"
+
+msgid "浏览历史记录已关闭"
+msgstr "Browsing history is off"
+
+msgid "关闭后不会记录新的浏览行为。已有记录仍会保留，可以在这里删除单条记录或清空全部。"
+msgstr "New visits are not recorded. Existing records stay until you delete one or clear them all."
+
+msgid "去开启"
+msgstr "Turn it on"
+
+msgid "浏览历史筛选"
+msgstr "Filter history"
+
+msgid "打开美图、视频或文章后，浏览记录会自动出现在这里。"
+msgstr "Photos, videos and articles you open will show up here."
+
+msgid "修改邮箱或密码需要验证当前密码。"
+msgstr "Changing your email or password requires your current password."
+
+msgid "账户信息"
+msgstr "Account details"
+
+msgid "邮箱"
+msgstr "Email"
+
+msgid "注册时间"
+msgstr "Registered"
+
+msgid "最近登录"
+msgstr "Last login"
+
+msgid "查看记录"
+msgstr "View history"
+
+msgid "退出登录"
+msgstr "Log out"
+
+msgid "退出后需要重新登录"
+msgstr "You will need to log in again."
+
+msgid "头像、昵称和个人主页。"
+msgstr "Avatar, name and profile page."
+
+msgid "更换"
+msgstr "Change"
+
+msgid "点击头像更换，JPG/PNG/WebP，2MB 以内"
+msgstr "Click the avatar to change it. JPG, PNG or WebP, up to 2MB."
+
+msgid "共 @count 篇投稿"
+msgstr "@count submissions"
+
+msgid "审核意见"
+msgstr "Review note"
+
+msgid "编辑 / 提交审核"
+msgstr "Edit / submit for review"
+
+msgid "查看已发布内容"
+msgstr "View published content"
+
+msgid "从上方选择一种内容开始写，可以先存成草稿。"
+msgstr "Pick a content type above to start. You can save a draft first."
+
+msgid "加入于 @date"
+msgstr "Joined @date"
+
+msgid "会员中心导航"
+msgstr "Account menu"
+
+msgid "左右滑动切换栏目"
+msgstr "Swipe to switch sections"
+
+msgid "功能准备中"
+msgstr "Coming soon"
+
+msgid "账号设置"
+msgstr "Account settings"
+
+msgid "管理你的个人资料、密码与登录状态。"
+msgstr "Manage your profile, password and login."
+
+msgid "昵称"
+msgstr "Nickname"
+
+msgid "加入时间"
+msgstr "Joined"
+
+msgid "修改昵称、头像和个人简介"
+msgstr "Change your name, avatar and bio"
+
+msgid "结束当前账号的登录状态"
+msgstr "End this login session"
+
+msgid "隐私与记录"
+msgstr "Privacy and history"
+
+msgid "查看浏览历史"
+msgstr "View browsing history"
+
+msgid "面包屑"
+msgstr "Breadcrumb"
+
+msgid "全部标签"
+msgstr "All tags"
+
+msgid "共 @tags 个标签，@items 组内容"
+msgstr "@tags tags, @items items"
+
+msgid "搜索标签"
+msgstr "Search tags"
+
+msgid "热门"
+msgstr "Popular"
+
+msgid "名称"
+msgstr "Name"
+
+msgid "没有匹配的标签，换个关键词试试"
+msgstr "No matching tags. Try another word."
+
+msgid "这个标签下还没有内容"
+msgstr "Nothing with this tag yet"
+
+msgid "共 @count 位模特"
+msgstr "@count models"
+
+msgid "搜索模特名字…"
+msgstr "Search model names…"
+
+msgid "@count 个内容"
+msgstr "@count items"
+
+msgid "没有找到相关模特"
+msgstr "No matching models"
+
+msgid "@name 头像"
+msgstr "Avatar of @name"
+
+msgid "个内容"
+msgstr "items"
+
+msgid "张图片"
+msgstr "photos"
+
+msgid "又名"
+msgstr "Also known as"
+
+msgid "展开更多（还有 @count 个）"
+msgstr "Show more (@count more)"
+
+msgid "共 @total 组美图"
+msgstr "@total photo sets"
+
+msgid "共 @total 个视频"
+msgstr "@total videos"
+
+msgid "暂无视频"
+msgstr "No videos yet"
+
+msgid "该分类下暂无视频"
+msgstr "No videos in this category"
+
+msgid "@name 列表页"
+msgstr "@name"
+
+msgid "登录后收藏"
+msgstr "Log in to save"
+
+msgid "概览"
+msgstr "Overview"
+
+msgid "这个分类还没有收藏。"
+msgstr "No favorites in this category."
+
+msgid "还没有收藏。"
+msgstr "No favorites yet."
+
+msgid "这个分类还没有浏览记录。"
+msgstr "No history in this category."
+
+msgid "还没有浏览记录。打开内容后会自动记在这里。"
+msgstr "No history yet. Open something and it will be recorded here."
+
+msgid "还没有评论。"
+msgstr "No comments yet."
+
+msgid "还没有投稿。"
+msgstr "No submissions yet."
+
+msgid "浏览 @count 次"
+msgstr "Viewed @count times"
+
+msgid "内容不可用或已下架"
+msgstr "Content is unavailable"
+
+msgid "已发布"
+msgstr "Published"
+
+msgid "待审核"
+msgstr "Pending review"
+
+msgid "投稿美图"
+msgstr "Submit a photo"
+
+msgid "投稿视频"
+msgstr "Submit a video"
+
+msgid "投稿文章"
+msgstr "Submit an article"
+
+msgid "内容"
+msgstr "Content"
+
+msgid "未设置邮箱"
+msgstr "No email"
+
+msgid "尚未登录"
+msgstr "Never"
+
+msgid "收藏"
+msgstr "Save"
+
+msgid "取消收藏"
+msgstr "Remove"
+
+msgid "个人简介"
+msgstr "Bio"
+
+msgid "头像"
+msgstr "Avatar"
+
+msgid "自定义个人主页"
+msgstr "Custom profile URL"
+
+msgid "保存"
+msgstr "Save"
+
+msgid "返回会员中心"
+msgstr "Back to account"
+
+msgid "记录浏览历史"
+msgstr "Record browsing history"
+
+msgid "关闭后不再记录"
+msgstr "New visits will not be recorded"
+
+msgid "删除"
+msgstr "Delete"
+
+msgid "确定清空全部浏览历史吗？"
+msgstr "Clear all browsing history?"
+
+msgid "此操作只清空当前账号的浏览历史，无法恢复。"
+msgstr "This only clears history for this account and cannot be undone."
+
+msgid "请先登录后再修改资料。"
+msgstr "Log in before editing your profile."
+
+msgid "请先登录后再修改设置。"
+msgstr "Log in before changing settings."
+
+msgid "请先登录后再收藏。"
+msgstr "Log in before saving favorites."
+
+msgid "请先登录后再操作。"
+msgstr "Log in before continuing."
+
+msgid "内容不可用，无法收藏。"
+msgstr "This content cannot be saved."
+
+msgid "无法删除这条浏览历史。"
+msgstr "This history item cannot be deleted."
+
+msgid "留空则使用/member。可用字母、数字、下划线和连字符。"
+msgstr "Leave blank to use /member. Letters, numbers, underscores and hyphens only."
+
+msgid "昵称不能超过 20 个字符。"
+msgstr "Nickname cannot be longer than 20 characters."
+
+msgid "个人简介不能超过 300 个字符。"
+msgstr "Bio cannot be longer than 300 characters."
+
+msgid "该路径已被占用。"
+msgstr "That path is already taken."
+
+msgid "头像上传失败，请使用 JPG/PNG/WebP，且不超过 2MB。"
+msgstr "Avatar upload failed. Use JPG, PNG or WebP under 2MB."
+
+msgid "个人资料字段尚未配置，请先运行数据库更新。"
+msgstr "Profile fields are not ready yet."
+
+msgid "格式不正确"
+msgstr "Invalid format"
+
+msgid "至少 2 个字符"
+msgstr "At least 2 characters"
+
+msgid "不能超过 32 个字符"
+msgstr "No more than 32 characters"
+
+msgid "该路径不可用"
+msgstr "That path is not available"
+
+msgid "已被占用"
+msgstr "Already taken"
+
+msgid "可用"
+msgstr "Available"
+
+msgid "这里会显示你发表的评论和审核状态。"
+msgstr "Your comments and their review status will show here."
+
+msgid "评论管理将在后续阶段接入，目前先保留入口。"
+msgstr "Comment management will be added later. This entry stays for now."
+
+msgid "这里会显示你的投稿、草稿和审核状态。"
+msgstr "Your submissions, drafts and review status will show here."
+
+msgid "投稿与审核将在后续阶段接入，目前先保留入口。"
+msgstr "Submissions and review will be added later. This entry stays for now."
+
+msgid "视频列表页"
+msgstr "Videos"
+
+msgid "文章列表"
+msgstr "Articles"
+
+msgid "在 DcLili 浏览精选美图、写真、风景壁纸、精彩视频与优质文章，按分类发现感兴趣的图片和内容，持续探索更多精彩。"
+msgstr "Browse selected photos, portraits, wallpapers, videos and articles on DcLili, and find more by category."
+
+msgid "排序依据"
+msgstr "Sort by"
+
+msgid "应用"
+msgstr "Apply"
+
+msgid "找到 @count 条与「@query」相关的结果"
+msgstr "Found @count results for \"@query\""
+
+msgid "排序依据"
+msgstr "Sort by"
+
+msgid "应用"
+msgstr "Apply"
+
+msgid "找到 @count 条与「@query」相关的结果"
+msgstr "Found @count results for \"@query\""
+
+msgid "模特列表页"
+msgstr "Model List Page"
+
+msgid "快速发布图集"
+msgstr "Quickly Publish a Photo Gallery"
+
+msgid "标签详情页与全部标签页"
+msgstr "Tag Details Page and All Tags Page"
+
+msgid "个人资料"
+msgstr "Personal Information"
+
+msgid "还没有收藏任何内容。"
+msgstr "You haven't saved anything yet."
+
+msgid "还没有浏览记录。"
+msgstr "There is no browsing history yet."
+
+msgid "记录我的浏览历史"
+msgstr "Record My Browsing History"
+
+msgid "关闭后不再记录新的浏览行为。已有历史会保留，你可以在浏览历史页面删除单条记录或清空全部历史。"
+msgstr "Once disabled, new browsing activity will no longer be recorded. Your existing history will be retained, and you can delete individual entries or clear your entire history on the Browsing History page."
+
+msgid "保存设置"
+msgstr "Save Settings"
+
+msgid "清空浏览历史"
+msgstr "Clear Browsing History"
+
+msgid "账户安全"
+msgstr "Account Security"
+
+msgid "显示在会员中心。留空时使用用户名。最多 64 个字符。"
+msgstr "Displayed in the Member Center. If left blank, the username will be used. Maximum of 64 characters."
+
+msgid "最多 500 个字符，保存时会移除 HTML 标签。"
+msgstr "Up to 500 characters; HTML tags will be removed when you save."
+
+msgid "支持 JPG、PNG、GIF、WebP，最大 2MB。"
+msgstr "Supports JPG, PNG, GIF, and WebP files up to 2 MB in size."
+
+msgid "保存个人资料"
+msgstr "Save Personal Information"
+
+msgid "保存账户安全设置"
+msgstr "Save Account Security Settings"
+
+msgid "个人资料已更新。"
+msgstr "Your profile has been updated."
+
+msgid "浏览历史记录已开启。"
+msgstr "Browsing history is enabled."
+
+msgid "浏览历史记录已关闭。已有记录会保留，你可以在浏览历史页面管理。"
+msgstr "Browsing history has been turned off. Existing entries will be retained, and you can manage them on the browsing history page."
+
+msgid "已收藏。"
+msgstr "Added to favorites."
+
+msgid "已取消收藏。"
+msgstr "Removed from favorites."
+
+msgid "已删除这条浏览历史。"
+msgstr "This browsing history entry has been deleted."
+
+msgid "已清空 @count 条浏览历史。"
+msgstr "Cleared @count browsing history items."
+
+msgid "文章阅读量计数"
+msgstr "Article View Count"
+
+msgid "上传的视频不是有效的 MP4 文件。"
+msgstr "The uploaded video is not a valid MP4 file."
+
+msgid "评论提交后需要审核，审核通过后才会公开展示。"
+msgstr "Comments are subject to moderation after submission and will be displayed publicly only after they have been approved."
+
+msgid "点击“添加媒体”从本机上传图片。媒体库只显示你自己上传的文件。"
+msgstr "Click \"Add Media\" to upload an image from your computer. The media library displays only the files you have uploaded."
+
+msgid "可选。用作列表封面。媒体库只显示你自己上传的文件。"
+msgstr "Optional. Used as the list cover. The media library displays only the files you've uploaded."
+
+msgid "当前状态"
+msgstr "Current Status"
+
+msgid "保存为"
+msgstr "Save as"
+
+msgid "还没有选择文件。"
+msgstr "No files have been selected yet."
+
+msgid "添加媒体"
+msgstr "Add Media"
+
+msgid "可以先保存草稿，确认内容后再提交审核。"
+msgstr "You can save a draft first, review the content, and then submit it for review."
+
+msgid "两次密码是否一致："
+msgstr "Do the two passwords match?:"
+
+msgid "一致"
+msgstr "Consistent"
+
+msgid "不一致"
+msgstr "Inconsistency"
+
+msgid "密码强度："
+msgstr "Password Strength:"
+
+msgid "可以这样让密码更安全："
+msgstr "Here's how you can make your password more secure:"
+
+msgid "至少 12 个字符"
+msgstr "At least 12 characters"
+
+msgid "加入小写字母"
+msgstr "Add lowercase letters"
+
+msgid "加入大写字母"
+msgstr "Add uppercase letters"
+
+msgid "加入数字"
+msgstr "Enter a number"
+
+msgid "加入标点符号"
+msgstr "Add punctuation"
+
+msgid "不要与用户名相同"
+msgstr "Do not use the same username"
+
+msgid "弱"
+msgstr "Weak"
+
+msgid "一般"
+msgstr "Generally"
+
+msgid "良好"
+msgstr "Good"
+
+msgid "强"
+msgstr "Strong"
+
+msgid "当前密码"
+msgstr "Current Password"
+
+msgid "修改邮箱或密码时必填。忘记当前密码可<a href=\":url\">申请重置密码</a>。"
+msgstr "This field is required when changing your email address or password. If you've forgotten your current password, you can <a href=\":url\">request a password</a> reset."
+
+msgid "邮箱不会公开，只用于账户通知和找回密码。修改邮箱时需要填写当前密码。"
+msgstr "Your email address will not be made public; it will only be used for account notifications and password recovery. You will need to enter your current password when changing your email address."
+
+msgid "留空表示不修改。建议至少 12 位，并包含大小写字母、数字和标点。"
+msgstr "Leave blank to indicate no changes. We recommend a minimum of 12 characters, including uppercase and lowercase letters, numbers, and punctuation."
+
+msgid "如需修改密码，请在下面两个输入框填写相同的新密码。留空则保持原密码。"
+msgstr "To change your password, please enter the same new password in both of the fields below. Leave them blank to keep your current password."
+
+msgid "最多 64 个字符"
+msgstr "Up to 64 characters"
+
+msgid "最多 500 个字符"
+msgstr "Up to 500 characters"
+
+msgid "移除头像"
+msgstr "Remove Profile Picture"
+
+msgid "再长一些"
+msgstr "A little longer"
+
+msgid "加入标点"
+msgstr "Add punctuation"
+
+msgid "中"
+msgstr "Chinese"
+
+msgid "不会公开"
+msgstr "Will not be made public"
+
+msgid "修改邮箱或密码时填写"
+msgstr "Enter this information when changing your email address or password"
+
+msgid "留空则不修改"
+msgstr "Leave blank to keep the original."
+
+msgid "仅显示自己上传的文件"
+msgstr "Show only files you've uploaded"
+
+msgid "可选封面。@hint"
+msgstr "Optional cover.@hint"
+
+msgid "可先保存草稿。"
+msgstr "You can save a draft for now."
+
+msgid "关闭后不再记录新的浏览。已有记录会保留。"
+msgstr "Once disabled, new browsing activity will no longer be recorded. Existing records will be retained."
+
+msgid "头像已移除。"
+msgstr "The profile picture has been removed."
+
+msgid "别名路径需要以\"/\"开头."
+msgstr "Alias paths must begin with \"/\"."
+
+msgid "留空则使用 /member"
+msgstr "Leave blank to use /member"
+
+msgid "自定义路径"
+msgstr "Custom Path"
+
+msgid "留空则使用 /member。可用字母、数字、下划线和连字符。"
+msgstr "If left blank, /member will be used. You can use letters, numbers, underscores, and hyphens."
+
+msgid "账户与安全"
+msgstr "Accounts and Security"
+
+msgid "已保存。"
+msgstr "Saved."
+
+msgid "最多 20 个字符"
+msgstr "Up to 20 characters"
+
+msgid "最多 300 个字符"
+msgstr "Up to 300 characters"
+
+msgid "域名后直接填写路径"
+msgstr "Enter the path directly after the domain name"
+
+msgid "保存资料"
+msgstr "Save Data"
+
+msgid "无权访问"
+msgstr "Access Denied"
+
+msgid "上传文件"
+msgstr "Upload File"
+
+msgid "首页轮播补齐与图片分类栏目。"
+msgstr "Add the homepage carousel and the image categories section."
+
+msgid "待审核内容"
+msgstr "Content Pending Review"
+
+msgid "保存后直接发布，不进入审核。"
+msgstr "Once saved, it will be published immediately without going through the review process."
+
+msgid "改为草稿"
+msgstr "Mark as Draft"
+
+msgid "改为已发布"
+msgstr "Change to \"Published\""
+
+msgid "批量审核：@action"
+msgstr "Bulk moderation: @action"
+
+msgid "改为已拒绝"
+msgstr "Change to \"Rejected\""
+
+msgid "-- 选择操作 --"
+msgstr "-- Select an action --"
+
+msgid "找到 <strong>@count</strong> 条与「<mark class=\"highlight sr-mark\">@query</mark>」相关的结果"
+msgstr "Found <strong>@count</strong> results for \"<mark class=\"highlight sr-mark\">@query</mark>\""
+
+msgid "中文内容首次发布时翻译为英语、俄语和日语。"
+msgstr "When the Chinese content was first published, it was translated into English, Russian, and Japanese."
+
+msgid "自动翻译"
+msgstr "Automatic Translation"
+
+msgid "启用自动翻译"
+msgstr "Enable Automatic Translation"
+
+msgid "简体中文内容第一次变为已发布时，自动翻译成英语、俄语和日语。"
+msgstr "When Simplified Chinese content is marked as \"Published\" for the first time, it is automatically translated into English, Russian, and Japanese."
+
+msgid "未设置"
+msgstr "Not set"
+
+msgid "覆盖已有译文"
+msgstr "Overwrite existing translation"
+
+msgid "默认关闭。关闭时，已经存在的译文不会在再次发布时被机器翻译覆盖。"
+msgstr "Disabled by default. When disabled, existing translations will not be overwritten by machine translation upon republishing."
+
+msgid "直接发布"
+msgstr "Publish Directly"
+
+msgid "保存为草稿"
+msgstr "Save as Draft"
+
+msgid "译文保存状态"
+msgstr "Translation Save Status"
+
+msgid "对使用审核流程的 photo、article、video 生效。分类术语没有草稿状态，会直接保存译文。"
+msgstr "Applies to photos, articles, and videos that go through the review process. Since taxonomy terms do not have a draft status, the translation will be saved immediately."
+
+msgid "实体类型"
+msgstr "Entity Type"
+
+msgid "例如 node、taxonomy_term、menu_link_content。"
+msgstr "For example, `node`, `taxonomy_term`, and `menu_link_content`."
+
+msgid "实体 ID"
+msgstr "Entity ID"
+
+msgid "这次覆盖已有译文"
+msgstr "This update covers existing translations"
+
+msgid "立即翻译"
+msgstr "Translate Now"
+
+msgid "手动翻译一条已有内容"
+msgstr "Manually translate an existing piece of content"
+
+msgid "简体中文内容第一次变为已发布时，自动翻译成英语、俄语和日语。已有译文默认不覆盖。"
+msgstr "When Simplified Chinese content is marked as \"Published\" for the first time, it is automatically translated into English, Russian, and Japanese. Existing translations are not overwritten by default."
+
+msgid "翻译提供商"
+msgstr "Translation Provider"
+
+msgid "自动（Key 以 :fx 结尾时走免费接口）"
+msgstr "Automatic (free endpoint when the key ends with :fx)"
+
+msgid "已设置"
+msgstr "Set"
+
+msgid "管理自动翻译"
+msgstr "Manage Automatic Translation"
+
+msgid "共 @count 组美图"
+msgstr "@count photo sets"
+
+msgid "第一页"
+msgstr "First"
+
+msgid "尾页"
+msgstr "Last"
+
+msgid "DcLili 站点地图，浏览美图、文章、视频、模特与主要页面。"
+msgstr "DcLili Site Map: Browse photos, articles, videos, models, and main pages."
+
+msgid "DcLili 标签目录，按标签浏览美图、文章与视频。"
+msgstr "DcLili Tag Directory: Browse beautiful photos, articles, and videos by tag."
+
+msgid "@name 的作品"
+msgstr "Work by @name"
+
+msgid "@name 的图片与视频作品合集，在 DcLili 浏览。"
+msgstr "Photos and videos by @name on DcLili."

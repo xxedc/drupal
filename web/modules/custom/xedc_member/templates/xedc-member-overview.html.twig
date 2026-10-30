@@ -1,34 +1,34 @@
 <header class="xm-head">
   <div>
-    <h1 class="xm-title">会员中心</h1>
-    <p class="xm-sub">欢迎回来，{{ account.name }}</p>
+    <h1 class="xm-title">{{ '会员中心'|t }}</h1>
+    <p class="xm-sub">{{ '欢迎回来，@name'|t({'@name': account.name}) }}</p>
   </div>
-  <a class="xm-btn xm-btn--primary" href="{{ urls.profile }}">编辑资料</a>
+  <a class="xm-btn xm-btn--primary" href="{{ urls.profile }}">{{ '编辑资料'|t }}</a>
 </header>
 
 <div class="xm-stats">
   <a class="xm-stat" href="{{ urls.favorites }}">
     <b>{{ stats.favorites }}</b>
-    <span>我的收藏</span>
+    <span>{{ '我的收藏'|t }}</span>
   </a>
   <a class="xm-stat" href="{{ urls.comments }}">
     <b>{{ stats.comments }}</b>
-    <span>我的评论</span>
+    <span>{{ '我的评论'|t }}</span>
   </a>
   <a class="xm-stat" href="{{ urls.submissions }}">
     <b>{{ stats.submissions }}</b>
-    <span>我的投稿</span>
+    <span>{{ '我的投稿'|t }}</span>
   </a>
   <a class="xm-stat" href="{{ urls.history }}">
     <b>{{ stats.history }}</b>
-    <span>浏览历史</span>
+    <span>{{ '浏览历史'|t }}</span>
   </a>
 </div>
 
 <section class="xm-panel">
   <div class="xm-panel__head">
-    <h2>最近收藏</h2>
-    <a href="{{ urls.favorites }}">查看全部</a>
+    <h2>{{ '最近收藏'|t }}</h2>
+    <a href="{{ urls.favorites }}">{{ '查看全部'|t }}</a>
   </div>
 
   {% if recent_favorites %}
@@ -39,12 +39,12 @@
     </div>
   {% else %}
     <div class="xm-empty">
-      <strong>还没有收藏</strong>
-      <p>打开美图、视频或文章，点一下收藏就会出现在这里。</p>
+      <strong>{{ '还没有收藏'|t }}</strong>
+      <p>{{ '打开美图、视频或文章，点一下收藏就会出现在这里。'|t }}</p>
       <div class="xm-empty__links">
-        <a href="/meitu">看看美图</a>
-        <a href="/video">看看视频</a>
-        <a href="/articles">看看文章</a>
+        <a href="{{ path('view.image_gallery.page_1') }}">{{ '看看美图'|t }}</a>
+        <a href="{{ path('view.video_list.page_1') }}">{{ '看看视频'|t }}</a>
+        <a href="{{ path('view.article_list.page_1') }}">{{ '看看文章'|t }}</a>
       </div>
     </div>
   {% endif %}

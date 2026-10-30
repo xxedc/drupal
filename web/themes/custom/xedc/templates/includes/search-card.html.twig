@@ -14,7 +14,7 @@
         <span class="sr-ph" aria-hidden="true">{{ card.initial }}</span>
       {% endif %}
       {% if card.type == 'photo' and card.image_count %}
-        <span class="sr-badge sr-video-meta">{{ card.image_count }}张</span>
+        <span class="sr-badge sr-video-meta">{{ '@count张'|t({'@count': card.image_count}) }}</span>
       {% elseif card.type == 'video' and card.duration %}
         <span class="sr-badge sr-video-meta">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>

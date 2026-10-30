@@ -1,0 +1,26 @@
+uuid: eb717646-c13a-4a44-a93e-6ba54abe82b3
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_sitemap
+  module:
+    - options
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+_core:
+  default_config_hash: YDE1yUP6N5EkpOmCS7_91cGYGHVeQWB3F589VTxItsw
+id: site_audit_report.site_audit_report.field_sitemap
+field_name: field_sitemap
+entity_type: site_audit_report
+bundle: site_audit_report
+label: 'Sitemap 完整性'
+description: 'Simple XML Sitemap、robots Sitemap 声明和模特路径。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

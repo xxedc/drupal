@@ -1,0 +1,11 @@
+uuid: 9b2e4c10-6a77-4e2d-8c33-1f0a6b7c8901
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - media
+id: media.gallery
+label: Gallery
+description: 美图详情大图，不裁剪。
+targetEntityType: media
+cache: true

@@ -20,50 +20,14 @@ id: node.video.teaser
 targetEntityType: node
 bundle: video
 mode: teaser
-content:
-  content_moderation_control:
-    settings: {  }
-    third_party_settings: {  }
-    weight: -20
-    region: content
-  field_categories:
-    type: entity_reference_label
-    label: hidden
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 1
-    region: content
-  field_duration:
-    type: number_integer
-    label: hidden
-    settings:
-      thousand_separator: ''
-      prefix_suffix: false
-    third_party_settings: {  }
-    weight: 2
-    region: content
-  field_tags:
-    type: entity_reference_label
-    label: hidden
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 3
-    region: content
-  field_video_cover:
-    type: media_thumbnail
-    label: hidden
-    settings:
-      image_link: ''
-      image_style: video_cover
-      image_loading:
-        attribute: lazy
-    third_party_settings: {  }
-    weight: 0
-    region: content
+content: {  }
 hidden:
+  content_moderation_control: true
   field_body: true
+  field_categories: true
+  field_duration: true
+  field_tags: true
+  field_video_cover: true
   field_video_file: true
   field_video_url: true
   langcode: true

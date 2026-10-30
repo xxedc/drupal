@@ -1,0 +1,16 @@
+<article class="html-sitemap">
+  <header class="html-sitemap__head">
+    <h1 class="html-sitemap__title">{{ '站点地图'|t }}</h1>
+    <p class="html-sitemap__lead">{{ 'DcLili 的主要栏目与页面。'|t }}</p>
+  </header>
+  {% for section in sections %}
+    <section class="html-sitemap__section">
+      <h2 class="html-sitemap__heading">{{ section.title }}</h2>
+      <ul class="html-sitemap__list">
+        {% for link in section.links %}
+          <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+</article>

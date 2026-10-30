@@ -6,7 +6,7 @@ _core:
   default_config_hash: VWUWqwszm5ZaqT3frIPWjyyVmvmWnWMFRphkVXCl8t0
 id: image
 label: 图像
-description: 'A locally hosted image file.'
+description: 本地托管的图像文件。
 source: image
 queue_thumbnail_downloads: false
 new_revision: true

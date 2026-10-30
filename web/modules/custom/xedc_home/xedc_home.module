@@ -9,6 +9,7 @@ use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\node\NodeInterface;
+use Drupal\taxonomy\TermInterface;
 use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views\ViewExecutable;
 
@@ -144,6 +145,11 @@ function _xedc_home_staff_moderation_default(array $form, FormStateInterface $fo
   if (!$node->isNew() && $current !== '' && $current !== 'draft') {
     return $form;
   }
+  // A future schedule must stay unpublished. Do not flip that draft back to
+  // the published moderation state when the edit form is rebuilt.
+  if (!$node->isNew() && $node->hasField('publish_on') && (int) $node->get('publish_on')->value > \Drupal::time()->getRequestTime()) {
+    return $form;
+  }
   // The moderation widget writes #value during build, so #default_value alone
   // still renders the workflow's initial draft.
   $state['#default_value'] = 'published';
@@ -178,6 +184,384 @@ function _xedc_home_is_staff_publisher(): bool {
 /**
  * Implements hook_menu_local_tasks_alter().
  */
+/**
+ * Implements hook_metatags_alter().
+ *
+ * schema_metatag reads these keys. Image and video URLs are the same
+ * derivatives the templates print.
+ */
+function xedc_home_metatags_alter(array &$metatags, array &$context): void {
+  $route = \Drupal::routeMatch()->getRouteName();
+  $interface = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  if ($interface !== 'zh-hans') {
+    if (\Drupal::service('path.matcher')->isFrontPage()) {
+      $metatags['title'] = (string) t('DcLili - 精选美图、视频与优质文章');
+      $metatags['og_title'] = $metatags['title'];
+      $metatags['description'] = (string) t('在 DcLili 浏览精选美图、写真、风景壁纸、精彩视频与优质文章，按分类发现感兴趣的图片和内容，持续探索更多精彩。');
+      $metatags['og_description'] = $metatags['description'];
+    }
+    elseif ($route === 'xedc.html_sitemap') {
+      $metatags['title'] = t('站点地图') . ' | DcLili';
+      $metatags['description'] = (string) t('DcLili 站点地图，浏览美图、文章、视频、模特与主要页面。');
+      $metatags['og_description'] = $metatags['description'];
+    }
+    elseif ($route === 'xedc_tags.index') {
+      $metatags['title'] = t('全部标签') . ' | DcLili';
+      $metatags['description'] = (string) t('DcLili 标签目录，按标签浏览美图、文章与视频。');
+      $metatags['og_description'] = $metatags['description'];
+    }
+    elseif ($route === 'view.image_gallery.page_1') {
+      $metatags['title'] = t('美图列表') . ' | DcLili';
+    }
+  }
+  if ($route === 'xedc_models.detail') {
+    $term = \Drupal::routeMatch()->getParameter('taxonomy_term');
+    if ($term instanceof TermInterface) {
+      $term = \Drupal::service('entity.repository')->getTranslationFromContext($term);
+      $name = $term->label();
+      if ($interface === 'zh-hans') {
+        $site = (string) \Drupal::config('system.site')->get('name');
+        $metatags['title'] = $name . ' 作品 | ' . $site;
+        $metatags['description'] = $name . ' 的图片与视频作品合集，在 ' . $site . ' 浏览。';
+      }
+      else {
+        $metatags['title'] = t('@name 的作品', ['@name' => $name]) . ' | DcLili';
+        $metatags['description'] = (string) t('@name 的图片与视频作品合集，在 DcLili 浏览。', ['@name' => $name]);
+      }
+      $metatags['og_title'] = $name;
+      $metatags['og_description'] = $metatags['description'];
+      $metatags['robots'] = 'index, follow, max-image-preview:large';
+    }
+  }
+  $entity = $context['entity'] ?? NULL;
+  if (!$entity instanceof NodeInterface) {
+    return;
+  }
+  if ($entity->bundle() === 'article') {
+    _xedc_home_article_schema($entity, $metatags);
+  }
+  if ($entity->bundle() === 'video') {
+    _xedc_home_video_schema($entity, $metatags);
+  }
+}
+
+/**
+ * Article JSON-LD. The image URL matches the hero shown on the page.
+ */
+function _xedc_home_article_schema(NodeInterface $node, array &$metatags): void {
+  $metatags['schema_article_type'] = 'Article';
+  $metatags['schema_article_headline'] = $node->label();
+  $metatags['schema_article_main_entity_of_page'] = $node->toUrl()->setAbsolute()->toString();
+  $description = _xedc_home_meta_description($node);
+  if ($description !== '') {
+    $metatags['schema_article_description'] = $description;
+  }
+  $published = $node->getCreatedTime();
+  if ($node->hasField('field_published_at') && !$node->get('field_published_at')->isEmpty()) {
+    $item = $node->get('field_published_at')->first();
+    if ($item && $item->date) {
+      $published = $item->date->getTimestamp();
+    }
+  }
+  $metatags['schema_article_date_published'] = date('c', $published);
+  $metatags['schema_article_date_modified'] = date('c', $node->getChangedTime());
+  $author = 'DcLili';
+  if ($node->hasField('field_author') && !$node->get('field_author')->isEmpty()) {
+    $name = trim((string) $node->get('field_author')->value);
+    if ($name !== '') {
+      $author = $name;
+    }
+  }
+  $metatags['schema_article_author'] = serialize([[
+    '@type' => 'Person',
+    'name' => $author,
+  ]]);
+  if ($node->hasField('field_cover') && !$node->get('field_cover')->isEmpty()) {
+    $url = _xedc_home_media_style_url($node->get('field_cover')->entity, 'xa_hero');
+    if ($url !== '') {
+      $metatags['schema_article_image'] = serialize([
+        '@type' => 'ImageObject',
+        'url' => $url,
+      ]);
+    }
+  }
+}
+
+/**
+ * VideoObject JSON-LD. thumbnailUrl matches the player poster.
+ */
+function _xedc_home_video_schema(NodeInterface $node, array &$metatags): void {
+  $metatags['schema_video_object_type'] = 'VideoObject';
+  $metatags['schema_video_object_name'] = $node->label();
+  $description = _xedc_home_meta_description($node);
+  $metatags['schema_video_object_description'] = $description !== '' ? $description : $node->label();
+  $metatags['schema_video_object_upload_date'] = date('c', $node->getCreatedTime());
+  if ($node->hasField('field_video_cover') && !$node->get('field_video_cover')->isEmpty()) {
+    $thumb = _xedc_home_media_style_url($node->get('field_video_cover')->entity, 'xa_hero');
+    if ($thumb !== '') {
+      $metatags['schema_video_object_thumbnail_url'] = $thumb;
+    }
+  }
+  if ($node->hasField('field_video_file') && !$node->get('field_video_file')->isEmpty()) {
+    $file_url = _xedc_home_file_url($node->get('field_video_file')->entity);
+    if ($file_url !== '') {
+      $metatags['schema_video_object_content_url'] = $file_url;
+    }
+  }
+  elseif ($node->hasField('field_video_url') && !$node->get('field_video_url')->isEmpty()) {
+    $remote = trim((string) ($node->get('field_video_url')->first()->uri ?? ''));
+    if ($remote !== '' && preg_match('#^https?://#', $remote)) {
+      $metatags['schema_video_object_embed_url'] = $remote;
+    }
+  }
+  if ($node->hasField('field_duration') && !$node->get('field_duration')->isEmpty()) {
+    $seconds = (int) $node->get('field_duration')->value;
+    if ($seconds > 0) {
+      $metatags['schema_video_object_duration'] = 'PT' . $seconds . 'S';
+    }
+  }
+}
+
+/**
+ * Description without an empty category suffix.
+ */
+function _xedc_home_meta_description(NodeInterface $node): string {
+  $parts = [];
+  if ($node->hasField('field_summary') && !$node->get('field_summary')->isEmpty()) {
+    $summary = trim(preg_replace('/\s+/u', ' ', (string) $node->get('field_summary')->value));
+    if ($summary !== '') {
+      $parts[] = $summary;
+    }
+  }
+  $title = trim((string) $node->label());
+  if ($title !== '' && !in_array($title, $parts, TRUE)) {
+    $parts[] = $title;
+  }
+  if ($node->hasField('field_categories') && !$node->get('field_categories')->isEmpty()) {
+    $term = $node->get('field_categories')->entity;
+    if ($term instanceof \Drupal\taxonomy\TermInterface) {
+      $label = trim((string) $term->label());
+      if ($label !== '') {
+        $parts[] = $label;
+      }
+    }
+  }
+  return implode(' - ', $parts);
+}
+
+/**
+ * Absolute image-style URL for a media image.
+ */
+function _xedc_home_media_style_url($media, string $style_name): string {
+  if (!$media instanceof \Drupal\media\MediaInterface || !$media->hasField('field_media_image') || $media->get('field_media_image')->isEmpty()) {
+    return '';
+  }
+  $item = $media->get('field_media_image')->first();
+  $file = $item ? $item->entity : NULL;
+  if (!$file instanceof \Drupal\file\FileInterface) {
+    return '';
+  }
+  $style = \Drupal\image\Entity\ImageStyle::load($style_name);
+  $generator = \Drupal::service('file_url_generator');
+  return $style ? $style->buildUrl($file->getFileUri()) : $generator->generateAbsoluteString($file->getFileUri());
+}
+
+/**
+ * Absolute URL of a file or the source file of a media entity.
+ */
+function _xedc_home_file_url($entity): string {
+  if (!$entity) {
+    return '';
+  }
+  if ($entity->getEntityTypeId() === 'media') {
+    $fid = $entity->getSource()->getSourceFieldValue($entity);
+    $entity = \Drupal\file\Entity\File::load($fid);
+  }
+  if (!$entity || !method_exists($entity, 'getFileUri')) {
+    return '';
+  }
+  return \Drupal::service('file_url_generator')->generateAbsoluteString($entity->getFileUri());
+}
+
+/**
+ * Implements hook_simple_sitemap_links_alter().
+ *
+ * Photo image:loc uses photo_gallery_1300, matching the detail page.
+ * Model terms use /models/{tid} instead of /taxonomy/term/{tid}.
+ */
+function xedc_home_simple_sitemap_links_alter(array &$links, $sitemap): void {
+  $model_ids = [];
+  $photo_ids = [];
+  foreach ($links as $link) {
+    $info = $link['meta']['entity_info'] ?? NULL;
+    if (!is_array($info) || empty($info['id'])) {
+      continue;
+    }
+    if (($info['entity_type'] ?? '') === 'taxonomy_term' && ($info['bundle'] ?? '') === 'models') {
+      $model_ids[] = (int) $info['id'];
+    }
+    elseif (($info['entity_type'] ?? '') === 'node' && ($info['bundle'] ?? '') === 'photo') {
+      $photo_ids[] = (int) $info['id'];
+    }
+  }
+  $models = $model_ids ? \Drupal\taxonomy\Entity\Term::loadMultiple(array_values(array_unique($model_ids))) : [];
+  $photos = $photo_ids ? \Drupal\node\Entity\Node::loadMultiple(array_values(array_unique($photo_ids))) : [];
+  $now = \Drupal::service('date.formatter')->format(\Drupal::time()->getRequestTime(), 'custom', 'c');
+
+  foreach ($links as $key => $link) {
+    $info = $link['meta']['entity_info'] ?? NULL;
+    if (is_array($info) && ($info['entity_type'] ?? '') === 'taxonomy_term' && ($info['bundle'] ?? '') === 'models') {
+      $term = $models[(int) ($info['id'] ?? 0)] ?? NULL;
+      // 别名术语会 301 到主模特，不写进 sitemap。
+      if (!$term || ($term->hasField('field_alias_of') && !$term->get('field_alias_of')->isEmpty())) {
+        unset($links[$key]);
+        continue;
+      }
+      $id = (int) $term->id();
+      if (!empty($link['url'])) {
+        $link['url'] = _xedc_home_sitemap_model_url($link['url'], $id);
+      }
+      if (!empty($link['alternate_urls']) && is_array($link['alternate_urls'])) {
+        foreach ($link['alternate_urls'] as $lang => $href) {
+          $link['alternate_urls'][$lang] = _xedc_home_sitemap_model_url($href, $id);
+        }
+      }
+    }
+    elseif (is_array($info) && ($info['entity_type'] ?? '') === 'node' && ($info['bundle'] ?? '') === 'photo') {
+      $node = $photos[(int) ($info['id'] ?? 0)] ?? NULL;
+      if ($node instanceof NodeInterface && $node->isPublished()) {
+        $link['images'] = _xedc_home_photo_sitemap_images($node);
+      }
+    }
+
+    if (($link['meta']['path'] ?? '') === 'models' && empty($link['lastmod'])) {
+      $link['lastmod'] = _xedc_home_models_sitemap_lastmod();
+    }
+    if (empty($link['lastmod'])) {
+      $link['lastmod'] = $now;
+    }
+    $links[$key] = $link;
+  }
+}
+
+/**
+ * Rewrites a model term URL to the custom /models/{tid} route.
+ */
+function _xedc_home_sitemap_model_url(string $url, int $id): string {
+  $replaced = preg_replace('~/taxonomy/term/' . $id . '(?=$|[?#])~', '/models/' . $id, $url);
+  return is_string($replaced) ? $replaced : $url;
+}
+
+/**
+ * Latest change time among model terms, used as /models lastmod.
+ */
+function _xedc_home_models_sitemap_lastmod(): string {
+  $cache = \Drupal::cache('data');
+  $cached = $cache->get('xedc_home:models_lastmod');
+  if ($cached) {
+    return (string) $cached->data;
+  }
+  $storage = \Drupal::entityTypeManager()->getStorage('taxonomy_term');
+  // Same rows as the old MAX(changed) on default_langcode = 1, including
+  // unpublished terms. This value is a timestamp, not a list shown to users.
+  $ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('vid', 'models')
+    ->condition('default_langcode', 1)
+    ->sort('changed', 'DESC')
+    ->range(0, 1)
+    ->execute();
+  $changed = 0;
+  if ($ids) {
+    $term = $storage->load((int) reset($ids));
+    if ($term) {
+      $changed = (int) $term->getChangedTime();
+    }
+  }
+  $timestamp = $changed > 0 ? $changed : \Drupal::time()->getRequestTime();
+  $formatted = \Drupal::service('date.formatter')->format($timestamp, 'custom', 'c');
+  if ($changed > 0) {
+    $cache->set('xedc_home:models_lastmod', $formatted, \Drupal\Core\Cache\Cache::PERMANENT, ['taxonomy_term_list:models']);
+  }
+  return $formatted;
+}
+
+/**
+ * Gallery image URLs in the same order and style as the photo detail page.
+ *
+ * @return array<int, array<string, string>>
+ */
+function _xedc_home_photo_sitemap_images(NodeInterface $node): array {
+  $style = \Drupal\image\Entity\ImageStyle::load('photo_gallery_1300');
+  $generator = \Drupal::service('file_url_generator');
+  $file_of = static function ($media) {
+    if (!$media instanceof \Drupal\media\MediaInterface) {
+      return NULL;
+    }
+    $fid = $media->getSource()->getSourceFieldValue($media);
+    $file = $fid ? \Drupal\file\Entity\File::load($fid) : NULL;
+    return $file instanceof \Drupal\file\FileInterface ? $file : NULL;
+  };
+  $pack = static function ($media) use ($file_of, $style, $generator) {
+    if (!$media instanceof \Drupal\media\MediaInterface || !$media->access('view')) {
+      return NULL;
+    }
+    $file = $file_of($media);
+    if (!$file) {
+      return NULL;
+    }
+    $scene = '';
+    if ($media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+      $scene = trim((string) $media->get('field_media_image')->first()->alt);
+    }
+    $absolute = $style ? $style->buildUrl($file->getFileUri()) : $generator->generateAbsoluteString($file->getFileUri());
+    return [
+      'path' => $absolute,
+      'alt' => $scene,
+      'title' => $scene,
+      'file_id' => (int) $file->id(),
+      'media_id' => (int) $media->id(),
+    ];
+  };
+
+  $images = [];
+  $seen = [];
+  if ($node->hasField('field_images')) {
+    foreach ($node->get('field_images')->referencedEntities() as $media) {
+      $item = $pack($media);
+      if (!$item) {
+        continue;
+      }
+      $images[] = $item;
+      $seen[$item['media_id']] = TRUE;
+      $seen['f' . $item['file_id']] = TRUE;
+    }
+  }
+  $cover_items = [];
+  if ($node->hasField('field_cover_image') && !$node->get('field_cover_image')->isEmpty()) {
+    $cover = $node->get('field_cover_image')->entity;
+    $item = $pack($cover);
+    if ($item && !isset($seen[$item['media_id']]) && !isset($seen['f' . $item['file_id']])) {
+      $cover_items[] = $item;
+    }
+  }
+  $merged = array_merge($cover_items, $images);
+  $title = trim((string) $node->label());
+  $out = [];
+  foreach ($merged as $index => $item) {
+    $alt = $title . ' - 图' . ($index + 1);
+    if ($item['alt'] !== '') {
+      $alt .= ' - ' . $item['alt'];
+    }
+    $out[] = [
+      'path' => $item['path'],
+      'alt' => $alt,
+      'title' => $alt,
+    ];
+  }
+  return $out;
+}
+
 function xedc_home_menu_local_tasks_alter(array &$data, $route_name, RefinableCacheableDependencyInterface &$cacheability): void {
   foreach ($data['tabs'] as &$level) {
     if (!is_array($level)) {

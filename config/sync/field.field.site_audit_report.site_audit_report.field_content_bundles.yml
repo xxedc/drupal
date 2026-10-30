@@ -1,0 +1,25 @@
+uuid: d5583d3f-2c07-4f6f-9c4d-7cf5d4b327b0
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_content_bundles
+  module:
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+_core:
+  default_config_hash: 8jnE2eBszDUQo6pFzOhHHf_uQrOSY9yVHytDwbVCFV4
+id: site_audit_report.site_audit_report.field_content_bundles
+field_name: field_content_bundles
+entity_type: site_audit_report
+bundle: site_audit_report
+label: 纳入检查的内容类型
+description: '本次检查覆盖 photo、article、video、page，以及模特、图片分类、文章分类和视频分类。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

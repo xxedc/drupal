@@ -1,0 +1,33 @@
+uuid: 3d8f1a22-91c4-4b70-a6e5-22c0d4e8aa17
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.media.gallery
+    - field.field.media.image.field_media_image
+    - image.style.photo_gallery_1300
+    - media.type.image
+  module:
+    - image
+id: media.image.gallery
+targetEntityType: media
+bundle: image
+mode: gallery
+content:
+  field_media_image:
+    type: image
+    label: visually_hidden
+    settings:
+      image_link: ''
+      image_style: photo_gallery_1300
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  created: true
+  langcode: true
+  name: true
+  thumbnail: true
+  uid: true

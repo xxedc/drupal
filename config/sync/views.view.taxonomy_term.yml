@@ -11,6 +11,7 @@ dependencies:
     - node
     - taxonomy
     - user
+    - xedc_home
 _core:
   default_config_hash: 3o-ZjKjvMBpgaHiS3k8RvejhwJB4yX81fbjQjWc-tC8
 id: taxonomy_term
@@ -62,7 +63,7 @@ display:
         options:
           perm: 'access content'
       cache:
-        type: tag
+        type: xedc_bundle_tag
         options: {  }
       empty:
         area_text_custom:

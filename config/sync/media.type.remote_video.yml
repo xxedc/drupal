@@ -6,7 +6,7 @@ _core:
   default_config_hash: NsVkvD5RbJS6kL-3uUgn718RpXYxCy8_-mQoS9jUU1U
 id: remote_video
 label: 远程视频
-description: 'A video hosted on an external site (for example, YouTube or Vimeo).'
+description: '托管在外部网站（例如 YouTube 或 Vimeo）上的视频。'
 source: 'oembed:video'
 queue_thumbnail_downloads: false
 new_revision: true

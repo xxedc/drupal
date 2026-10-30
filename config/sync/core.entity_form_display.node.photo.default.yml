@@ -19,6 +19,7 @@ dependencies:
     - content_moderation
     - media_library
     - path
+    - scheduler
 id: node.photo.default
 targetEntityType: node
 bundle: photo
@@ -121,6 +122,17 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
+  publish_on:
+    type: datetime_timestamp_no_default
+    weight: 52
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  scheduler_settings:
+    weight: 35
+    region: content
+    settings: {  }
+    third_party_settings: {  }
   simple_sitemap:
     weight: 10
     region: content
@@ -164,3 +176,4 @@ content:
 hidden:
   promote: true
   sticky: true
+  unpublish_on: true

@@ -1,0 +1,26 @@
+uuid: a602ecb2-b035-42f6-acd3-cdfd17f29e81
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_url_alias
+  module:
+    - options
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+_core:
+  default_config_hash: G-FGgbEKAvSfKWpCB26qkzcns7elLMu7buuiSn5MWPA
+id: site_audit_report.site_audit_report.field_url_alias
+field_name: field_url_alias
+entity_type: site_audit_report
+bundle: site_audit_report
+label: 'URL 别名'
+description: 'Pathauto 模式是否覆盖公开内容，以及已发布内容是否缺少别名。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

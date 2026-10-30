@@ -1,0 +1,1312 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ja\n"
+
+msgid "登录"
+msgstr "ログイン"
+
+msgid "注册"
+msgstr "登録"
+
+msgid "退出"
+msgstr "ログアウト"
+
+msgid "搜索"
+msgstr "検索"
+
+msgid "会员中心"
+msgstr "会員センター"
+
+msgid "语言"
+msgstr "言語"
+
+msgid "菜单"
+msgstr "メニュー"
+
+msgid "打开菜单"
+msgstr "メニューを開く"
+
+msgid "关闭菜单"
+msgstr "メニューを閉じる"
+
+msgid "关闭"
+msgstr "閉じる"
+
+msgid "切换主题"
+msgstr "テーマ切替"
+
+msgid "切换到浅色"
+msgstr "ライトモード"
+
+msgid "切换到深色"
+msgstr "ダークモード"
+
+msgid "搜索美图、视频、文章…"
+msgstr "写真・動画・記事を検索…"
+
+msgid "搜索美图、视频、文章、模特…"
+msgstr "写真・動画・記事・モデルを検索…"
+
+msgid "首页"
+msgstr "ホーム"
+
+msgid "美图"
+msgstr "写真"
+
+msgid "视频"
+msgstr "動画"
+
+msgid "文章"
+msgstr "記事"
+
+msgid "模特"
+msgstr "モデル"
+
+msgid "标签"
+msgstr "タグ"
+
+msgid "查看更多"
+msgstr "もっと見る"
+
+msgid "最新美图"
+msgstr "新着写真"
+
+msgid "热门视频"
+msgstr "人気の動画"
+
+msgid "最新文章"
+msgstr "新着記事"
+
+msgid "关于我们"
+msgstr "私たちについて"
+
+msgid "隐私政策"
+msgstr "プライバシー"
+
+msgid "用户协议"
+msgstr "利用規約"
+
+msgid "站点地图"
+msgstr "サイトマップ"
+
+msgid "全部"
+msgstr "すべて"
+
+msgid "最新"
+msgstr "新着"
+
+msgid "最热"
+msgstr "人気"
+
+msgid "相关"
+msgstr "関連度"
+
+msgid "展开"
+msgstr "開く"
+
+msgid "收起"
+msgstr "閉じる"
+
+msgid "更多"
+msgstr "もっと"
+
+msgid "上一页"
+msgstr "前へ"
+
+msgid "下一页"
+msgstr "次へ"
+
+msgid "上一篇"
+msgstr "前の記事"
+
+msgid "下一篇"
+msgstr "次の記事"
+
+msgid "相关推荐"
+msgstr "関連"
+
+msgid "暂无美图"
+msgstr "写真はまだありません"
+
+msgid "暂无文章"
+msgstr "記事はまだありません"
+
+msgid "未分类"
+msgstr "未分類"
+
+msgid "播放"
+msgstr "再生"
+
+msgid "暂停"
+msgstr "一時停止"
+
+msgid "静音"
+msgstr "ミュート"
+
+msgid "取消静音"
+msgstr "ミュート解除"
+
+msgid "设置"
+msgstr "設定"
+
+msgid "倍速"
+msgstr "再生速度"
+
+msgid "正常"
+msgstr "標準"
+
+msgid "画中画"
+msgstr "ピクチャーインピクチャー"
+
+msgid "全屏"
+msgstr "全画面"
+
+msgid "退出全屏"
+msgstr "全画面を終了"
+
+msgid "音量"
+msgstr "音量"
+
+msgid "返回"
+msgstr "戻る"
+
+msgid "当前时间"
+msgstr "現在時刻"
+
+msgid "时长"
+msgstr "長さ"
+
+msgid "拖动进度"
+msgstr "シーク"
+
+msgid "描述"
+msgstr "説明"
+
+msgid "分类："
+msgstr "カテゴリ："
+
+msgid "模特："
+msgstr "モデル："
+
+msgid "人物："
+msgstr "人物："
+
+msgid "标签："
+msgstr "タグ："
+
+msgid "评论"
+msgstr "コメント"
+
+msgid "图片数量"
+msgstr "枚数"
+
+msgid "发布时间"
+msgstr "公開日"
+
+msgid "原图总大小"
+msgstr "原画サイズ"
+
+msgid "原图:"
+msgstr "原画:"
+
+msgid "登录成功"
+msgstr "ログインしました"
+
+msgid "回到顶部"
+msgstr "トップへ"
+
+msgid "已复制"
+msgstr "コピーしました"
+
+msgid "复制链接"
+msgstr "リンクをコピー"
+
+msgid "分享"
+msgstr "共有"
+
+msgid "查看原文"
+msgstr "原文を見る"
+
+msgid "摘要"
+msgstr "要約"
+
+msgid "目录"
+msgstr "目次"
+
+msgid "相关阅读"
+msgstr "関連記事"
+
+msgid "热门文章"
+msgstr "人気記事"
+
+msgid "热门标签"
+msgstr "人気タグ"
+
+msgid "热门模特"
+msgstr "人気モデル"
+
+msgid "搜索文章标题"
+msgstr "記事タイトルを検索"
+
+msgid "文章分类"
+msgstr "記事カテゴリ"
+
+msgid "分页"
+msgstr "ページ"
+
+msgid "分类"
+msgstr "カテゴリ"
+
+msgid "浏览"
+msgstr "見る"
+
+msgid "美图栏目"
+msgstr "写真カテゴリ"
+
+msgid "文章栏目"
+msgstr "記事カテゴリ"
+
+msgid "视频栏目"
+msgstr "動画カテゴリ"
+
+msgid "关于 DcLili"
+msgstr "DcLili について"
+
+msgid "DcLili 的主要栏目与页面。"
+msgstr "DcLili の主なコーナーとページ。"
+
+msgid "DcLili - 精选美图、视频与优质文章"
+msgstr "DcLili - 写真・動画・記事"
+
+msgid "主导航"
+msgstr "メインメニュー"
+
+msgid "图片分类"
+msgstr "写真カテゴリ"
+
+msgid "全部图片"
+msgstr "すべての写真"
+
+msgid "全部模特"
+msgstr "すべてのモデル"
+
+msgid "全部分类"
+msgstr "すべてのカテゴリ"
+
+msgid "最新视频"
+msgstr "新着動画"
+
+msgid "分类栏目"
+msgstr "カテゴリ"
+
+msgid "搜索关键词"
+msgstr "検索キーワード"
+
+msgid "清除关键词"
+msgstr "キーワードを消す"
+
+msgid "搜索类型"
+msgstr "検索タイプ"
+
+msgid "匹配的模特"
+msgstr "一致したモデル"
+
+msgid "排序"
+msgstr "並び替え"
+
+msgid "表情"
+msgstr "絵文字"
+
+msgid "写下你的评论…"
+msgstr "コメントを書く…"
+
+msgid "匿名"
+msgstr "匿名"
+
+msgid "阅读"
+msgstr "閲覧"
+
+msgid "图片预览"
+msgstr "画像プレビュー"
+
+msgid "上一张"
+msgstr "前へ"
+
+msgid "下一张"
+msgstr "次へ"
+
+msgid "首页轮播"
+msgstr "トップのカルーセル"
+
+msgid "美图列表"
+msgstr "写真一覧"
+
+msgid "用户名"
+msgstr "ユーザー名"
+
+msgid "密码"
+msgstr "パスワード"
+
+msgid "忘记密码？"
+msgstr "パスワードをお忘れですか？"
+
+msgid "还没有账号？"
+msgstr "アカウントをお持ちでないですか？"
+
+msgid "注册账号"
+msgstr "アカウント作成"
+
+msgid "创建账号"
+msgstr "アカウントを作成"
+
+msgid "注册后即可评论、收藏和互动。"
+msgstr "登録するとコメント、保存、交流ができます。"
+
+msgid "邮箱地址"
+msgstr "メールアドレス"
+
+msgid "请输入用户名"
+msgstr "ユーザー名を入力"
+
+msgid "请输入用户名或邮箱"
+msgstr "ユーザー名またはメールを入力"
+
+msgid "请输入密码"
+msgstr "パスワードを入力"
+
+msgid "请输入邮箱地址"
+msgstr "メールアドレスを入力"
+
+msgid "已有账号？"
+msgstr "アカウントをお持ちですか？"
+
+msgid "新密码"
+msgstr "新しいパスワード"
+
+msgid "确认新密码"
+msgstr "新しいパスワードの確認"
+
+msgid "确认密码"
+msgstr "パスワードの確認"
+
+msgid "至少 8 位，包含字母和数字"
+msgstr "8文字以上、英字と数字を含む"
+
+msgid "请再次输入密码"
+msgstr "パスワードをもう一度入力"
+
+msgid "找回密码"
+msgstr "パスワード再設定"
+
+msgid "输入账号信息，我们会向账号绑定的邮箱发送重置链接。"
+msgstr "アカウント情報を入力すると、登録メールに再設定リンクを送ります。"
+
+msgid "用户名或邮箱"
+msgstr "ユーザー名またはメール"
+
+msgid "发送重置链接"
+msgstr "再設定リンクを送信"
+
+msgid "想起密码了？"
+msgstr "パスワードを思い出しましたか？"
+
+msgid "返回登录"
+msgstr "ログインに戻る"
+
+msgid "重置密码"
+msgstr "パスワード再設定"
+
+msgid "正在验证链接，请稍候。若没有自动跳转，请点击下方按钮。"
+msgstr "リンクを確認しています。自動で進まない場合は下のボタンを押してください。"
+
+msgid "继续设置新密码"
+msgstr "新しいパスワードの設定へ"
+
+msgid "密码至少 8 位，且必须同时包含字母和数字。"
+msgstr "8文字以上で、英字と数字の両方を含めてください。"
+
+msgid "设置新密码"
+msgstr "新しいパスワードを設定"
+
+msgid "保存新密码"
+msgstr "新しいパスワードを保存"
+
+msgid "该重置链接已被使用或已过期，请在下方重新获取。"
+msgstr "この再設定リンクは使用済みか期限切れです。下から再取得してください。"
+
+msgid "状态消息"
+msgstr "ステータス"
+
+msgid "错误消息"
+msgstr "エラー"
+
+msgid "警告消息"
+msgstr "警告"
+
+msgid "搜索：@query"
+msgstr "検索：@query"
+
+msgid "@title - 第 @page 页"
+msgstr "@title - @page ページ"
+
+msgid " - 第 @page 页"
+msgstr " - @page ページ"
+
+msgid "@title - 图@index"
+msgstr "@title - @index 枚目"
+
+msgid "@count 张"
+msgstr "@count 枚"
+
+msgid "@count张"
+msgstr "@count"
+
+msgid "第 @index 张"
+msgstr "@index 枚目"
+
+msgid "查看全部 @title"
+msgstr "@title をすべて見る"
+
+msgid "全部 @title"
+msgstr "すべての @title"
+
+msgid "展开 @title 分类"
+msgstr "@title のカテゴリを開く"
+
+msgid "展开分类"
+msgstr "カテゴリを開く"
+
+msgid "展开二级分类"
+msgstr "下位カテゴリを開く"
+
+msgid "搜索 @label"
+msgstr "@label を検索"
+
+msgid "没有匹配的@label"
+msgstr "一致する@labelはありません"
+
+msgid "更多标签"
+msgstr "その他のタグ"
+
+msgid "@count 阅读"
+msgstr "@count 回閲覧"
+
+msgid "@count 分钟"
+msgstr "@count 分"
+
+msgid "@count 分钟读完"
+msgstr "@count 分で読めます"
+
+msgid "@count 次播放"
+msgstr "@count 回再生"
+
+msgid "@count万"
+msgstr "@count万"
+
+msgid "@count 个作品"
+msgstr "@count 作品"
+
+msgid "来源：@source"
+msgstr "出典：@source"
+
+msgid "回复 @name"
+msgstr "@name に返信"
+
+msgid "没有找到「@query」相关内容"
+msgstr "「@query」に一致する内容はありません"
+
+msgid "搜索建议：检查是否有错别字，或换一个更短、更常见的关键词试试。"
+msgstr "誤字がないか確認するか、より短く一般的な語で試してください。"
+
+msgid "搜索美图、视频、文章和模特"
+msgstr "写真・動画・記事・モデルを検索"
+
+msgid "输入模特名、作品标题或关键词，开始发现内容。"
+msgstr "モデル名、タイトル、キーワードを入力して探してみましょう。"
+
+msgid "加载更多（还剩 @count 张）"
+msgstr "さらに読み込む（残り @count 枚）"
+
+msgid "上一篇下一篇"
+msgstr "前後の記事"
+
+msgid "保存修改"
+msgstr "変更を保存"
+
+msgid "发表评论"
+msgstr "コメントする"
+
+msgid "取消"
+msgstr "キャンセル"
+
+msgid "编辑评论"
+msgstr "コメントを編集"
+
+msgid "评论已提交，审核通过后才会显示。"
+msgstr "コメントを送信しました。審査後に表示されます。"
+
+msgid "欢迎回来，@name"
+msgstr "おかえりなさい、@name"
+
+msgid "编辑资料"
+msgstr "プロフィールを編集"
+
+msgid "我的收藏"
+msgstr "お気に入り"
+
+msgid "我的评论"
+msgstr "マイコメント"
+
+msgid "我的投稿"
+msgstr "投稿"
+
+msgid "浏览历史"
+msgstr "閲覧履歴"
+
+msgid "最近收藏"
+msgstr "最近のお気に入り"
+
+msgid "查看全部"
+msgstr "すべて見る"
+
+msgid "还没有收藏"
+msgstr "まだお気に入りがありません"
+
+msgid "打开美图、视频或文章，点一下收藏就会出现在这里。"
+msgstr "写真、動画、記事を開いてお気に入りに追加すると、ここに表示されます。"
+
+msgid "看看美图"
+msgstr "写真を見る"
+
+msgid "看看视频"
+msgstr "動画を見る"
+
+msgid "看看文章"
+msgstr "記事を見る"
+
+msgid "共 @count 个收藏"
+msgstr "お気に入り @count 件"
+
+msgid "收藏筛选"
+msgstr "お気に入りの絞り込み"
+
+msgid "打开内容页，点一下收藏，之后可以在这里回看。"
+msgstr "ページを開いてお気に入りに追加すると、あとでここで見返せます。"
+
+msgid "共 @count 条评论"
+msgstr "コメント @count 件"
+
+msgid "查看评论"
+msgstr "コメントを見る"
+
+msgid "编辑"
+msgstr "編集"
+
+msgid "在内容页留言后，会出现在这里，也可以从这里回到原文。"
+msgstr "残したコメントがここに表示され、元のページに戻れます。"
+
+msgid "共 @count 条记录"
+msgstr "記録 @count 件"
+
+msgid "清空历史"
+msgstr "履歴を消去"
+
+msgid "浏览历史记录已关闭"
+msgstr "閲覧履歴はオフです"
+
+msgid "关闭后不会记录新的浏览行为。已有记录仍会保留，可以在这里删除单条记录或清空全部。"
+msgstr "新しい閲覧は記録されません。既存の記録は1件ずつ削除するか、すべて消去できます。"
+
+msgid "去开启"
+msgstr "オンにする"
+
+msgid "浏览历史筛选"
+msgstr "履歴の絞り込み"
+
+msgid "打开美图、视频或文章后，浏览记录会自动出现在这里。"
+msgstr "写真、動画、記事を開くと、閲覧記録がここに表示されます。"
+
+msgid "修改邮箱或密码需要验证当前密码。"
+msgstr "メールアドレスやパスワードの変更には現在のパスワードが必要です。"
+
+msgid "账户信息"
+msgstr "アカウント情報"
+
+msgid "邮箱"
+msgstr "メール"
+
+msgid "注册时间"
+msgstr "登録日"
+
+msgid "最近登录"
+msgstr "最終ログイン"
+
+msgid "查看记录"
+msgstr "記録を見る"
+
+msgid "退出登录"
+msgstr "ログアウト"
+
+msgid "退出后需要重新登录"
+msgstr "ログアウトすると再ログインが必要です。"
+
+msgid "头像、昵称和个人主页。"
+msgstr "アイコン、ニックネーム、プロフィールページ。"
+
+msgid "更换"
+msgstr "変更"
+
+msgid "点击头像更换，JPG/PNG/WebP，2MB 以内"
+msgstr "アイコンをクリックして変更。JPG/PNG/WebP、2MB以内。"
+
+msgid "共 @count 篇投稿"
+msgstr "投稿 @count 件"
+
+msgid "审核意见"
+msgstr "審査コメント"
+
+msgid "编辑 / 提交审核"
+msgstr "編集 / 審査に提出"
+
+msgid "查看已发布内容"
+msgstr "公開済みを見る"
+
+msgid "从上方选择一种内容开始写，可以先存成草稿。"
+msgstr "上から種類を選んで書き始められます。先に下書き保存もできます。"
+
+msgid "加入于 @date"
+msgstr "@date から参加"
+
+msgid "会员中心导航"
+msgstr "会員メニュー"
+
+msgid "左右滑动切换栏目"
+msgstr "横にスワイプして切り替え"
+
+msgid "功能准备中"
+msgstr "準備中"
+
+msgid "账号设置"
+msgstr "アカウント設定"
+
+msgid "管理你的个人资料、密码与登录状态。"
+msgstr "プロフィール、パスワード、ログイン状態を管理します。"
+
+msgid "昵称"
+msgstr "ニックネーム"
+
+msgid "加入时间"
+msgstr "参加日"
+
+msgid "修改昵称、头像和个人简介"
+msgstr "ニックネーム、アイコン、自己紹介を変更"
+
+msgid "结束当前账号的登录状态"
+msgstr "現在のログインを終了"
+
+msgid "隐私与记录"
+msgstr "プライバシーと記録"
+
+msgid "查看浏览历史"
+msgstr "閲覧履歴を見る"
+
+msgid "面包屑"
+msgstr "パンくず"
+
+msgid "全部标签"
+msgstr "すべてのタグ"
+
+msgid "共 @tags 个标签，@items 组内容"
+msgstr "タグ @tags 件、コンテンツ @items 件"
+
+msgid "搜索标签"
+msgstr "タグを検索"
+
+msgid "热门"
+msgstr "人気"
+
+msgid "名称"
+msgstr "名前"
+
+msgid "没有匹配的标签，换个关键词试试"
+msgstr "一致するタグがありません。別の言葉を試してください。"
+
+msgid "这个标签下还没有内容"
+msgstr "このタグのコンテンツはまだありません"
+
+msgid "共 @count 位模特"
+msgstr "モデル @count 人"
+
+msgid "搜索模特名字…"
+msgstr "モデル名を検索…"
+
+msgid "@count 个内容"
+msgstr "コンテンツ @count 件"
+
+msgid "没有找到相关模特"
+msgstr "該当するモデルがありません"
+
+msgid "@name 头像"
+msgstr "@name のアイコン"
+
+msgid "个内容"
+msgstr "件のコンテンツ"
+
+msgid "张图片"
+msgstr "枚の写真"
+
+msgid "又名"
+msgstr "別名"
+
+msgid "展开更多（还有 @count 个）"
+msgstr "さらに表示（残り @count）"
+
+msgid "共 @total 组美图"
+msgstr "写真 @total 組"
+
+msgid "共 @total 个视频"
+msgstr "動画 @total 本"
+
+msgid "暂无视频"
+msgstr "動画はまだありません"
+
+msgid "该分类下暂无视频"
+msgstr "このカテゴリに動画はありません"
+
+msgid "@name 列表页"
+msgstr "@name"
+
+msgid "登录后收藏"
+msgstr "ログインして保存"
+
+msgid "概览"
+msgstr "概要"
+
+msgid "这个分类还没有收藏。"
+msgstr "この分類にはお気に入りがありません。"
+
+msgid "还没有收藏。"
+msgstr "まだお気に入りがありません。"
+
+msgid "这个分类还没有浏览记录。"
+msgstr "この分類には閲覧履歴がありません。"
+
+msgid "还没有浏览记录。打开内容后会自动记在这里。"
+msgstr "閲覧履歴はまだありません。コンテンツを開くとここに記録されます。"
+
+msgid "还没有评论。"
+msgstr "コメントはまだありません。"
+
+msgid "还没有投稿。"
+msgstr "投稿はまだありません。"
+
+msgid "浏览 @count 次"
+msgstr "@count 回閲覧"
+
+msgid "内容不可用或已下架"
+msgstr "コンテンツは利用できません"
+
+msgid "已发布"
+msgstr "公開済み"
+
+msgid "待审核"
+msgstr "審査待ち"
+
+msgid "投稿美图"
+msgstr "写真を投稿"
+
+msgid "投稿视频"
+msgstr "動画を投稿"
+
+msgid "投稿文章"
+msgstr "記事を投稿"
+
+msgid "内容"
+msgstr "コンテンツ"
+
+msgid "未设置邮箱"
+msgstr "メール未設定"
+
+msgid "尚未登录"
+msgstr "未ログイン"
+
+msgid "收藏"
+msgstr "保存"
+
+msgid "取消收藏"
+msgstr "保存を解除"
+
+msgid "个人简介"
+msgstr "自己紹介"
+
+msgid "头像"
+msgstr "アイコン"
+
+msgid "自定义个人主页"
+msgstr "カスタムプロフィールURL"
+
+msgid "保存"
+msgstr "保存"
+
+msgid "返回会员中心"
+msgstr "会員センターに戻る"
+
+msgid "记录浏览历史"
+msgstr "閲覧履歴を記録"
+
+msgid "关闭后不再记录"
+msgstr "オフにすると記録しません"
+
+msgid "删除"
+msgstr "削除"
+
+msgid "确定清空全部浏览历史吗？"
+msgstr "閲覧履歴をすべて消去しますか？"
+
+msgid "此操作只清空当前账号的浏览历史，无法恢复。"
+msgstr "このアカウントの閲覧履歴だけを消去します。元に戻せません。"
+
+msgid "请先登录后再修改资料。"
+msgstr "プロフィールを変更するにはログインしてください。"
+
+msgid "请先登录后再修改设置。"
+msgstr "設定を変更するにはログインしてください。"
+
+msgid "请先登录后再收藏。"
+msgstr "お気に入りにはログインが必要です。"
+
+msgid "请先登录后再操作。"
+msgstr "操作するにはログインしてください。"
+
+msgid "内容不可用，无法收藏。"
+msgstr "このコンテンツは保存できません。"
+
+msgid "无法删除这条浏览历史。"
+msgstr "この閲覧履歴は削除できません。"
+
+msgid "留空则使用/member。可用字母、数字、下划线和连字符。"
+msgstr "空欄なら /member。英数字、アンダースコア、ハイフンが使えます。"
+
+msgid "昵称不能超过 20 个字符。"
+msgstr "ニックネームは20文字以内です。"
+
+msgid "个人简介不能超过 300 个字符。"
+msgstr "自己紹介は300文字以内です。"
+
+msgid "该路径已被占用。"
+msgstr "このパスは使用中です。"
+
+msgid "头像上传失败，请使用 JPG/PNG/WebP，且不超过 2MB。"
+msgstr "アイコンのアップロードに失敗しました。JPG/PNG/WebP、2MB以内にしてください。"
+
+msgid "个人资料字段尚未配置，请先运行数据库更新。"
+msgstr "プロフィール項目がまだ設定されていません。"
+
+msgid "格式不正确"
+msgstr "形式が正しくありません"
+
+msgid "至少 2 个字符"
+msgstr "2文字以上"
+
+msgid "不能超过 32 个字符"
+msgstr "32文字以内"
+
+msgid "该路径不可用"
+msgstr "このパスは使えません"
+
+msgid "已被占用"
+msgstr "使用中"
+
+msgid "可用"
+msgstr "使用可能"
+
+msgid "这里会显示你发表的评论和审核状态。"
+msgstr "投稿したコメントと審査状態がここに表示されます。"
+
+msgid "评论管理将在后续阶段接入，目前先保留入口。"
+msgstr "コメント管理は後で追加します。入口だけ残しています。"
+
+msgid "这里会显示你的投稿、草稿和审核状态。"
+msgstr "投稿、下書き、審査状態がここに表示されます。"
+
+msgid "投稿与审核将在后续阶段接入，目前先保留入口。"
+msgstr "投稿と審査は後で追加します。入口だけ残しています。"
+
+msgid "视频列表页"
+msgstr "動画"
+
+msgid "文章列表"
+msgstr "記事"
+
+msgid "在 DcLili 浏览精选美图、写真、风景壁纸、精彩视频与优质文章，按分类发现感兴趣的图片和内容，持续探索更多精彩。"
+msgstr "DcLili で厳選写真、ポートレート、壁紙、動画、記事を見て、カテゴリから探せます。"
+
+msgid "排序依据"
+msgstr "並び順"
+
+msgid "应用"
+msgstr "適用"
+
+msgid "找到 @count 条与「@query」相关的结果"
+msgstr "「@query」の結果 @count 件"
+
+msgid "排序依据"
+msgstr "並び順"
+
+msgid "应用"
+msgstr "適用"
+
+msgid "找到 @count 条与「@query」相关的结果"
+msgstr "「@query」の結果 @count 件"
+
+msgid "模特列表页"
+msgstr "モデル一覧ページ"
+
+msgid "快速发布图集"
+msgstr "フォトギャラリーをすばやく公開する"
+
+msgid "标签详情页与全部标签页"
+msgstr "タグ詳細ページとすべてのタグページ"
+
+msgid "个人资料"
+msgstr "プロフィール"
+
+msgid "还没有收藏任何内容。"
+msgstr "まだお気に入りに追加したコンテンツはありません。"
+
+msgid "还没有浏览记录。"
+msgstr "閲覧履歴はまだありません。"
+
+msgid "记录我的浏览历史"
+msgstr "閲覧履歴を記録する"
+
+msgid "关闭后不再记录新的浏览行为。已有历史会保留，你可以在浏览历史页面删除单条记录或清空全部历史。"
+msgstr "この機能をオフにすると、それ以降の閲覧履歴は記録されなくなります。既存の履歴は保持されますので、閲覧履歴ページから個々の記録を削除したり、履歴をすべて消去したりすることができます。"
+
+msgid "保存设置"
+msgstr "設定を保存する"
+
+msgid "清空浏览历史"
+msgstr "閲覧履歴を消去する"
+
+msgid "账户安全"
+msgstr "アカウントのセキュリティ"
+
+msgid "显示在会员中心。留空时使用用户名。最多 64 个字符。"
+msgstr "会員センターに表示されます。空欄の場合はユーザー名が使用されます。最大64文字まで。"
+
+msgid "最多 500 个字符，保存时会移除 HTML 标签。"
+msgstr "最大500文字まで。保存時にHTMLタグは削除されます。"
+
+msgid "支持 JPG、PNG、GIF、WebP，最大 2MB。"
+msgstr "JPG、PNG、GIF、WebPに対応しており、最大2MBまでです。"
+
+msgid "保存个人资料"
+msgstr "個人情報を保存する"
+
+msgid "保存账户安全设置"
+msgstr "アカウントのセキュリティ設定を保存する"
+
+msgid "个人资料已更新。"
+msgstr "プロフィールが更新されました。"
+
+msgid "浏览历史记录已开启。"
+msgstr "閲覧履歴が有効になっています。"
+
+msgid "浏览历史记录已关闭。已有记录会保留，你可以在浏览历史页面管理。"
+msgstr "閲覧履歴は無効になっています。既存の履歴は保持されますので、閲覧履歴ページで管理することができます。"
+
+msgid "已收藏。"
+msgstr "お気に入りに追加しました。"
+
+msgid "已取消收藏。"
+msgstr "お気に入りから削除しました。"
+
+msgid "已删除这条浏览历史。"
+msgstr "この閲覧履歴は削除されました。"
+
+msgid "已清空 @count 条浏览历史。"
+msgstr "閲覧履歴を @count 件削除しました。"
+
+msgid "文章阅读量计数"
+msgstr "記事の閲覧数"
+
+msgid "上传的视频不是有效的 MP4 文件。"
+msgstr "アップロードされた動画は有効な MP4 ファイルではありません。"
+
+msgid "评论提交后需要审核，审核通过后才会公开展示。"
+msgstr "コメントは投稿後に審査を受け、審査に通過して初めて公開されます。"
+
+msgid "点击“添加媒体”从本机上传图片。媒体库只显示你自己上传的文件。"
+msgstr "「メディアを追加」をクリックして、ローカルから画像をアップロードしてください。メディアライブラリには、ご自身がアップロードしたファイルのみが表示されます。"
+
+msgid "可选。用作列表封面。媒体库只显示你自己上传的文件。"
+msgstr "オプション。リストの表紙として使用します。メディアライブラリには、ご自身がアップロードしたファイルのみが表示されます。"
+
+msgid "当前状态"
+msgstr "現在の状態"
+
+msgid "保存为"
+msgstr "「名前を付けて保存」"
+
+msgid "还没有选择文件。"
+msgstr "まだファイルが選択されていません。"
+
+msgid "添加媒体"
+msgstr "メディアを追加する"
+
+msgid "可以先保存草稿，确认内容后再提交审核。"
+msgstr "まずは下書きとして保存し、内容を確認してから審査に提出することができます。"
+
+msgid "两次密码是否一致："
+msgstr "2つのパスワードは一致していますか："
+
+msgid "一致"
+msgstr "一致"
+
+msgid "不一致"
+msgstr "不一致"
+
+msgid "密码强度："
+msgstr "パスワードの強度："
+
+msgid "可以这样让密码更安全："
+msgstr "パスワードのセキュリティを強化するには、次のようにします："
+
+msgid "至少 12 个字符"
+msgstr "12文字以上"
+
+msgid "加入小写字母"
+msgstr "小文字のアルファベットを追加する"
+
+msgid "加入大写字母"
+msgstr "大文字のアルファベットを追加する"
+
+msgid "加入数字"
+msgstr "数字を入力してください"
+
+msgid "加入标点符号"
+msgstr "句読点を挿入する"
+
+msgid "不要与用户名相同"
+msgstr "ユーザー名と同じにしてはいけません"
+
+msgid "弱"
+msgstr "弱い"
+
+msgid "一般"
+msgstr "一般"
+
+msgid "良好"
+msgstr "良好"
+
+msgid "强"
+msgstr "強い"
+
+msgid "当前密码"
+msgstr "現在のパスワード"
+
+msgid "修改邮箱或密码时必填。忘记当前密码可<a href=\":url\">申请重置密码</a>。"
+msgstr "メールアドレスやパスワードを変更する際は、必ず入力してください。現在のパスワードをお忘れの場合は、パスワードのリセット<a href=\":url\">を申請できます</a>。"
+
+msgid "邮箱不会公开，只用于账户通知和找回密码。修改邮箱时需要填写当前密码。"
+msgstr "メールアドレスは公開されず、アカウントに関する通知やパスワードの再設定にのみ使用されます。メールアドレスを変更する際は、現在のパスワードの入力が必要です。"
+
+msgid "留空表示不修改。建议至少 12 位，并包含大小写字母、数字和标点。"
+msgstr "空欄の場合は変更しないことを意味します。少なくとも12文字以上とし、大文字・小文字のアルファベット、数字、句読点を含めることをお勧めします。"
+
+msgid "如需修改密码，请在下面两个输入框填写相同的新密码。留空则保持原密码。"
+msgstr "パスワードを変更する場合は、以下の2つの入力欄に同じ新しいパスワードを入力してください。空欄のままにすると、現在のパスワードが維持されます。"
+
+msgid "最多 64 个字符"
+msgstr "最大 64 文字"
+
+msgid "最多 500 个字符"
+msgstr "最大500文字"
+
+msgid "移除头像"
+msgstr "プロフィール画像を削除する"
+
+msgid "再长一些"
+msgstr "もう少し長く"
+
+msgid "加入标点"
+msgstr "句読点を挿入する"
+
+msgid "中"
+msgstr "中"
+
+msgid "不会公开"
+msgstr "公開しません"
+
+msgid "修改邮箱或密码时填写"
+msgstr "メールアドレスやパスワードを変更する際に入力してください"
+
+msgid "留空则不修改"
+msgstr "空欄のままにすれば変更されません"
+
+msgid "仅显示自己上传的文件"
+msgstr "自分がアップロードしたファイルのみを表示する"
+
+msgid "可选封面。@hint"
+msgstr "オプションの表紙。@hint"
+
+msgid "可先保存草稿。"
+msgstr "まずは下書きとして保存できます。"
+
+msgid "关闭后不再记录新的浏览。已有记录会保留。"
+msgstr "閉じた後は、新しい閲覧履歴は記録されなくなります。既存の履歴は保持されます。"
+
+msgid "头像已移除。"
+msgstr "プロフィール画像は削除されました。"
+
+msgid "别名路径需要以\"/\"开头."
+msgstr "別名のパスは「/」で始まる必要があります。"
+
+msgid "留空则使用 /member"
+msgstr "空欄のままにすると /member が使用されます"
+
+msgid "自定义路径"
+msgstr "カスタムパス"
+
+msgid "留空则使用 /member。可用字母、数字、下划线和连字符。"
+msgstr "空欄のままにすると「/member」が使用されます。使用できるのは、アルファベット、数字、アンダースコア、ハイフンです。"
+
+msgid "账户与安全"
+msgstr "アカウントとセキュリティ"
+
+msgid "已保存。"
+msgstr "保存されました。"
+
+msgid "最多 20 个字符"
+msgstr "最大20文字"
+
+msgid "最多 300 个字符"
+msgstr "最大300文字"
+
+msgid "域名后直接填写路径"
+msgstr "ドメイン名の後に直接パスを入力する"
+
+msgid "保存资料"
+msgstr "資料を保存する"
+
+msgid "无权访问"
+msgstr "アクセス権限がありません"
+
+msgid "上传文件"
+msgstr "ファイルのアップロード"
+
+msgid "首页轮播补齐与图片分类栏目。"
+msgstr "トップページのカルーセルを充実させ、画像のカテゴリ別表示を追加しました。"
+
+msgid "待审核内容"
+msgstr "審査待ちの内容"
+
+msgid "保存后直接发布，不进入审核。"
+msgstr "保存後、審査を経ずに直接公開されます。"
+
+msgid "改为草稿"
+msgstr "下書きに変更する"
+
+msgid "改为已发布"
+msgstr "「公開済み」に変更"
+
+msgid "批量审核：@action"
+msgstr "一括審査：@action"
+
+msgid "改为已拒绝"
+msgstr "「拒否済み」に変更"
+
+msgid "-- 选择操作 --"
+msgstr "-- 操作を選択 --"
+
+msgid "找到 <strong>@count</strong> 条与「<mark class=\"highlight sr-mark\">@query</mark>」相关的结果"
+msgstr "「<mark class=\"highlight sr-mark\">@query</mark>」に関連する結果が <strong>@count</strong> 件見つかりました"
+
+msgid "中文内容首次发布时翻译为英语、俄语和日语。"
+msgstr "中国語のコンテンツは、初公開時に英語、ロシア語、日本語に翻訳されました。"
+
+msgid "自动翻译"
+msgstr "自動翻訳"
+
+msgid "启用自动翻译"
+msgstr "自動翻訳を有効にする"
+
+msgid "简体中文内容第一次变为已发布时，自动翻译成英语、俄语和日语。"
+msgstr "簡体字中国語のコンテンツが初めて「公開済み」になった際、自動的に英語、ロシア語、日本語に翻訳されます。"
+
+msgid "未设置"
+msgstr "設定されていません"
+
+msgid "覆盖已有译文"
+msgstr "既存の翻訳を上書きする"
+
+msgid "默认关闭。关闭时，已经存在的译文不会在再次发布时被机器翻译覆盖。"
+msgstr "デフォルトではオフになっています。オフに設定している場合、既存の翻訳は再公開時に機械翻訳によって上書きされることはありません。"
+
+msgid "直接发布"
+msgstr "直接公開"
+
+msgid "保存为草稿"
+msgstr "下書きとして保存"
+
+msgid "译文保存状态"
+msgstr "翻訳の保存状態"
+
+msgid "对使用审核流程的 photo、article、video 生效。分类术语没有草稿状态，会直接保存译文。"
+msgstr "この設定は、審査プロセスが適用される「photo」、「article」、「video」に有効です。分類用語には下書きステータスがないため、翻訳文は直接保存されます。"
+
+msgid "实体类型"
+msgstr "エンティティ型"
+
+msgid "例如 node、taxonomy_term、menu_link_content。"
+msgstr "例えば、node、taxonomy_term、menu_link_contentなど。"
+
+msgid "实体 ID"
+msgstr "エンティティID"
+
+msgid "这次覆盖已有译文"
+msgstr "今回の翻訳は既存の翻訳を反映しています"
+
+msgid "立即翻译"
+msgstr "今すぐ翻訳"
+
+msgid "手动翻译一条已有内容"
+msgstr "既存のコンテンツを1件手動で翻訳する"
+
+msgid "简体中文内容第一次变为已发布时，自动翻译成英语、俄语和日语。已有译文默认不覆盖。"
+msgstr "簡体字中国語のコンテンツが初めて「公開済み」になった際、自動的に英語、ロシア語、日本語に翻訳されます。既存の翻訳は、デフォルトでは上書きされません。"
+
+msgid "翻译提供商"
+msgstr "翻訳サービスプロバイダー"
+
+msgid "自动（Key 以 :fx 结尾时走免费接口）"
+msgstr "自動（キーが :fx で終わる場合は無料インターフェース）"
+
+msgid "已设置"
+msgstr "設定済み"
+
+msgid "管理自动翻译"
+msgstr "自動翻訳の管理"
+
+msgid "共 @count 组美图"
+msgstr "写真 @count 組"
+
+msgid "第一页"
+msgstr "最初"
+
+msgid "尾页"
+msgstr "最後"
+
+msgid "DcLili 站点地图，浏览美图、文章、视频、模特与主要页面。"
+msgstr "DcLili サイトマップ：美しい写真、記事、動画、モデル、主要ページをご覧いただけます。"
+
+msgid "DcLili 标签目录，按标签浏览美图、文章与视频。"
+msgstr "DcLili タグ一覧。タグ別に美しい写真、記事、動画を閲覧できます。"
+
+msgid "@name 的作品"
+msgstr "@name の作品"
+
+msgid "@name 的图片与视频作品合集，在 DcLili 浏览。"
+msgstr "DcLili で @name の写真と動画を見る。"

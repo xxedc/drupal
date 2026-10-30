@@ -2,7 +2,7 @@ reports:
   best_practices: best_practices
   block: block
   cache: cache
-  codebase: codebase
+  codebase: 0
   content: content
   cron: cron
   database: database
@@ -11,4 +11,5 @@ reports:
   status: status
   views: views
   watchdog: watchdog
-  users: 0
+  users: users
+  xedc_seo: xedc_seo

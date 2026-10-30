@@ -44,6 +44,7 @@ await build({
   bundle: true,
   minify: true,
   sourcemap: false,
+  charset: 'utf8',
   outdir: 'build',
   external: ['/themes/*'],
   plugins: [

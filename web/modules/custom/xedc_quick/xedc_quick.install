@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * Schema for quick gallery upload bookkeeping.
+ */
+
+/**
+ * Hash of an uploaded image, and the pre-compression byte size.
+ */
+function xedc_quick_schema(): array {
+  return [
+    'xedc_quick_hash' => [
+      'description' => 'SHA-256 of an uploaded gallery image.',
+      'fields' => [
+        'hash' => [
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+        ],
+        'mid' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ],
+      ],
+      'primary key' => ['hash'],
+    ],
+    'xedc_quick_orig' => [
+      'description' => 'Original byte size before client compression.',
+      'fields' => [
+        'mid' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ],
+        'bytes' => [
+          'type' => 'int',
+          'size' => 'big',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ],
+      ],
+      'primary key' => ['mid'],
+    ],
+  ];
+}
+
+/**
+ * Create bookkeeping tables when they are still missing.
+ */
+function xedc_quick_update_10001(): void {
+  xedc_quick_ensure_tables();
+}

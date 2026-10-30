@@ -1,0 +1,12 @@
+xedc_audit.download:
+  path: '/admin/reports/audit/download/{format}'
+  defaults:
+    _controller: '\Drupal\xedc_audit\Controller\AuditDownloadController::download'
+    _title: 'Download audit report'
+  requirements:
+    _permission: 'view audit results'
+    _csrf_token: 'TRUE'
+    format: 'json|csv'
+  options:
+    _admin_route: TRUE
+    no_cache: TRUE

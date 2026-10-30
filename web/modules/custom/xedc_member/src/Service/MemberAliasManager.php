@@ -399,6 +399,7 @@ class MemberAliasManager {
       ->accessCheck(FALSE)
       ->condition('path', '/user/' . $uid)
       ->sort('id', 'DESC')
+      ->range(0, 100)
       ->execute();
     $aliases = $ids ? $storage->loadMultiple($ids) : [];
     $keeper = NULL;

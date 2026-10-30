@@ -1,0 +1,12 @@
+name: 'DcLili Site Audit'
+type: module
+description: '为 Site Audit 报告补充 SEO 与性能字段，并检查图片 alt、元数据、别名、站点地图、缓存和翻译。'
+package: XEDC
+core_version_requirement: ^11
+dependencies:
+  - site_audit:site_audit
+  - site_audit:site_audit_report_entity
+  - drupal:field
+  - drupal:options
+  - drupal:text
+  - simple_sitemap:simple_sitemap

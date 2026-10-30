@@ -1,7 +1,18 @@
 services:
+  xedc_home.sitemap_xsl:
+    class: Drupal\xedc_home\EventSubscriber\SitemapXslSubscriber
+    arguments: ['@extension.list.theme']
+    tags:
+      - { name: event_subscriber }
+
   xedc_home.cache_subscriber:
     class: Drupal\xedc_home\EventSubscriber\HomeCacheSubscriber
     arguments: ['@datetime.time', '@current_user', '@path.matcher']
+    tags:
+      - { name: event_subscriber }
+
+  xedc_home.security_headers:
+    class: Drupal\xedc_home\EventSubscriber\SecurityHeaderSubscriber
     tags:
       - { name: event_subscriber }
 
@@ -11,3 +22,4 @@ services:
       - '@entity_type.manager'
       - '@file_url_generator'
       - '@date.formatter'
+      - '@database'

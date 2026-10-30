@@ -23,8 +23,8 @@ custom:
     slideshow: 0
     auto: true
     speed: 2500
-    text_start: 'start slideshow'
-    text_stop: 'stop slideshow'
+    text_start: 开始幻灯片放映
+    text_stop: 停止幻灯片放映
 advanced:
   unique_token: 1
   mobile_detect: 1

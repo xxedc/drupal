@@ -7,7 +7,7 @@ dependencies:
 _core:
   default_config_hash: WffB95XdMvoUEvymTyLFLB-Q_JnCbbjy9Kj7TvlzN9s
 id: index
-label: 'Sitemap Index'
-description: 'The sitemap index listing all other sitemaps - useful if there are at least two other sitemaps. In most cases this sitemap should be last in the generation queue and set as the default sitemap.'
+label: 网站地图索引
+description: '列出所有其他站点地图的站点地图索引 - 如果至少有两个其他站点地图，则很有用。在大多数情况下，此站点地图应位于生成队列的最后并设置为默认站点地图。'
 type: index
 weight: 1000

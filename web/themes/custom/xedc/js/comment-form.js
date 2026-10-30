@@ -48,7 +48,7 @@
         }
         var area = form.querySelector('textarea');
         if (area) {
-          area.placeholder = '写下你的评论…';
+          area.placeholder = Drupal.t('写下你的评论…');
         }
       }
       resetFormState(form);
@@ -118,3 +118,122 @@
     placeError();
   }
 })();
+
+(function (Drupal) {
+  'use strict';
+
+  var E = '😀 😁 😂 🤣 😊 😍 😘 😎 🤔 😅 😭 😡 👍 👏 🙏 💪 ❤️ 🔥 🎉 🌹 😴 🤗 😏 🥰 😱 🙈 💯 ✨ 👀 🤝'.split(' ');
+  var ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>';
+
+  function each(context, selector, fn) {
+    var root = context && context.querySelectorAll ? context : document;
+    if (root.matches && root.matches(selector)) {
+      fn(root);
+    }
+    root.querySelectorAll(selector).forEach(fn);
+  }
+
+  function paintAvatars(context) {
+    each(context, '.cm__avatar:not(:has(img))', function (el) {
+      if (el.dataset.xedcAvatar) {
+        return;
+      }
+      el.dataset.xedcAvatar = '1';
+      var n = el.dataset.name || '', h = 0, i;
+      for (i = 0; i < n.length; i++) {
+        h = (h * 31 + n.charCodeAt(i)) % 360;
+      }
+      el.style.background = 'hsl(' + h + ',55%,88%)';
+      el.style.color = 'hsl(' + h + ',45%,32%)';
+    });
+  }
+
+  function mountEmoji(context) {
+    each(context, 'form.comment-form', function (f) {
+      var ta = f.querySelector('textarea');
+      if (!ta || f.querySelector('.cm-emoji')) {
+        return;
+      }
+      var w = document.createElement('div');
+      w.className = 'cm-emoji';
+      w.innerHTML = '<button type="button" class="cm-emoji__btn" aria-label="' + Drupal.t('表情') + '">' + ICON + '</button><div class="cm-emoji__panel" hidden></div>';
+      var p = w.querySelector('.cm-emoji__panel');
+      E.forEach(function (e) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = e;
+        p.appendChild(b);
+      });
+      w.querySelector('.cm-emoji__btn').onclick = function (ev) {
+        ev.preventDefault();
+        p.hidden = !p.hidden;
+      };
+      p.onclick = function (ev) {
+        if (ev.target.tagName !== 'BUTTON') {
+          return;
+        }
+        ta.setRangeText(ev.target.textContent, ta.selectionStart, ta.selectionEnd, 'end');
+        ta.focus();
+        p.hidden = true;
+      };
+      f.appendChild(w);
+    });
+  }
+
+  if (!document.documentElement.dataset.xedcCommentUi) {
+    document.documentElement.dataset.xedcCommentUi = '1';
+    document.addEventListener('click', function (e) {
+      var reply = e.target.closest('.cm__links a[href*="/comment/reply/"]');
+      if (reply) {
+        var form = document.querySelector('form.comment-form');
+        var art = reply.closest('article.cm');
+        var m = reply.getAttribute('href').match(/\/comment\/reply\/node\/\d+\/field_comment\/(\d+)/);
+        if (form && art && m) {
+          e.preventDefault();
+          var holder = document.querySelector('.cm-reply-hold');
+          if (!holder) {
+            holder = document.createElement('div');
+            holder.className = 'cm-reply-hold';
+          }
+          var ta = form.querySelector('textarea');
+          var name = art.querySelector('.cm__head b');
+          ta.placeholder = Drupal.t('回复 @name', {'@name': name ? name.textContent : ''});
+          form.action = reply.getAttribute('href');
+          var pid = form.querySelector('input[name="pid"]');
+          if (pid) {
+            pid.value = m[1];
+          }
+          art.querySelector('.cm__main').appendChild(holder);
+          holder.appendChild(form);
+          ta.focus();
+        }
+        return;
+      }
+      var img = e.target.closest('.cm__main .field--name-field-comment-image img');
+      if (!img) {
+        return;
+      }
+      e.preventDefault();
+      var box = document.querySelector('.cm-lightbox');
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'cm-lightbox';
+        box.onclick = function () { box.hidden = true; };
+        document.body.appendChild(box);
+      }
+      var link = img.closest('a');
+      var shot = document.createElement('img');
+      shot.alt = '';
+      shot.src = link ? link.href : img.src;
+      box.replaceChildren(shot);
+      box.hidden = false;
+    });
+  }
+
+  Drupal.behaviors.xedcCommentExtras = {
+    attach: function (context) {
+      paintAvatars(context);
+      mountEmoji(context);
+    }
+  };
+})(Drupal);

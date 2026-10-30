@@ -6,7 +6,7 @@ _core:
   default_config_hash: QgF3JDg2h0tf2gaqzc4mNvlHttNkUpmxk1LZefP82hE
 id: document
 label: 文档
-description: 'A locally hosted document, such as a PDF file.'
+description: '本地托管的文档，例如 PDF 文件。'
 source: file
 queue_thumbnail_downloads: false
 new_revision: true

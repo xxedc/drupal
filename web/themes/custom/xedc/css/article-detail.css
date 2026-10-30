@@ -98,10 +98,10 @@ body:has(.xa-article) [id*="breadcrumb"]{display:none}
 }
 .xa .xa-art__side h3{margin:0 0 .5rem;font-size:.75rem;font-weight:500;letter-spacing:.04em;color:var(--muted-foreground)}
 .xa .xa-sl{display:flex;flex-direction:column}
-.xa .xa-sl a{display:flex;flex-direction:column;gap:.125rem;padding:.625rem 0;border-top:1px solid var(--border)}
+.xa .xa-sl a{display:flex;flex-direction:column;gap:.125rem;min-width:0;padding:.625rem 0;border-top:1px solid var(--border)}
 .xa .xa-sl a:last-child{border-bottom:1px solid var(--border)}
-.xa .xa-sl span{font-size:.875rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.xa .xa-sl small{font-size:.75rem;color:var(--muted-foreground)}
+.xa .xa-sl span{min-width:0;max-width:100%;max-height:3.1em;font-size:.875rem;line-height:1.55;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:break-word}
+.xa .xa-sl small{display:block;max-width:100%;overflow:hidden;font-size:.75rem;color:var(--muted-foreground);white-space:nowrap;text-overflow:ellipsis}
 .xa .xa-sl a:hover span{text-decoration:underline}
 
 /* 手机文末精简 */

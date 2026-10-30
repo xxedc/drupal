@@ -1,0 +1,20 @@
+uuid: e0ae3a98-2479-43a4-9fcb-eaf58bf870c1
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - language
+  theme:
+    - xedc
+id: xedc_language_switcher
+theme: xedc
+region: navbar_right
+weight: 0
+provider: null
+plugin: 'language_block:language_interface'
+settings:
+  id: 'language_block:language_interface'
+  label: 语言
+  label_display: '0'
+  provider: language
+visibility: {  }

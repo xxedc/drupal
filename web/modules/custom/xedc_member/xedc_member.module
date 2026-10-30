@@ -15,7 +15,6 @@ use Drupal\node\NodeInterface;
 use Drupal\user\Entity\User;
 use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ViewExecutable;
-use Drupal\xedc_member\Form\FavoriteToggleForm;
 use Drupal\xedc_member\Service\FavoriteManager;
 
 /**
@@ -676,15 +675,17 @@ function xedc_member_page_attachments(array &$attachments): void {
  * Implements hook_preprocess_page().
  */
 function xedc_member_preprocess_page(array &$variables) {
-  $variables['#cache']['contexts'][] = 'user';
-  $account = \Drupal::currentUser();
-  if ($account->isAuthenticated()) {
-    $uid = (int) $account->id();
-    $variables['#cache']['tags'][] = 'user:' . $uid;
-    $variables['#cache']['tags'][] = 'xedc_member:aliases';
-    $variables['member_center_url'] = Url::fromRoute('xedc_member.overview')->toString();
-    $variables['member_avatar_url'] = xedc_member_avatar_url($uid);
-  }
+  // The header switches login links and the account icon. The icon itself
+  // varies by user and is a placeholder, so the page stays cacheable.
+  $variables['#cache']['contexts'][] = 'user.roles:authenticated';
+  $variables['member_account_icon'] = [
+    '#lazy_builder' => ['xedc_member.lazy_builders:accountIcon', []],
+    '#create_placeholder' => TRUE,
+  ];
+  $variables['member_account_sheet'] = [
+    '#lazy_builder' => ['xedc_member.lazy_builders:accountSheet', []],
+    '#create_placeholder' => TRUE,
+  ];
 }
 
 /**
@@ -818,29 +819,11 @@ function xedc_member_preprocess_node(array &$variables) {
     return;
   }
 
-  $account = \Drupal::currentUser();
-  if ($account->isAuthenticated()) {
-    $variables['xedc_member_favorite'] = \Drupal::formBuilder()->getForm(
-      FavoriteToggleForm::class,
-      (int) $node->id(),
-      'detail'
-    );
-  }
-  else {
-    $variables['xedc_member_favorite'] = [
-      '#type' => 'link',
-      '#title' => t('登录后收藏'),
-      '#url' => Url::fromRoute('user.login', [], [
-        'query' => ['destination' => \Drupal::request()->getRequestUri()],
-      ]),
-      '#attributes' => [
-        'class' => ['xedc-favorite-login'],
-      ],
-    ];
-  }
-
+  $variables['xedc_member_favorite'] = [
+    '#lazy_builder' => ['xedc_member.lazy_builders:favorite', [(string) $node->id()]],
+    '#create_placeholder' => TRUE,
+  ];
   $variables['#attached']['library'][] = 'xedc_member/member';
-  $variables['#cache']['contexts'][] = 'user';
   $variables['#cache']['tags'][] = 'node:' . $node->id();
 }
 

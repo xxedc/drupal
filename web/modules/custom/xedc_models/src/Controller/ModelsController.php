@@ -8,6 +8,7 @@ use Drupal\Core\Url;
 use Drupal\file\FileInterface;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\node\Entity\Node;
+use Drupal\taxonomy\TermInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class ModelsController extends ControllerBase {
@@ -91,6 +92,14 @@ class ModelsController extends ControllerBase {
       $best[$main] = array_key_first($g['nids']);
     }
     $nodes = $best ? Node::loadMultiple(array_unique($best)) : [];
+    $visible = [];
+    foreach ($groups as $main => $g) {
+      if (!empty($g['nids'])) {
+        $visible[] = (int) $main;
+      }
+    }
+    $loaded_terms = $visible ? \Drupal\taxonomy\Entity\Term::loadMultiple($visible) : [];
+    $repository = \Drupal::service('entity.repository');
 
     $out = [];
     foreach ($groups as $main => $g) {
@@ -98,8 +107,10 @@ class ModelsController extends ControllerBase {
         continue;
       }
       $node = isset($best[$main]) ? ($nodes[$best[$main]] ?? NULL) : NULL;
+      $loaded = $loaded_terms[(int) $main] ?? NULL;
+      $name = $loaded ? $repository->getTranslationFromContext($loaded)->label() : $terms[$main];
       $out[] = [
-        'name' => $terms[$main],
+        'name' => $name,
         'count' => count($g['nids']),
         'img' => $this->cover($node),
         'url' => Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $main])->toString(),
@@ -113,7 +124,11 @@ class ModelsController extends ControllerBase {
       '#models' => $out,
       '#total' => count($out),
       '#attached' => ['library' => ['xedc_models/models']],
-      '#cache' => ['tags' => ['node_list', 'taxonomy_term_list'], 'max-age' => 3600],
+      '#cache' => [
+        'tags' => ['node_list:photo', 'node_list:video', 'taxonomy_term_list:models'],
+        'contexts' => ['languages:language_interface', 'languages:language_content'],
+        'max-age' => 3600,
+      ],
     ];
   }
 
@@ -139,9 +154,10 @@ class ModelsController extends ControllerBase {
       $tids = array_merge($tids, array_map('intval', $ids));
     }
 
+    $repository = \Drupal::service('entity.repository');
     $aliases = [];
     foreach (\Drupal\taxonomy\Entity\Term::loadMultiple(array_diff($tids, [$main])) as $t) {
-      $aliases[] = $t->label();
+      $aliases[] = $repository->getTranslationFromContext($t)->label();
     }
 
     $q = $this->db->select('node__field_model', 'm');
@@ -153,6 +169,10 @@ class ModelsController extends ControllerBase {
 
     $items = [];
     foreach (Node::loadMultiple($nids) as $node) {
+      $translated = $repository->getTranslationFromContext($node);
+      if ($translated instanceof \Drupal\node\NodeInterface) {
+        $node = $translated;
+      }
       $items[] = [
         'title' => $node->label(),
         'url' => $node->toUrl()->toString(),
@@ -163,15 +183,24 @@ class ModelsController extends ControllerBase {
 
     return [
       '#theme' => 'xedc_models_detail',
-      '#title' => $taxonomy_term->label(),
+      '#title' => $repository->getTranslationFromContext($taxonomy_term)->label(),
       '#items' => $items,
       '#count' => count($items),
       '#aliases' => $aliases,
       '#photos' => array_sum(array_column($items, 'photos')),
       '#avatar' => $items ? $items[0]['img'] : NULL,
+      '#name' => $repository->getTranslationFromContext($taxonomy_term)->label(),
       '#attached' => ['library' => ['xedc_models/models']],
-      '#cache' => ['tags' => ['node_list', 'taxonomy_term_list'], 'max-age' => 3600],
+      '#cache' => [
+        'tags' => ['node_list:photo', 'taxonomy_term_list:models', 'taxonomy_term:' . $taxonomy_term->id()],
+        'contexts' => ['languages:language_interface', 'languages:language_content'],
+        'max-age' => 3600,
+      ],
     ];
+  }
+
+  public function detailTitle(TermInterface $taxonomy_term): string {
+    return \Drupal::service('entity.repository')->getTranslationFromContext($taxonomy_term)->label();
   }
 
   protected function imageCount($node) {
@@ -207,7 +236,8 @@ class ModelsController extends ControllerBase {
       return NULL;
     }
     $uri = $e->getFileUri();
-    $style = ImageStyle::load('large');
+    $style_name = $node->bundle() === 'video' ? 'video_cover' : ($node->bundle() === 'article' ? 'xa_cover' : 'meitu_card_cover');
+    $style = ImageStyle::load($style_name) ?: ImageStyle::load('medium');
     return $style ? $style->buildUrl($uri) : \Drupal::service('file_url_generator')->generateString($uri);
   }
 

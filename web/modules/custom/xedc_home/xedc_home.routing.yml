@@ -1,0 +1,7 @@
+xedc.html_sitemap:
+  path: '/sitemap'
+  defaults:
+    _controller: '\Drupal\xedc_home\Controller\SitemapController::page'
+    _title: '站点地图'
+  requirements:
+    _permission: 'access content'

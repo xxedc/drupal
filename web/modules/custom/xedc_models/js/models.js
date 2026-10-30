@@ -16,7 +16,7 @@
             if (ok) n++;
           });
           empty.hidden = n > 0;
-          cnt.textContent = q ? n + ' / ' + total : total;
+          cnt.textContent = Drupal.t('共 @count 位模特', {'@count': q ? n + ' / ' + total : String(total)});
         });
       });
     },

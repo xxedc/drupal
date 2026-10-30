@@ -1,0 +1,19 @@
+uuid: 46e32a31-f799-49f3-83c3-446cc63ecfac
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - site_audit_report_entity
+id: site_audit_report.field_cache_detail
+field_name: field_cache_detail
+entity_type: site_audit_report
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

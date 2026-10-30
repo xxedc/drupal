@@ -1,0 +1,25 @@
+enabled: true
+source_langcode: zh-hans
+provider: microsoft
+microsoft_region: global
+microsoft_endpoint: ''
+deepl_endpoint: auto
+overwrite: false
+save_as: published
+targets:
+  en: en
+  ru: ru
+  ja: ja
+bundles:
+  - node.photo
+  - node.article
+  - node.video
+  - node.page
+  - taxonomy_term.photo_category
+  - taxonomy_term.article_category
+  - taxonomy_term.video_category
+  - taxonomy_term.models
+  - taxonomy_term.tags
+  - menu_link_content.main
+  - menu_link_content.footer
+  - menu_link_content.account

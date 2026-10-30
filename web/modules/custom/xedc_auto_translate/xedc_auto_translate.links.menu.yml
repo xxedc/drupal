@@ -1,0 +1,6 @@
+xedc_auto_translate.settings:
+  title: '自动翻译'
+  description: '中文内容首次发布时翻译为英语、俄语和日语。'
+  parent: system.admin_config_regional
+  route_name: xedc_auto_translate.settings
+  weight: 15

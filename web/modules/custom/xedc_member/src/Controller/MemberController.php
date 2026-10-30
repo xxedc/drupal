@@ -64,9 +64,11 @@ class MemberController extends ControllerBase {
     $account = $this->loadAccount();
     $uid = (int) $account->id();
 
+    $recent_rows = $this->favoriteManager->getRecentRows($uid, 4);
+    $recent_nodes = $this->loadNodesInOrder(array_map(static fn($row) => (int) $row->entity_id, $recent_rows));
     $recent_favorites = [];
-    foreach ($this->favoriteManager->getRecentRows($uid, 4) as $row) {
-      $node = $this->entityTypeManager()->getStorage('node')->load($row->entity_id);
+    foreach ($recent_rows as $row) {
+      $node = $recent_nodes[(int) $row->entity_id] ?? NULL;
       if ($node instanceof NodeInterface && $node->access('view')) {
         $recent_favorites[] = $this->favoriteCard($node);
       }
@@ -98,9 +100,11 @@ class MemberController extends ControllerBase {
     $type = $request ? $request->query->get('type') : NULL;
     $type = is_string($type) && in_array($type, FavoriteManager::ALLOWED_BUNDLES, TRUE) ? $type : NULL;
 
+    $favorite_rows = $this->favoriteManager->getFavoriteRows($uid, $type);
+    $favorite_nodes = $this->loadNodesInOrder(array_map(static fn($row) => (int) $row->entity_id, $favorite_rows));
     $cards = [];
-    foreach ($this->favoriteManager->getFavoriteRows($uid, $type) as $row) {
-      $node = $this->entityTypeManager()->getStorage('node')->load($row->entity_id);
+    foreach ($favorite_rows as $row) {
+      $node = $favorite_nodes[(int) $row->entity_id] ?? NULL;
       if (!$node instanceof NodeInterface || !$node->access('view')) {
         continue;
       }
@@ -134,9 +138,11 @@ class MemberController extends ControllerBase {
     $type = $request ? $request->query->get('type') : NULL;
     $type = is_string($type) && in_array($type, HistoryManager::ALLOWED_BUNDLES, TRUE) ? $type : NULL;
 
+    $history_rows = $this->historyManager->getHistoryRows($uid, $type);
+    $history_nodes = $this->loadNodesInOrder(array_map(static fn($row) => (int) $row->entity_id, $history_rows));
     $items = [];
-    foreach ($this->historyManager->getHistoryRows($uid, $type) as $row) {
-      $node = $this->entityTypeManager()->getStorage('node')->load($row->entity_id);
+    foreach ($history_rows as $row) {
+      $node = $history_nodes[(int) $row->entity_id] ?? NULL;
       if (!$node instanceof NodeInterface || !$node->access('view')) {
         continue;
       }
@@ -349,6 +355,30 @@ class MemberController extends ControllerBase {
   /**
    * Builds the shared member center shell.
    */
+  /**
+   * Loads nodes once, in the same order as the source IDs.
+   *
+   * @param int[] $ids
+   *   Node IDs.
+   *
+   * @return \Drupal\node\NodeInterface[]
+   *   Nodes keyed by ID.
+   */
+  protected function loadNodesInOrder(array $ids): array {
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+    if (!$ids) {
+      return [];
+    }
+    $loaded = $this->entityTypeManager()->getStorage('node')->loadMultiple($ids);
+    $ordered = [];
+    foreach ($ids as $id) {
+      if (isset($loaded[$id]) && $loaded[$id] instanceof NodeInterface) {
+        $ordered[$id] = $loaded[$id];
+      }
+    }
+    return $ordered;
+  }
+
   protected function shell(string $active, array $content): array {
     $account = $this->loadAccount();
     $urls = $this->memberUrls();
@@ -502,6 +532,7 @@ class MemberController extends ControllerBase {
    * Builds a favorite card.
    */
   protected function favoriteCard(NodeInterface $node, ?array $remove_form = NULL): array {
+    $node = $this->translatedNode($node);
     return [
       'nid' => (int) $node->id(),
       'title' => $node->label(),
@@ -519,6 +550,7 @@ class MemberController extends ControllerBase {
    * Builds a history card.
    */
   protected function historyCard(NodeInterface $node, object $row, ?array $delete_form = NULL): array {
+    $node = $this->translatedNode($node);
     return [
       'card_id' => 'xedc-member-history-' . $node->id(),
       'nid' => (int) $node->id(),
@@ -543,6 +575,7 @@ class MemberController extends ControllerBase {
     $parent_url = '';
     $parent_accessible = FALSE;
     if ($parent instanceof NodeInterface && $parent->access('view')) {
+      $parent = $this->translatedNode($parent);
       $parent_title = $parent->label();
       $parent_url = $parent->toUrl()->toString();
       $parent_accessible = TRUE;
@@ -578,6 +611,7 @@ class MemberController extends ControllerBase {
    * Builds a submission card.
    */
   protected function submissionCard(NodeInterface $node, array $state): array {
+    $node = $this->translatedNode($node);
     $review_note = '';
     if ($node->hasField('revision_log') && in_array($state['id'], ['changes_requested', 'rejected'], TRUE)) {
       $review_note = (string) $node->get('revision_log')->value;
@@ -679,7 +713,19 @@ class MemberController extends ControllerBase {
       return '';
     }
     $term = $node->get('field_categories')->entity;
-    return $term ? (string) $term->label() : '';
+    if (!$term) {
+      return '';
+    }
+    $translated = \Drupal::service('entity.repository')->getTranslationFromContext($term);
+    return (string) $translated->label();
+  }
+
+  /**
+   * Node in the current content language.
+   */
+  protected function translatedNode(NodeInterface $node): NodeInterface {
+    $translated = \Drupal::service('entity.repository')->getTranslationFromContext($node);
+    return $translated instanceof NodeInterface ? $translated : $node;
   }
 
   /**

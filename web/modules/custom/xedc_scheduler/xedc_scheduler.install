@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * Enables scheduled publishing on the main node types.
+ */
+
+declare(strict_types=1);
+
+use Drupal\node\Entity\NodeType;
+use Drupal\user\Entity\Role;
+
+/**
+ * Enables publish-on scheduling for photo, article, video and page.
+ */
+function xedc_scheduler_install(): void {
+  $settings = [
+    'expand_fieldset' => 'always',
+    'fields_display_mode' => 'fieldset',
+    'publish_enable' => TRUE,
+    'publish_past_date' => 'error',
+    'publish_past_date_created' => FALSE,
+    'publish_required' => FALSE,
+    'publish_revision' => TRUE,
+    'publish_touch' => FALSE,
+    'show_message_after_update' => TRUE,
+    'unpublish_enable' => FALSE,
+    'unpublish_required' => FALSE,
+    'unpublish_revision' => FALSE,
+  ];
+  $display_repository = \Drupal::service('entity_display.repository');
+  foreach (['photo', 'article', 'video', 'page'] as $bundle) {
+    $type = NodeType::load($bundle);
+    if (!$type) {
+      continue;
+    }
+    foreach ($settings as $key => $value) {
+      $type->setThirdPartySetting('scheduler', $key, $value);
+    }
+    $type->save();
+
+    $display = $display_repository->getFormDisplay('node', $bundle, 'default');
+    $display->setComponent('scheduler_settings', [
+      'weight' => 35,
+      'region' => 'content',
+    ]);
+    $display->setComponent('publish_on', [
+      'type' => 'datetime_timestamp_no_default',
+      'weight' => 52,
+      'region' => 'content',
+      'settings' => [],
+    ]);
+    $display->removeComponent('unpublish_on');
+    $display->save();
+  }
+
+  \Drupal::configFactory()->getEditable('scheduler.settings')
+    ->set('hide_seconds', TRUE)
+    ->set('default_expand_fieldset', 'always')
+    ->set('default_fields_display_mode', 'fieldset')
+    ->save();
+
+  $role = Role::load('content_editor');
+  if ($role) {
+    $role->grantPermission('schedule publishing of nodes');
+    $role->grantPermission('view scheduled content');
+    $role->save();
+  }
+}

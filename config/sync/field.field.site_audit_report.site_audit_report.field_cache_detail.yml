@@ -1,0 +1,25 @@
+uuid: bd45202f-2045-4eb1-8677-8b71e2d7cec7
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_cache_detail
+  module:
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+_core:
+  default_config_hash: Ri-jS8rQnp8TZ0BRwlS2haZtti9vhHc1XD_1v-eRPAc
+id: site_audit_report.site_audit_report.field_cache_detail
+field_name: field_cache_detail
+entity_type: site_audit_report
+bundle: site_audit_report
+label: 缓存说明
+description: 最近一次缓存与性能检查的说明。
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

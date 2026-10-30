@@ -7,5 +7,5 @@ ignore_redirect: false
 ignore_pathauto: false
 ignore_pathauto_node: false
 ignore_pathauto_taxonomy_term: false
-ignore_pathauto_user: false
-ignore_pathauto_media: false
+ignore_pathauto_user: true
+ignore_pathauto_media: true

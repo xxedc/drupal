@@ -1,9 +1,9 @@
 <div class="xm xm-d">
   <div class="xm-hero">
-    {% if avatar %}<img class="xm-avatar" src="{{ avatar }}" alt="">{% endif %}
+    {% if avatar %}<img class="xm-avatar" src="{{ avatar }}" alt="{{ '@name 头像'|t({'@name': name}) }}">{% endif %}
     <div class="xm-meta">
-      <p class="xm-stats"><strong>{{ count }}</strong> 个内容{% if photos %}<i>·</i><strong>{{ photos }}</strong> 张图片{% endif %}</p>
-      {% if aliases %}<div class="xm-alias"><span>又名</span>{% for a in aliases %}<em>{{ a }}</em>{% endfor %}</div>{% endif %}
+      <p class="xm-stats"><strong>{{ count }}</strong> {{ '个内容'|t }}{% if photos %}<i>·</i><strong>{{ photos }}</strong> {{ '张图片'|t }}{% endif %}</p>
+      {% if aliases %}<div class="xm-alias"><span>{{ '又名'|t }}</span>{% for a in aliases %}<em>{{ a }}</em>{% endfor %}</div>{% endif %}
     </div>
   </div>
   <div class="xm-grid-d">

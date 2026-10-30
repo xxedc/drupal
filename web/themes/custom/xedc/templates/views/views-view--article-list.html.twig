@@ -1,8 +1,8 @@
 {{ attach_library('xedc/article-list') }}
 {% set search_form %}
-  <form class="xa-search" action="/articles" method="get" role="search">
+  <form class="xa-search" action="{{ path('view.article_list.page_1') }}" method="get" role="search">
     {% if xa_cat %}<input type="hidden" name="cat" value="{{ xa_cat }}">{% endif %}
-    <input class="xa-input" type="search" name="q" value="{{ xa_q }}" placeholder="搜索文章标题" enterkeyhint="search">
+    <input class="xa-input" type="search" name="q" value="{{ xa_q }}" placeholder="{{ '搜索文章标题'|t }}" enterkeyhint="search">
   </form>
 {% endset %}
 <div class="xa xa-page">
@@ -10,21 +10,21 @@
     <div class="xa-main">
       <div class="xa-toolbar">
         {{ search_form }}
-        <nav class="xa-chips" aria-label="文章分类">
+        <nav class="xa-chips" aria-label="{{ '文章分类'|t }}">
           {% for c in xa_side.cats %}<a class="xa-chip xedc-pill{{ c.active ? ' is-active' : '' }}" href="{{ c.url }}">{{ c.name }}</a>{% endfor %}
         </nav>
       </div>
       {% if rows %}
         <div class="xa-list">{{ rows }}</div>
       {% else %}
-        <p class="xa-muted">暂无文章</p>
+        <p class="xa-muted">{{ '暂无文章'|t }}</p>
       {% endif %}
       {% include "@xedc/templates/views/xa-pager.html.twig" %}
     </div>
     <aside class="xa-side">
       {{ search_form }}
       <section>
-        <h3>分类</h3>
+        <h3>{{ '分类'|t }}</h3>
         <nav class="xa-side__list">
           {% for c in xa_side.cats %}
             <a class="{{ c.active ? 'is-active' : '' }}" href="{{ c.url }}"><span>{{ c.name }}</span><em>{{ c.count }}</em></a>
@@ -33,7 +33,7 @@
       </section>
       {% if xa_side.hot %}
         <section>
-          <h3>热门文章</h3>
+          <h3>{{ '热门文章'|t }}</h3>
           <ol class="xa-side__hot">
             {% for a in xa_side.hot %}<li><a href="{{ a.url }}">{{ a.title }}</a></li>{% endfor %}
           </ol>
@@ -41,7 +41,7 @@
       {% endif %}
       {% if xa_side.tags %}
         <section>
-          <h3>热门标签</h3>
+          <h3>{{ '热门标签'|t }}</h3>
           <div class="xa-side__tags">
             {% for t in xa_side.tags %}<a class="xa-badge xa-badge--outline" href="{{ t.url }}">{{ t.name }}</a>{% endfor %}
           </div>

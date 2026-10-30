@@ -1,3 +1,4 @@
+{{ content|cache_metadata }}
 {{ attach_library('xedc/video-detail') }}
 {{ attach_library('xedc/video-player') }}
 {{ vd_cache }}
@@ -6,7 +7,7 @@
 {% set author = node.owner.entity.displayname.value %}
 <div class="vd-wrap">
   <nav class="vd-crumb">
-    <a href="{{ path('<front>') }}">首页</a><span class="sp">/</span>
+    <a href="{{ path('<front>') }}">{{ '首页'|t }}</a><span class="sp">/</span>
     {% if node.field_categories.0.entity %}<a href="{{ path('entity.taxonomy_term.canonical', {'taxonomy_term': node.field_categories.0.target_id}) }}">{{ node.field_categories.0.entity.label }}</a><span class="sp">/</span>{% endif %}
     <span class="cur">{{ label }}</span>
   </nav>
@@ -14,17 +15,18 @@
     <article{{ attributes.addClass('vd') }}>
       <div class="vd-player">
         {% if vd.type == 'video' or vd.type == 'hls' %}
+          {% if cover %}<img class="vd-poster" src="{{ cover }}" alt="{{ node.label }}"{% if vd.cover_width %} width="{{ vd.cover_width }}" height="{{ vd.cover_height }}"{% endif %} loading="eager" fetchpriority="high" decoding="async">{% endif %}
           <video class="vd-video" playsinline preload="metadata"{% if cover %} poster="{{ cover }}" data-poster="{{ cover }}"{% endif %}{% if vd.type == 'hls' %} data-hls="{{ vd.src }}"{% endif %}>
             {% if vd.type == 'video' %}<source src="{{ vd.src }}"{% if vd.mime %} type="{{ vd.mime }}"{% endif %}>{% endif %}
           </video>
         {% elseif vd.type == 'iframe' %}
           <div class="vd-click" data-embed="{{ vd.src }}">
-            {% if cover %}<img src="{{ cover }}" alt="{{ label }}"{% if vd.cover_width %} width="{{ vd.cover_width }}" height="{{ vd.cover_height }}"{% endif %} loading="eager" fetchpriority="high">{% endif %}
-            <button type="button" class="vd-play" aria-label="播放">▶</button>
+            {% if cover %}<img src="{{ cover }}" alt="{{ node.label }}"{% if vd.cover_width %} width="{{ vd.cover_width }}" height="{{ vd.cover_height }}"{% endif %} loading="eager" fetchpriority="high">{% endif %}
+            <button type="button" class="vd-play" aria-label="{{ '播放'|t }}">▶</button>
           </div>
           <script>document.querySelector('.vd-click').addEventListener('click',function(){var i=document.createElement('iframe');i.src=this.dataset.embed;i.allow='autoplay; fullscreen';i.allowFullscreen=true;i.referrerPolicy='strict-origin-when-cross-origin';this.replaceWith(i)});</script>
         {% elseif cover %}
-          <img src="{{ cover }}" alt="{{ label }}"{% if vd.cover_width %} width="{{ vd.cover_width }}" height="{{ vd.cover_height }}"{% endif %} loading="eager" fetchpriority="high">
+          <img src="{{ cover }}" alt="{{ node.label }}"{% if vd.cover_width %} width="{{ vd.cover_width }}" height="{{ vd.cover_height }}"{% endif %} loading="eager" fetchpriority="high">
         {% endif %}
       </div>
 
@@ -33,7 +35,7 @@
         <div class="vd-meta">
           <span>{{ node.createdtime|date('Y-m-d') }}</span>
           {% if dur %}<span>·</span><span>{{ '%d:%02d'|format(dur // 60, dur % 60) }}</span>{% endif %}
-          {% if node.field_views.value is not empty %}<span>·</span><span>{{ node.field_views.value }} 次播放</span>{% endif %}
+          {% if node.field_views.value is not empty %}<span>·</span><span>{{ '@count 次播放'|t({'@count': node.field_views.value}) }}</span>{% endif %}
           {% if author %}<span>·</span><span>{{ author }}</span>{% endif %}
         </div>
         {% if xedc_member_favorite|default('') %}
@@ -49,7 +51,7 @@
           {% endfor %}
         </div>
         {% endif %}
-        {% if content.field_body|render|trim %}
+        {% if node.field_body.value %}
         <div class="vd-sep"></div>
         <div class="vd-body">{{ content.field_body }}</div>
         {% endif %}
@@ -59,10 +61,10 @@
     <aside class="vd-side">
       {% if vd_latest %}
       <div class="vd-panel">
-        <h3>最新视频</h3>
+        <h3>{{ '最新视频'|t }}</h3>
         {% for v in vd_latest %}
         <a class="vd-mini" href="{{ v.url }}">
-          <span class="th">{% if v.cover %}<img src="{{ v.cover }}" alt="" loading="lazy">{% endif %}</span>
+          <span class="th">{% if v.cover %}<img src="{{ v.cover }}" alt="{{ v.title }}" width="640" height="360" loading="lazy" decoding="async">{% endif %}</span>
           <span class="tt">{{ v.title }}</span>
         </a>
         {% endfor %}
@@ -70,7 +72,7 @@
       {% endif %}
       {% if vd_cats %}
       <div class="vd-panel">
-        <h3>分类栏目</h3>
+        <h3>{{ '分类栏目'|t }}</h3>
         <div class="vd-badges" style="margin:0">
           {% for c in vd_cats %}
             <a class="vd-badge" href="{{ path('entity.taxonomy_term.canonical', {'taxonomy_term': c.tid}) }}">{{ c.name }}</a>
@@ -83,12 +85,12 @@
 
   {% if vd_related %}
   <section class="vd-related">
-    <h2>相关推荐</h2>
+    <h2>{{ '相关推荐'|t }}</h2>
     <div class="vd-grid">
       {% for v in vd_related %}
       <a class="vd-item" href="{{ v.url }}">
         <span class="th">
-          {% if v.cover %}<img src="{{ v.cover }}" alt="" loading="lazy">{% endif %}
+          {% if v.cover %}<img src="{{ v.cover }}" alt="{{ v.title }}" width="640" height="360" loading="lazy" decoding="async">{% endif %}
           <i class="pi"></i>{% if v.dur %}<em>{{ v.dur }}</em>{% endif %}
         </span>
         <span class="tt">{{ v.title }}</span>

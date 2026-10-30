@@ -7,16 +7,16 @@
   <form class="sr-form" action="{{ form_action }}" method="get" role="search">
     <div class="sr-field">
       <span class="sr-field-icon">{{ i_search }}</span>
-      <input class="sr-input" type="search" name="q" value="{{ q }}" placeholder="搜索美图、视频、文章、模特…" autocomplete="off" aria-label="搜索关键词">
-      <button class="sr-clear" type="button" data-sr-clear aria-label="清除关键词"{% if not q %} hidden{% endif %}>{{ i_close }}</button>
-      <button class="sr-submit" type="submit">搜索</button>
+      <input class="sr-input" type="search" name="q" value="{{ q }}" placeholder="{{ '搜索美图、视频、文章、模特…'|t }}" autocomplete="off" aria-label="{{ '搜索关键词'|t }}">
+      <button class="sr-clear" type="button" data-sr-clear aria-label="{{ '清除关键词'|t }}"{% if not q %} hidden{% endif %}>{{ i_close }}</button>
+      <button class="sr-submit" type="submit">{{ '搜索'|t }}</button>
     </div>
     {% if type != 'all' %}<input type="hidden" name="type" value="{{ type }}">{% endif %}
     {% if sort == 'latest' %}<input type="hidden" name="sort" value="latest">{% endif %}
   </form>
 
   <div class="sr-tabs-wrap">
-    <nav class="sr-tabs" aria-label="搜索类型">
+    <nav class="sr-tabs" aria-label="{{ '搜索类型'|t }}">
       {% for tab in tabs %}
         <a class="sr-tab xedc-pill{{ tab.active ? ' is-active' }}" href="{{ tab.url }}">{{ tab.label }}{% if q %}<span class="sr-tab-count">{{ tab.count }}</span>{% endif %}</a>
       {% endfor %}
@@ -24,16 +24,16 @@
   </div>
 
   {% if models %}
-    <section class="sr-models" aria-label="匹配的模特">
+    <section class="sr-models" aria-label="{{ '匹配的模特'|t }}">
       {% for model in models %}
         <a class="sr-model-card" href="{{ model.url }}">
           <span class="sr-model-avatar">
-            {% if model.cover %}<img src="{{ model.cover }}" alt="" loading="lazy">{% else %}<span>{{ model.initial }}</span>{% endif %}
+            {% if model.cover %}<img src="{{ model.cover }}" alt="{{ model.name }}" loading="lazy">{% else %}<span>{{ model.initial }}</span>{% endif %}
           </span>
           <span class="sr-model-info">
-            <span class="sr-model-label">模特</span>
+            <span class="sr-model-label">{{ '模特'|t }}</span>
             <strong class="sr-model-name">{{ model.name_html }}</strong>
-            <span class="sr-model-count">{{ model.count }} 个作品</span>
+            <span class="sr-model-count">{{ '@count 个作品'|t({'@count': model.count}) }}</span>
           </span>
           <span class="sr-model-arrow">{{ i_arrow }}</span>
         </a>
@@ -43,9 +43,9 @@
 
   {% if q %}
     <div class="sr-info">
-      <p class="sr-info-text">找到 <strong>{{ info_count }}</strong> 条与「<mark class="highlight sr-mark">{{ q }}</mark>」相关的结果</p>
+      <p class="sr-info-text">{{ '找到 @count 条与「@query」相关的结果'|t({'@count': info_count, '@query': q}) }}</p>
       {% if type != 'model' %}
-        <div class="sr-sorts" aria-label="排序">
+        <div class="sr-sorts" aria-label="{{ '排序'|t }}">
           {% for item in sorts %}
             <a class="sr-sort xedc-pill{{ item.active ? ' is-active' }}" href="{{ item.url }}">{{ item.label }}</a>
           {% endfor %}
@@ -66,8 +66,8 @@
   {% elseif q %}
     <div class="sr-empty">
       <span class="sr-empty-icon">{{ i_search }}</span>
-      <h2>没有找到「{{ q }}」相关内容</h2>
-      <p>搜索建议：检查是否有错别字，或换一个更短、更常见的关键词试试。</p>
+      <h2>{{ '没有找到「@query」相关内容'|t({'@query': q}) }}</h2>
+      <p>{{ '搜索建议：检查是否有错别字，或换一个更短、更常见的关键词试试。'|t }}</p>
       <div class="sr-empty-actions">
         {% for item in explore %}
           <a class="sr-empty-link" href="{{ item.url }}">{{ item.label }}</a>
@@ -77,8 +77,8 @@
   {% else %}
     <div class="sr-empty">
       <span class="sr-empty-icon">{{ i_search }}</span>
-      <h2>搜索美图、视频、文章和模特</h2>
-      <p>输入模特名、作品标题或关键词，开始发现内容。</p>
+      <h2>{{ '搜索美图、视频、文章和模特'|t }}</h2>
+      <p>{{ '输入模特名、作品标题或关键词，开始发现内容。'|t }}</p>
       <div class="sr-empty-actions">
         {% for item in explore %}
           <a class="sr-empty-link" href="{{ item.url }}">{{ item.label }}</a>
@@ -86,7 +86,7 @@
       </div>
       {% if hot_models %}
         <div class="sr-hot">
-          <span class="sr-hot-title">热门模特</span>
+          <span class="sr-hot-title">{{ '热门模特'|t }}</span>
           {% for model in hot_models %}
             <a class="sr-hot-link" href="{{ model.url }}">{{ model.name }}<span>{{ model.count }}</span></a>
           {% endfor %}

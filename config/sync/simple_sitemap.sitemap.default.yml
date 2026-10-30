@@ -8,6 +8,6 @@ _core:
   default_config_hash: rzLPapRSW-bgTs4MObzlqsqwj5IxPGO9EQZolw2ZzFc
 id: default
 label: 默认
-description: 'The default hreflang sitemap - lists URLs to be indexed by modern search engines.'
+description: '默认的 hreflang 站点地图 - 列出由现代搜索引擎索引的 URL。'
 type: default_hreflang
 weight: 0

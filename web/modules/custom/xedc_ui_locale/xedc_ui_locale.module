@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * Detects missing Simplified Chinese UI strings after module install.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Installer\InstallerKernel;
+
+/**
+ * Implements hook_modules_installed().
+ */
+function xedc_ui_locale_modules_installed(array $modules): void {
+  if (InstallerKernel::installationAttempted()) {
+    return;
+  }
+  $pending = \Drupal::state()->get('xedc_ui_locale.pending', []);
+  \Drupal::state()->set('xedc_ui_locale.pending', array_values(array_unique(array_merge($pending, $modules))));
+  try {
+    \Drupal::service('xedc_ui_locale.filler')->fill($modules);
+  }
+  catch (\Throwable $e) {
+    \Drupal::logger('xedc_ui_locale')->error('安装后补全界面翻译失败：@message。请执行 drush xedc:ui-translate。', [
+      '@message' => $e->getMessage(),
+    ]);
+  }
+}

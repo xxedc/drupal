@@ -17,8 +17,16 @@ regions:
   page_bottom: 'Page bottom'
   footer: Footer
 libraries:
-  - xedc/legal
   - xedc/style
+libraries-override:
+  # jQuery is dropped in xedc_library_info_alter(); libraries-override cannot
+  # remove a dependency that is stored as a list.
+  matomo/matomo:
+    js:
+      js/matomo.js: js/matomo-lite.js
+  statistics/drupal.statistics:
+    js:
+      statistics.js: js/statistics-lite.js
 ckeditor5-stylesheets:
   - build/css/main.style.css
 version: 6.0.9

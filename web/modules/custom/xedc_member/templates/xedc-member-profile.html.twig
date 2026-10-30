@@ -1,7 +1,7 @@
 <header class="xm-head">
   <div>
-    <h1 class="xm-title">个人资料</h1>
-    <p class="xm-sub">头像、昵称和个人主页。</p>
+    <h1 class="xm-title">{{ '个人资料'|t }}</h1>
+    <p class="xm-sub">{{ '头像、昵称和个人主页。'|t }}</p>
   </div>
 </header>
 
@@ -9,12 +9,12 @@
   <div class="xm-profile-hero">
     <label class="xm-profile-avatar" for="xm-avatar-input">
       {% if avatar %}{{ avatar }}{% else %}<span class="xm-profile-avatar__letter">{{ account.initial }}</span>{% endif %}
-      <span class="xm-profile-avatar__edit">更换</span>
+      <span class="xm-profile-avatar__edit">{{ '更换'|t }}</span>
     </label>
     <div class="xm-profile-hero__meta">
       <strong>{{ account.name }}</strong>
       <span>{{ account.username }}</span>
-      <span>点击头像更换，JPG/PNG/WebP，2MB 以内</span>
+      <span>{{ '点击头像更换，JPG/PNG/WebP，2MB 以内'|t }}</span>
     </div>
   </div>
   {{ form }}

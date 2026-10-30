@@ -5,7 +5,7 @@ dependencies: {  }
 _core:
   default_config_hash: mTkzVdGxA2hF-_Nwrt8wHOU9fd5EGt6YKCDF2eIlOgw
 id: yep
-label: Yep
+label: 是的
 url: null
 index_now_url: 'https://indexnow.yep.com/indexnow?url=[url]&key=[key]'
 sitemap_variants: {  }

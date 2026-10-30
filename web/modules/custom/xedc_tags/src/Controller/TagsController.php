@@ -54,7 +54,7 @@ class TagsController extends ControllerBase {
 
   public function termTitle(RouteMatchInterface $route_match) {
     $term = $this->termFromRoute($route_match);
-    return $term ? $term->label() : '';
+    return $term ? \Drupal::service('entity.repository')->getTranslationFromContext($term)->label() : '';
   }
 
   /**
@@ -136,7 +136,7 @@ class TagsController extends ControllerBase {
     return [
       'page' => [
         '#theme' => 'xedc_tags_term',
-        '#term_name' => $term->label(),
+        '#term_name' => \Drupal::service('entity.repository')->getTranslationFromContext($term)->label(),
         '#total' => $total,
         '#items' => $items,
         '#sort' => $sort,
@@ -150,8 +150,8 @@ class TagsController extends ControllerBase {
       ],
       'pager' => ['#type' => 'pager', '#quantity' => 5],
       '#cache' => [
-        'contexts' => ['url.query_args'],
-        'tags' => ['node_list', 'taxonomy_term:' . $tid],
+        'contexts' => ['url.query_args', 'languages:language_interface', 'languages:language_content'],
+        'tags' => ['node_list:photo', 'node_list:article', 'node_list:video', 'taxonomy_term:' . $tid],
       ],
     ];
   }
@@ -184,13 +184,14 @@ class TagsController extends ControllerBase {
     }
 
     $tags = [];
+    $repository = \Drupal::service('entity.repository');
     foreach ($terms as $tid => $term) {
       if (empty($stats[$tid])) {
         continue;
       }
       $cnt = (int) $stats[$tid]->cnt;
       $tags[] = [
-        'name' => $term->label(),
+        'name' => $repository->getTranslationFromContext($term)->label(),
         'url' => $term->toUrl()->toString(),
         'count' => $cnt,
         'latest' => (int) $stats[$tid]->latest,
@@ -206,15 +207,19 @@ class TagsController extends ControllerBase {
       '#total_items' => $totalItems,
       '#home_url' => Url::fromRoute('<front>')->toString(),
       '#attached' => ['library' => ['xedc_tags/xedc_tags']],
-      '#cache' => ['tags' => ['node_list', 'taxonomy_term_list']],
+      '#cache' => [
+        'tags' => ['node_list:photo', 'node_list:article', 'node_list:video', 'taxonomy_term_list:tags'],
+        'contexts' => ['languages:language_interface', 'languages:language_content'],
+      ],
     ];
   }
 
   protected function card(NodeInterface $n): array {
+    $n = \Drupal::service('entity.repository')->getTranslationFromContext($n);
     $cat = '';
     if ($n->hasField('field_categories') && !$n->get('field_categories')->isEmpty()) {
       $e = $n->get('field_categories')->entity;
-      $cat = $e ? $e->label() : '';
+      $cat = $e ? \Drupal::service('entity.repository')->getTranslationFromContext($e)->label() : '';
     }
     return [
       'title' => $n->label(),
@@ -243,7 +248,12 @@ class TagsController extends ControllerBase {
         continue;
       }
       $uri = $file->getFileUri();
-      $style = ImageStyle::load('large');
+      $style_name = match ($n->bundle()) {
+        'photo' => 'meitu_card_cover',
+        'video' => 'video_cover',
+        default => 'xa_cover',
+      };
+      $style = ImageStyle::load($style_name) ?: ImageStyle::load('medium');
       return $style ? $style->buildUrl($uri) : $this->fug->generateString($uri);
     }
     return '';

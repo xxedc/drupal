@@ -1,0 +1,23 @@
+uuid: f446a606-23bc-4087-bd52-71dd543eacb4
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_meta_detail
+  module:
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+id: site_audit_report.site_audit_report.field_meta_detail
+field_name: field_meta_detail
+entity_type: site_audit_report
+bundle: site_audit_report
+label: '元数据说明'
+description: '最近一次标题和描述检查的说明。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

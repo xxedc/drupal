@@ -1,0 +1,11 @@
+uuid: 81c2d3e4-f506-4789-a012-bbccddeeff01
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: xedc_models.detail
+label: 模特详情
+tags:
+  title: '[current-page:title] 作品 | [site:name]'
+  description: '[current-page:title] 的图片与视频作品合集，在 DcLili 浏览。'
+  canonical_url: '[current-page:url]'
+  robots: 'index, follow, max-image-preview:large'

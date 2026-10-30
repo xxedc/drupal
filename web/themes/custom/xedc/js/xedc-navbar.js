@@ -3,14 +3,22 @@
   function qa(s, r) { return Array.prototype.slice.call((r || d).querySelectorAll(s)); }
 
   // 主题
-  function setTheme(t) {
+  function setTheme(t, persist) {
     h.setAttribute('data-bs-theme', t); h.setAttribute('data-theme', t);
-    try { localStorage.setItem('theme', t); } catch (e) {}
+    if (persist) {
+      try { localStorage.setItem('theme', t); } catch (e) {}
+    }
   }
-  try { var s = localStorage.getItem('theme'); if (s === 'dark' || s === 'light') setTheme(s); } catch (e) {}
+  try {
+    var s = localStorage.getItem('theme');
+    if (s !== 'dark' && s !== 'light') {
+      s = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    setTheme(s, false);
+  } catch (e) {}
   qa('[data-xn-theme]').forEach(function (b) {
     b.addEventListener('click', function () {
-      setTheme(h.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+      setTheme(h.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark', true);
     });
   });
 
@@ -48,11 +56,41 @@
       e.stopPropagation();
       var on = !dd.classList.contains('open');
       closeDD();
+      closeLang();
       if (on) { dd.classList.add('open'); b.setAttribute('aria-expanded', 'true'); }
     });
   });
-  d.addEventListener('click', function (e) { if (!e.target.closest('.xn-dd')) closeDD(); });
-  d.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeSheet(); closeDD(); } });
+
+  var langs = qa('.xn-lang');
+  function closeLang() {
+    langs.forEach(function (el) { setLangOpen(el, false); });
+  }
+  function setLangOpen(el, on) {
+    var langBtn = el.querySelector('.xn-lang-btn');
+    var langMenu = el.querySelector('.xn-lang-menu');
+    var sheetLang = el.classList.contains('xn-lang--sheet');
+    el.classList.toggle('open', on);
+    if (langBtn) langBtn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (!langMenu) return;
+    langMenu.setAttribute('aria-hidden', on ? 'false' : 'true');
+    if (!sheetLang) langMenu.hidden = !on;
+  }
+  langs.forEach(function (el) {
+    var langBtn = el.querySelector('.xn-lang-btn');
+    if (!langBtn) return;
+    langBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var on = !el.classList.contains('open');
+      closeLang();
+      closeDD();
+      if (on) setLangOpen(el, true);
+    });
+  });
+  d.addEventListener('click', function (e) {
+    if (!e.target.closest('.xn-dd')) closeDD();
+    if (!e.target.closest('.xn-lang')) closeLang();
+  });
+  d.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeSheet(); closeDD(); closeLang(); } });
   window.addEventListener('resize', function () { if (window.innerWidth >= 992) closeSheet(); });
 
   // 手机搜索

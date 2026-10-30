@@ -1,0 +1,26 @@
+uuid: f9c7f713-8b5b-4d20-bbab-57d21a436913
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_translation
+  module:
+    - options
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+_core:
+  default_config_hash: OhaxWRz_7jC7pAU0p9k1_6S1eZ37e3bQAKCCpzt34eM
+id: site_audit_report.site_audit_report.field_translation
+field_name: field_translation
+entity_type: site_audit_report
+bundle: site_audit_report
+label: 内容翻译状态
+description: 已发布节点，以及模特、图片分类、文章分类、视频分类在非默认语言中的翻译比例。
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

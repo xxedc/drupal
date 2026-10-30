@@ -1,0 +1,157 @@
+uuid: 272d1405-7bde-41b9-b2de-c777fb77ecf0
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.field.site_audit_report.site_audit_report.field_cache_detail
+    - field.field.site_audit_report.site_audit_report.field_cache_status
+    - field.field.site_audit_report.site_audit_report.field_content_bundles
+    - field.field.site_audit_report.site_audit_report.field_image_alt
+    - field.field.site_audit_report.site_audit_report.field_image_alt_detail
+    - field.field.site_audit_report.site_audit_report.field_meta_detail
+    - field.field.site_audit_report.site_audit_report.field_meta_tags
+    - field.field.site_audit_report.site_audit_report.field_sitemap
+    - field.field.site_audit_report.site_audit_report.field_sitemap_detail
+    - field.field.site_audit_report.site_audit_report.field_translation
+    - field.field.site_audit_report.site_audit_report.field_translation_detail
+    - field.field.site_audit_report.site_audit_report.field_url_alias
+    - field.field.site_audit_report.site_audit_report.field_url_alias_detail
+  module:
+    - site_audit_report_entity
+_core:
+  default_config_hash: UFm4RDookFgzJCbFMj7lcEBtW7EOvn2SZbRvOZKqvXs
+id: site_audit_report.site_audit_report.default
+targetEntityType: site_audit_report
+bundle: site_audit_report
+mode: default
+content:
+  created:
+    type: datetime_timestamp
+    weight: 21
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_cache_detail:
+    type: string_textarea
+    weight: 9
+    region: content
+    settings:
+      rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  field_cache_status:
+    type: options_select
+    weight: 8
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_content_bundles:
+    type: string_textfield
+    weight: -8
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_image_alt:
+    type: options_select
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_image_alt_detail:
+    type: string_textarea
+    weight: 1
+    region: content
+    settings:
+      rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  field_meta_detail:
+    type: string_textarea
+    weight: 3
+    region: content
+    settings:
+      rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  field_meta_tags:
+    type: options_select
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_sitemap:
+    type: options_select
+    weight: 6
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_sitemap_detail:
+    type: string_textarea
+    weight: 7
+    region: content
+    settings:
+      rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  field_translation:
+    type: options_select
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_translation_detail:
+    type: string_textarea
+    weight: 11
+    region: content
+    settings:
+      rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  field_url_alias:
+    type: options_select
+    weight: 4
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_url_alias_detail:
+    type: string_textarea
+    weight: 5
+    region: content
+    settings:
+      rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  label:
+    type: string_textfield
+    weight: -10
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  site_title:
+    type: string_textfield
+    weight: -9
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  uid:
+    type: entity_reference_autocomplete
+    weight: 20
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  data: true
+  hostname: true
+  langcode: true
+  site_uuid: true
+  uri: true

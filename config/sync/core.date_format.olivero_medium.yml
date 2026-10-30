@@ -10,4 +10,4 @@ _core:
 id: olivero_medium
 label: Olivero中等
 locked: false
-pattern: 'j F Y'
+pattern: Y年n月j日

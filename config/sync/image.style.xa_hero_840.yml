@@ -1,0 +1,21 @@
+uuid: e5b294d6-6885-4cad-bf7a-a4e348bf503a
+langcode: zh-hans
+status: true
+dependencies: {  }
+name: xa_hero_840
+label: 'XA hero 840'
+effects:
+  7e14f25f-c718-4b86-b8ab-2be2ad1b3a9e:
+    uuid: 7e14f25f-c718-4b86-b8ab-2be2ad1b3a9e
+    id: image_scale
+    weight: 1
+    data:
+      width: 840
+      height: null
+      upscale: false
+  6a68ebbd-a37a-4d7d-8b27-ce8417df905b:
+    uuid: 6a68ebbd-a37a-4d7d-8b27-ce8417df905b
+    id: image_convert
+    weight: 2
+    data:
+      extension: webp

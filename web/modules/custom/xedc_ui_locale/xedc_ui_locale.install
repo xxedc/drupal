@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Keeps existing Simplified Chinese interface translations in place.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Stops locale updates from replacing translations that are already stored.
+ */
+function xedc_ui_locale_install(): void {
+  \Drupal::configFactory()->getEditable('locale.settings')
+    ->set('translation.overwrite_customized', FALSE)
+    ->set('translation.overwrite_not_customized', FALSE)
+    ->save();
+}

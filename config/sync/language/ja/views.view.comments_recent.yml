@@ -1,0 +1,9 @@
+display:
+  default:
+    display_title: デフォルト
+    display_options:
+      empty:
+        area_text_custom:
+          content: コメントはありません。
+  block_1:
+    display_title: ブロック

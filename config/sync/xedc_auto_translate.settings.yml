@@ -1,0 +1,25 @@
+_core:
+  default_config_hash: BCrEy0XeJamUQ3EmGSaHb_V7eHZb2Xpo6AG_lIYoJZk
+enabled: true
+source_langcode: zh-hans
+provider: deepl
+microsoft_region: global
+microsoft_endpoint: ''
+deepl_endpoint: auto
+overwrite: false
+save_as: published
+targets:
+  en: en
+  ru: ru
+  ja: ja
+bundles:
+  - node.photo
+  - node.article
+  - node.video
+  - node.page
+  - taxonomy_term.photo_category
+  - taxonomy_term.article_category
+  - taxonomy_term.video_category
+  - taxonomy_term.models
+  - taxonomy_term.tags
+  - menu_link_content.menu_link_content

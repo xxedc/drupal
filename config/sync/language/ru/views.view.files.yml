@@ -1,0 +1,75 @@
+label: Файлы
+display:
+  default:
+    display_title: 'По умолчанию'
+    display_options:
+      title: Файлы
+      fields:
+        filename:
+          label: Название
+          separator: ', '
+        status:
+          label: Статус
+          settings:
+            format_custom_false: Временный
+            format_custom_true: Постоянный
+        changed:
+          label: 'Дата изменения'
+        count:
+          label: 'Используется в'
+        operations:
+          label: Операции
+      pager:
+        options:
+          tags:
+            next: 'Следующая ›'
+            previous: '‹ Предыдущая'
+          expose:
+            items_per_page_label: 'Элементов на страницу'
+            items_per_page_options_all_label: '- Все -'
+            offset_label: Пропустить
+      exposed_form:
+        options:
+          submit_button: Фильтр
+          reset_button_label: Сбросить
+          exposed_sorts_label: 'Сортировать по'
+          sort_asc_label: 'По возрастанию'
+          sort_desc_label: 'По убыванию'
+      filters:
+        filename:
+          expose:
+            label: 'Имя файла'
+        filemime:
+          expose:
+            label: MIME-тип
+        status:
+          expose:
+            label: Статус
+  page_1:
+    display_options:
+      menu:
+        title: Файлы
+  page_2:
+    display_title: 'Использование файла'
+    display_options:
+      title: 'Использование файла'
+      fields:
+        entity_label:
+          label: Сущность
+        type:
+          label: 'Тип сущности'
+        count:
+          label: 'Используемое количество'
+      pager:
+        options:
+          tags:
+            next: 'Следующая ›'
+            previous: '‹ Предыдущая'
+          expose:
+            items_per_page_label: 'Элементов на страницу'
+            items_per_page_options_all_label: '- Все -'
+            offset_label: Пропустить
+      arguments:
+        fid:
+          exception:
+            title: Все

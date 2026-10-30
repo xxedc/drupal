@@ -1,12 +1,12 @@
-<h1 class="visually-hidden">XEDC - 精选美图、视频与优质文章</h1>
+<h1 class="visually-hidden">{{ 'DcLili - 精选美图、视频与优质文章'|t }}</h1>
 {% if home_slides %}
-<section class="xedc-hero{{ home_slides|length < 2 ? ' is-single' : '' }}" data-xedc-hero aria-roledescription="carousel" aria-label="首页轮播">
+<section class="xedc-hero{{ home_slides|length < 2 ? ' is-single' : '' }}" data-xedc-hero aria-roledescription="carousel" aria-label="{{ '首页轮播'|t }}">
   <div class="xedc-hero__track">
     {% for item in home_slides %}
       <a class="xedc-hero__slide" href="{{ item.url }}">
         {% if item.img %}
           {# 不输出 width/height：拖动时部分浏览器会按原图比例把图片缩窄，两侧露出底色。 #}
-          <img src="{{ item.img }}" alt="{{ item.title }}" draggable="false" loading="{{ loop.first ? 'eager' : 'lazy' }}"{% if loop.first %} fetchpriority="high"{% endif %} decoding="async">
+          <img src="{{ item.img }}"{% if item.srcset %} srcset="{{ item.srcset }}" sizes="(min-width: 1200px) 1200px, 100vw"{% endif %} alt="{{ item.title }}" draggable="false" loading="{{ loop.first ? 'eager' : 'lazy' }}"{% if loop.first %} fetchpriority="high"{% endif %} decoding="async">
         {% endif %}
         <span class="xedc-hero__shade" aria-hidden="true"></span>
         <span class="xedc-hero__caption">
@@ -17,15 +17,15 @@
     {% endfor %}
   </div>
   {% if home_slides|length > 1 %}
-    <button type="button" class="xedc-hero__nav xedc-hero__nav--prev" aria-label="上一张">
+    <button type="button" class="xedc-hero__nav xedc-hero__nav--prev" aria-label="{{ '上一张'|t }}">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.5 6.5 9 12l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <button type="button" class="xedc-hero__nav xedc-hero__nav--next" aria-label="下一张">
+    <button type="button" class="xedc-hero__nav xedc-hero__nav--next" aria-label="{{ '下一张'|t }}">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.5 6.5 15 12l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div class="xedc-hero__dots">
       {% for item in home_slides %}
-        <button type="button" class="xedc-hero__dot{{ loop.first ? ' is-active' : '' }}" aria-label="第{{ loop.index }}张" {% if loop.first %}aria-current="true"{% else %}aria-current="false"{% endif %}></button>
+        <button type="button" class="xedc-hero__dot{{ loop.first ? ' is-active' : '' }}" aria-label="{{ '第 @index 张'|t({'@index': loop.index}) }}" {% if loop.first %}aria-current="true"{% else %}aria-current="false"{% endif %}></button>
       {% endfor %}
     </div>
   {% endif %}
@@ -38,7 +38,7 @@
 {% if home_photos %}
 <section class="xedc-section">
   {{ attach_library('xedc/meitu-card') }}
-  <div class="xedc-section__head"><h2>最新美图</h2><a href="/meitu">查看更多 ›</a></div>
+  <div class="xedc-section__head"><h2>{{ '最新美图'|t }}</h2><a href="{{ xedc_href.meitu|default('/meitu') }}">{{ '查看更多'|t }} ›</a></div>
   <div class="meitu-grid">
   {% for item in home_photos %}
     {% include '@xedc/templates/includes/meitu-card.html.twig' with {
@@ -59,14 +59,14 @@
 {% endif %}
 {% if home_videos %}
 <section class="xedc-section">
-  <div class="xedc-section__head"><h2>热门视频</h2><a href="/video">查看更多 ›</a></div>
+  <div class="xedc-section__head"><h2>{{ '热门视频'|t }}</h2><a href="{{ xedc_href.video|default('/video') }}">{{ '查看更多'|t }} ›</a></div>
   <div class="xedc-grid xedc-grid--video">
   {% for item in home_videos %}
     <article class="xedc-card">
       <a href="{{ item.url }}">
         <span class="xedc-card__media">
           {% if item.img %}
-            <img src="{{ item.img }}" alt="{{ item.title }}"{% if item.width %} width="{{ item.width }}" height="{{ item.height }}"{% endif %} loading="lazy">
+            <img src="{{ item.img }}" alt="{{ item.title }}"{% if item.width %} width="{{ item.width }}" height="{{ item.height }}"{% endif %} loading="lazy" decoding="async">
           {% endif %}
           <span class="xedc-play" aria-hidden="true"></span>
           {% if item.duration %}
@@ -82,11 +82,11 @@
 {% endif %}
 {% if home_articles %}
 <section class="xedc-section">
-  <div class="xedc-section__head"><h2>最新文章</h2><a href="/articles">查看更多 ›</a></div>
+  <div class="xedc-section__head"><h2>{{ '最新文章'|t }}</h2><a href="{{ xedc_href.articles|default('/articles') }}">{{ '查看更多'|t }} ›</a></div>
   <div class="xedc-articles">
   {% for item in home_articles %}
     <a class="xedc-article" href="{{ item.url }}">
-      {% if item.img %}<img src="{{ item.img }}" alt="" {% if item.width %}width="{{ item.width }}" height="{{ item.height }}"{% endif %} loading="lazy">{% endif %}
+      {% if item.img %}<img src="{{ item.img }}" alt="{{ item.title }}" {% if item.width %}width="{{ item.width }}" height="{{ item.height }}"{% endif %} loading="lazy" decoding="async">{% endif %}
       <span class="xedc-article__body">
         <span class="xedc-card__title">{{ item.title }}</span>
         {% if item.summary %}<span class="xedc-article__summary">{{ item.summary }}</span>{% endif %}

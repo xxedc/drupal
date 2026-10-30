@@ -4,7 +4,7 @@ xa_views.hit:
     _controller: '\Drupal\xa_views\Controller\Hit::hit'
   methods: [POST]
   requirements:
-    _access: 'TRUE'
+    _permission: 'access content'
     nid: '\d+'
   options:
     no_cache: TRUE

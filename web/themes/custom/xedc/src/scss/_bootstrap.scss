@@ -18,26 +18,23 @@
 @import "~bootstrap/scss/buttons";
 @import "~bootstrap/scss/transitions";
 @import "~bootstrap/scss/dropdown";
-@import "~bootstrap/scss/button-group";
 @import "~bootstrap/scss/nav";
-@import "~bootstrap/scss/navbar"; // Requires nav
 @import "~bootstrap/scss/card";
 @import "~bootstrap/scss/breadcrumb";
-@import "~bootstrap/scss/accordion";
 @import "~bootstrap/scss/pagination";
-@import "~bootstrap/scss/badge";
 @import "~bootstrap/scss/alert";
-@import "~bootstrap/scss/progress";
-@import "~bootstrap/scss/list-group";
 @import "~bootstrap/scss/close";
-@import "~bootstrap/scss/toasts";
-@import "~bootstrap/scss/modal"; // Requires transitions
-@import "~bootstrap/scss/tooltip";
-@import "~bootstrap/scss/popover";
-@import "~bootstrap/scss/carousel";
-@import "~bootstrap/scss/spinners";
-@import "~bootstrap/scss/offcanvas"; // Requires transitions
+// accordion, toasts, modal, tooltip, popover, carousel, spinners and offcanvas
+// are not used by the public templates (custom nav, hero, dialogs and alerts).
 // @import '~bootstrap/scss/placeholders'; // Causes issues with drupal, currently buggy - uncomment if needed
+
+// Base utility classes stay (py-5, mb-3, d-flex, …). Responsive and print
+// copies are not used; column breakpoints remain in the grid component.
+@each $key, $utility in $utilities {
+  @if type-of($utility) == "map" {
+    $utilities: map-merge($utilities, ($key: map-merge($utility, (responsive: false, print: false))));
+  }
+}
 
 // Utilities
 @import "~bootstrap/scss/utilities/api";

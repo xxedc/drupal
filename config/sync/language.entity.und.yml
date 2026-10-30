@@ -7,5 +7,5 @@ _core:
 id: und
 label: 未指定
 direction: ltr
-weight: 2
+weight: 4
 locked: true

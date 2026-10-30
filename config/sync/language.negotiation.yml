@@ -7,7 +7,11 @@ url:
   prefixes:
     zh-hans: ''
     en: en
+    ru: ru
+    ja: ja
   domains:
     zh-hans: ''
     en: ''
+    ru: ''
+    ja: ''
 selected_langcode: site_default

@@ -1,0 +1,13 @@
+services:
+  xedc_audit.exporter:
+    class: Drupal\xedc_audit\AuditReportExporter
+    public: true
+    arguments:
+      - '@audit.runner'
+      - '@plugin.manager.audit_analyzer'
+      - '@logger.factory'
+
+  xedc_audit.overview_subscriber:
+    class: Drupal\xedc_audit\EventSubscriber\AuditOverviewSubscriber
+    tags:
+      - { name: event_subscriber }

@@ -15,11 +15,14 @@ dependencies:
     - field.field.node.article.field_tags
     - field.field.node.article.field_views
     - node.type.article
+    - workflows.workflow.xedc_editorial
   module:
+    - content_moderation
     - datetime
     - link
     - media_library
     - path
+    - scheduler
     - text
 id: node.article.default
 targetEntityType: node
@@ -126,9 +129,36 @@ content:
     settings:
       include_locked: true
     third_party_settings: {  }
+  moderation_state:
+    type: moderation_state_default
+    weight: 100
+    region: content
+    settings: {  }
+    third_party_settings: {  }
   path:
     type: path
     weight: 30
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  publish_on:
+    type: datetime_timestamp_no_default
+    weight: 52
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  scheduler_settings:
+    weight: 35
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  simple_sitemap:
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  simple_sitemap_index_now:
+    weight: 130
     region: content
     settings: {  }
     third_party_settings: {  }
@@ -165,3 +195,4 @@ content:
 hidden:
   promote: true
   sticky: true
+  unpublish_on: true

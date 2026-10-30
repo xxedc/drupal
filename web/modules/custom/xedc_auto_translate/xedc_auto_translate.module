@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Translates Chinese content the first time it is published.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function xedc_auto_translate_entity_insert(EntityInterface $entity): void {
+  _xedc_auto_translate_on_save($entity);
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function xedc_auto_translate_entity_update(EntityInterface $entity): void {
+  _xedc_auto_translate_on_save($entity);
+}
+
+/**
+ * Runs automatic translation after the source entity has been stored.
+ */
+function _xedc_auto_translate_on_save(EntityInterface $entity): void {
+  if (!$entity instanceof ContentEntityInterface || !$entity->isDefaultTranslation()) {
+    return;
+  }
+  try {
+    \Drupal::service('xedc_auto_translate.translator')->translateEntity($entity);
+  }
+  catch (\Throwable $e) {
+    \Drupal::logger('xedc_auto_translate')->error('@message', ['@message' => $e->getMessage()]);
+  }
+}

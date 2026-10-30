@@ -2,7 +2,7 @@
 {% if sr %}
 <a class="sr-card" href="{{ url }}">
   <div class="sr-cover">
-    {% if sr.cover %}<img src="{{ sr.cover }}" alt="" loading="lazy">{% else %}<span class="sr-ph">{{ sr.type_label }}</span>{% endif %}
+    {% if sr.cover %}<img src="{{ sr.cover }}" alt="{{ sr.title_html|striptags }}" loading="lazy">{% else %}<span class="sr-ph">{{ sr.type_label }}</span>{% endif %}
     <span class="sr-type">{{ sr.type_label }}</span>
     {% if sr.type == 'video' %}<span class="sr-play"></span>{% if sr.duration %}<span class="sr-dur">{{ sr.duration }}</span>{% endif %}{% endif %}
   </div>

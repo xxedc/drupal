@@ -17,6 +17,16 @@ config_expectations:
     operator: '='
     value: 'true'
   -
+    config: system.performance
+    key: css.compress
+    operator: '='
+    value: 'true'
+  -
+    config: system.performance
+    key: js.compress
+    operator: '='
+    value: 'true'
+  -
     config: system.logging
     key: error_level
     operator: '='
@@ -26,6 +36,13 @@ required_modules:
   - dynamic_page_cache
   - big_pipe
   - update
+  - image
+  - media
+  - responsive_image
+  - metatag
+  - pathauto
+  - simple_sitemap
+  - redirect
 forbidden_modules:
   - devel
   - devel_generate

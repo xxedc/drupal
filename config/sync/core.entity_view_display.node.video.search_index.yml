@@ -1,0 +1,48 @@
+uuid: de46a1d2-833a-48ed-b14d-9950c3453c96
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.search_index
+    - field.field.node.video.field_body
+    - field.field.node.video.field_categories
+    - field.field.node.video.field_tags
+    - node.type.video
+  module:
+    - text
+    - user
+id: node.video.search_index
+targetEntityType: node
+bundle: video
+mode: search_index
+content:
+  field_body:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_categories:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_tags:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+hidden:
+  field_duration: true
+  field_video_cover: true
+  field_video_file: true
+  field_video_url: true
+  langcode: true
+  links: true

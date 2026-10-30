@@ -1,0 +1,110 @@
+<?php
+
+/**
+ * @file
+ * SEO checks and sitemap URL fixes for DcLili.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Url;
+use Drupal\simple_sitemap\Entity\SimpleSitemapInterface;
+
+/**
+ * Implements hook_entity_presave().
+ *
+ * Copies the latest SEO check into the report fields shown on Manage fields.
+ */
+function xedc_site_audit_site_audit_report_presave(EntityInterface $entity): void {
+  if (!$entity->hasField('field_image_alt')) {
+    return;
+  }
+  /** @var \Drupal\xedc_site_audit\AuditChecker $checker */
+  $checker = \Drupal::service('xedc_site_audit.checker');
+  foreach ($checker->all() as $result) {
+    $entity->set($result['field'], $result['value']);
+    $entity->set($result['detail'], $result['message']);
+  }
+  if ($entity->hasField('field_content_bundles')) {
+    $entity->set('field_content_bundles', 'photo, article, video, page, models, photo_category, article_category, video_category');
+  }
+}
+
+/**
+ * Implements hook_simple_sitemap_links_alter().
+ *
+ * Model pages are served by /models/{id}. Sitemap entries for that vocabulary
+ * follow the same path, and alias terms that redirect are left out.
+ */
+function xedc_site_audit_simple_sitemap_links_alter(array &$links, SimpleSitemapInterface $sitemap): void {
+  $alias_of = [];
+  $definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('taxonomy_term');
+  if (isset($definitions['field_alias_of'])) {
+    // Sitemap generation must see every alias term, including unpublished
+    // ones, or those terms would stay in the sitemap. accessCheck(FALSE)
+    // matches the previous field-table read.
+    $ids = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->getQuery()
+      ->accessCheck(FALSE)
+      ->exists('field_alias_of')
+      ->range(0, 500)
+      ->execute();
+    $alias_of = array_flip(array_map('intval', $ids));
+  }
+
+  foreach ($links as $key => &$link) {
+    $info = $link['meta']['entity_info'] ?? NULL;
+    if (!is_array($info) || ($info['entity_type'] ?? '') !== 'taxonomy_term' || ($info['bundle'] ?? '') !== 'models') {
+      continue;
+    }
+    $id = (int) ($info['id'] ?? 0);
+    if ($id < 1 || isset($alias_of[$id])) {
+      unset($links[$key]);
+      continue;
+    }
+    $replacement = _xedc_site_audit_models_url((string) ($link['url'] ?? ''), $id);
+    if ($replacement === '') {
+      continue;
+    }
+    $previous = (string) ($link['url'] ?? '');
+    $link['url'] = $replacement;
+    $link['meta']['path'] = 'models/' . $id;
+    if (!empty($link['alternate_urls']) && is_array($link['alternate_urls'])) {
+      foreach ($link['alternate_urls'] as $langcode => $alternate) {
+        if ((string) $alternate === $previous) {
+          $link['alternate_urls'][$langcode] = $replacement;
+        }
+        else {
+          $rewritten = _xedc_site_audit_models_url((string) $alternate, $id);
+          if ($rewritten !== '') {
+            $link['alternate_urls'][$langcode] = $rewritten;
+          }
+        }
+      }
+    }
+  }
+  unset($link);
+}
+
+/**
+ * Rewrites a taxonomy term URL to the public model route, keeping its prefix.
+ */
+function _xedc_site_audit_models_url(string $url, int $id): string {
+  $parts = parse_url($url);
+  if ($parts === FALSE || empty($parts['scheme']) || empty($parts['host'])) {
+    try {
+      return Url::fromRoute('xedc_models.detail', ['taxonomy_term' => $id], ['absolute' => TRUE])->toString();
+    }
+    catch (\Throwable $e) {
+      return '';
+    }
+  }
+  $path = $parts['path'] ?? '';
+  $public = preg_replace('#(?:^|/)taxonomy/term/' . $id . '$#', '/models/' . $id, $path);
+  if (!is_string($public) || $public === $path) {
+    $public = '/models/' . $id;
+  }
+  $origin = $parts['scheme'] . '://' . $parts['host'];
+  if (!empty($parts['port'])) {
+    $origin .= ':' . $parts['port'];
+  }
+  return $origin . $public;
+}

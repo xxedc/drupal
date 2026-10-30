@@ -291,6 +291,9 @@ body:has(.sr-page) h1.page-title { margin-top: .125rem; }
 }
 .sr-title {
   display: -webkit-box;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 2.9em;
   min-height: calc(1.45em * 2);
   margin: 0;
   overflow: hidden;

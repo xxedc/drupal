@@ -1,0 +1,35 @@
+uuid: 793b378d-04fa-4df0-a1f4-5280f004761c
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - options
+    - site_audit_report_entity
+_core:
+  default_config_hash: aapriTXIMmJaNVnRWFhNcgjiceBH-Db2-d1jLKUJF1Q
+id: site_audit_report.field_cache_status
+field_name: field_cache_status
+entity_type: site_audit_report
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: pass
+      label: 通过
+    -
+      value: warn
+      label: 警告
+    -
+      value: fail
+      label: 失败
+    -
+      value: info
+      label: 信息
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,11 @@
+uuid: 81c2d3e4-f506-4789-a012-bbccddeeff02
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: xedc.html_sitemap
+label: 站点地图
+tags:
+  title: '站点地图 | [site:name]'
+  description: 'DcLili 站点地图，浏览美图、文章、视频、模特与主要页面。'
+  canonical_url: '[current-page:url]'
+  robots: 'index, follow'

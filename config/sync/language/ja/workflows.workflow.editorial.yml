@@ -1,0 +1,20 @@
+label: コンテンツ編集
+type_settings:
+  states:
+    archived:
+      label: アーカイブ済み
+    draft:
+      label: 下書き
+    published:
+      label: 掲載済み
+  transitions:
+    archive:
+      label: アーカイブ
+    archived_draft:
+      label: 下書きに戻す
+    archived_published:
+      label: 戻す
+    create_new_draft:
+      label: 下書きを新規作成
+    publish:
+      label: 掲載

@@ -20,7 +20,7 @@
         <img class="meitu-card__img" src="{{ img }}" alt="{{ title }}"{% if width and height %} width="{{ width }}" height="{{ height }}"{% endif %} loading="{{ loading }}"{% if fetchpriority %} fetchpriority="{{ fetchpriority }}"{% endif %} decoding="async">
       {% endif %}
       <span class="meitu-card__cat">{{ category }}</span>
-      <span class="meitu-card__count">{% if count %}{{ count }}张{% endif %}</span>
+      <span class="meitu-card__count">{% if count %}{{ '@count张'|t({'@count': count}) }}{% endif %}</span>
     </span>
     <span class="meitu-card__body">
       <span class="meitu-card__title">{{ title }}</span>

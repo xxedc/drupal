@@ -4,6 +4,8 @@ status: true
 dependencies:
   config:
     - core.entity_view_display.comment.content.default
+    - core.entity_view_display.media.image.gallery
+    - image.style.photo_gallery_1300
     - field.field.node.photo.field_categories
     - field.field.node.photo.field_comment
     - field.field.node.photo.field_cover_image
@@ -27,14 +29,6 @@ content:
     third_party_settings: {  }
     weight: -20
     region: content
-  field_categories:
-    type: entity_reference_label
-    label: hidden
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 103
-    region: content
   field_comment:
     type: comment_default
     label: above
@@ -44,71 +38,14 @@ content:
     third_party_settings: {  }
     weight: 105
     region: content
-  field_cover_image:
-    type: entity_reference_entity_view
-    label: hidden
-    settings:
-      view_mode: default
-      link: false
-    third_party_settings: {  }
-    weight: 101
-    region: content
-  field_featured:
-    type: boolean
-    label: above
-    settings:
-      format: default
-      format_custom_false: ''
-      format_custom_true: ''
-    third_party_settings: {  }
-    weight: 114
-    region: content
-  field_images:
-    type: entity_reference_entity_view
-    label: hidden
-    settings:
-      view_mode: default
-      link: false
-    third_party_settings: {  }
-    weight: 102
-    region: content
-  field_model:
-    type: entity_reference_label
-    label: above
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 106
-    region: content
-  field_slideshow:
-    type: boolean
-    label: above
-    settings:
-      format: default
-      format_custom_false: ''
-      format_custom_true: ''
-    third_party_settings: {  }
-    weight: 115
-    region: content
-  field_summary:
-    type: basic_string
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 102
-    region: content
-  field_tags:
-    type: entity_reference_label
-    label: inline
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 104
-    region: content
-  links:
-    settings: {  }
-    third_party_settings: {  }
-    weight: 100
-    region: content
 hidden:
+  field_categories: true
+  field_cover_image: true
+  field_featured: true
+  field_images: true
+  field_model: true
+  field_slideshow: true
+  field_summary: true
+  field_tags: true
   langcode: true
+  links: true

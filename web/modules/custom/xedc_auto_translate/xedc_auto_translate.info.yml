@@ -1,0 +1,10 @@
+name: 'XEDC Auto Translate'
+type: module
+description: '在简体中文内容首次发布时，用 Microsoft Translator 或 DeepL 生成英语、俄语和日语译文。'
+package: XEDC
+core_version_requirement: ^11
+dependencies:
+  - drupal:content_translation
+  - drupal:language
+  - drupal:locale
+  - drupal:content_moderation

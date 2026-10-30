@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for DcLili site audit fields.
+ */
+
+use Drupal\Core\Config\FileStorage;
+
+/**
+ * Creates SEO audit fields when the module was enabled before they existed.
+ */
+function xedc_site_audit_update_9001(): string {
+  $path = \Drupal::service('extension.list.module')->getPath('xedc_site_audit') . '/config/install';
+  $source = new FileStorage($path);
+  $created = [];
+
+  $field_storage = \Drupal::entityTypeManager()->getStorage('field_storage_config');
+  foreach ($source->listAll('field.storage.site_audit_report.') as $name) {
+    $data = $source->read($name);
+    if (!$data || $field_storage->load($data['id'])) {
+      continue;
+    }
+    $field_storage->create($data)->save();
+    $created[] = $data['id'];
+  }
+
+  $fields = \Drupal::entityTypeManager()->getStorage('field_config');
+  foreach ($source->listAll('field.field.site_audit_report.') as $name) {
+    $data = $source->read($name);
+    if (!$data || $fields->load($data['id'])) {
+      continue;
+    }
+    $fields->create($data)->save();
+    $created[] = $data['id'];
+  }
+
+  foreach (['entity_form_display', 'entity_view_display'] as $type) {
+    $storage = \Drupal::entityTypeManager()->getStorage($type);
+    $prefix = 'core.' . $type . '.site_audit_report.';
+    foreach ($source->listAll($prefix) as $name) {
+      $data = $source->read($name);
+      if (!$data || $storage->load($data['id'])) {
+        continue;
+      }
+      $storage->create($data)->save();
+      $created[] = $data['id'];
+    }
+  }
+
+  if (!$created) {
+    return 'Site Audit 字段已存在，管理字段页面保持现有 SEO 与性能检查项。';
+  }
+  return '已创建 Site Audit 配置：' . implode(', ', $created);
+}

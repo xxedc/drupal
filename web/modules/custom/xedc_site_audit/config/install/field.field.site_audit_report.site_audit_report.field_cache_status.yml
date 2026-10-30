@@ -1,0 +1,24 @@
+uuid: c8375b52-804b-4579-ab00-b2a975f0b334
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_cache_status
+  module:
+    - options
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+id: site_audit_report.site_audit_report.field_cache_status
+field_name: field_cache_status
+entity_type: site_audit_report
+bundle: site_audit_report
+label: '缓存与性能'
+description: '匿名页面缓存、CSS/JS 聚合和首页视图缓存。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

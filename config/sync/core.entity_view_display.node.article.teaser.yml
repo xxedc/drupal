@@ -1,0 +1,39 @@
+uuid: a0c36431-4bb6-4404-8f8c-ba1f6c3a1259
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.article.field_author
+    - field.field.node.article.field_body
+    - field.field.node.article.field_categories
+    - field.field.node.article.field_cover
+    - field.field.node.article.field_published_at
+    - field.field.node.article.field_show_cover
+    - field.field.node.article.field_source
+    - field.field.node.article.field_source_url
+    - field.field.node.article.field_summary
+    - field.field.node.article.field_tags
+    - field.field.node.article.field_views
+    - node.type.article
+  module:
+    - user
+id: node.article.teaser
+targetEntityType: node
+bundle: article
+mode: teaser
+content: {  }
+hidden:
+  field_author: true
+  field_body: true
+  field_categories: true
+  field_cover: true
+  field_published_at: true
+  field_show_cover: true
+  field_source: true
+  field_source_url: true
+  field_summary: true
+  field_tags: true
+  field_views: true
+  langcode: true
+  links: true

@@ -2,6 +2,7 @@
 
 namespace Drupal\xedc_home;
 
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -16,10 +17,18 @@ use Drupal\views\Views;
  */
 class HomeCards {
 
+  /**
+   * Card rows already built during this request.
+   *
+   * @var array<string, array<int, array<string, mixed>>>
+   */
+  protected array $runtime = [];
+
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
     protected FileUrlGeneratorInterface $fileUrlGenerator,
     protected DateFormatterInterface $dateFormatter,
+    protected Connection $database,
   ) {}
 
   /**
@@ -34,6 +43,10 @@ class HomeCards {
    *   Card rows, at most $limit.
    */
   public function slideshow(int $limit = 5): array {
+    $key = 'slideshow:' . $limit;
+    if (array_key_exists($key, $this->runtime)) {
+      return $this->runtime[$key];
+    }
     $nids = $this->entityTypeManager->getStorage('node')->getQuery()
       ->accessCheck(TRUE)
       ->condition('type', 'photo')
@@ -43,7 +56,7 @@ class HomeCards {
       ->range(0, $limit)
       ->execute();
     $picked = array_map('intval', array_values($nids));
-    return $this->cardsInOrder($picked, 'field_cover_image', 'xa_hero', 'slide');
+    return $this->runtime[$key] = $this->cardsInOrder($picked, 'field_cover_image', 'xa_hero', 'slide');
   }
 
   /**
@@ -53,21 +66,29 @@ class HomeCards {
    *   Card rows in view order.
    */
   public function fromView(string $display, string $imageField, string $style, string $kind): array {
+    $key = $display . ':' . $imageField . ':' . $style . ':' . $kind;
+    if (array_key_exists($key, $this->runtime)) {
+      return $this->runtime[$key];
+    }
     $view = Views::getView('xedc_home');
     if (!$view || !$view->setDisplay($display)) {
-      return [];
+      return $this->runtime[$key] = [];
     }
     $view->execute();
     $nids = [];
     foreach ($view->result as $row) {
+      $nid = 0;
       if (!empty($row->_entity) && $row->_entity instanceof NodeInterface) {
-        $nids[] = (int) $row->_entity->id();
+        $nid = (int) $row->_entity->id();
       }
       elseif (!empty($row->nid)) {
-        $nids[] = (int) $row->nid;
+        $nid = (int) $row->nid;
+      }
+      if ($nid && !in_array($nid, $nids, TRUE)) {
+        $nids[] = $nid;
       }
     }
-    return $this->cardsInOrder($nids, $imageField, $style, $kind);
+    return $this->runtime[$key] = $this->cardsInOrder($nids, $imageField, $style, $kind);
   }
 
   /**
@@ -87,29 +108,28 @@ class HomeCards {
       ->condition('vid', 'photo_category')
       ->sort('weight', 'ASC')
       ->sort('name', 'ASC')
+      ->range(0, 200)
       ->execute();
     if (!$tids) {
       return [];
     }
+    $counts = $this->database->query(
+      "SELECT c.field_categories_target_id AS tid, COUNT(DISTINCT c.entity_id) AS cnt
+       FROM {node__field_categories} c
+       INNER JOIN {node_field_data} n ON n.nid = c.entity_id AND n.langcode = c.langcode
+       WHERE c.deleted = 0 AND n.status = :status AND n.type = :type
+       GROUP BY c.field_categories_target_id",
+      [':status' => NodeInterface::PUBLISHED, ':type' => 'photo']
+    )->fetchAllKeyed();
     $terms = $term_storage->loadMultiple($tids);
-    $node_storage = $this->entityTypeManager->getStorage('node');
+    $repository = \Drupal::service('entity.repository');
     $out = [];
     foreach ($tids as $tid) {
-      if (!isset($terms[$tid])) {
+      $count = (int) ($counts[$tid] ?? 0);
+      if ($count < 1 || !isset($terms[$tid])) {
         continue;
       }
-      $term = $terms[$tid];
-      // Count published photos only so empty terms stay off the front page.
-      $count = (int) $node_storage->getQuery()
-        ->accessCheck(TRUE)
-        ->condition('type', 'photo')
-        ->condition('status', NodeInterface::PUBLISHED)
-        ->condition('field_categories', $tid)
-        ->count()
-        ->execute();
-      if ($count < 1) {
-        continue;
-      }
+      $term = $repository->getTranslationFromContext($terms[$tid]);
       $out[] = [
         'name' => $term->label(),
         'url' => $term->toUrl()->toString(),
@@ -131,6 +151,7 @@ class HomeCards {
       return [];
     }
     $nodes = $this->entityTypeManager->getStorage('node')->loadMultiple($nids);
+    $this->preloadCardReferences($nodes, $image_field, $kind);
     $items = [];
     foreach ($nids as $nid) {
       if (isset($nodes[$nid]) && $nodes[$nid] instanceof NodeInterface) {
@@ -145,6 +166,10 @@ class HomeCards {
    *   One card.
    */
   protected function card(NodeInterface $node, string $image_field, string $style, string $kind): array {
+    $translated = \Drupal::service('entity.repository')->getTranslationFromContext($node);
+    if ($translated instanceof NodeInterface) {
+      $node = $translated;
+    }
     $image = $this->image($node, $image_field, $style);
     $summary = '';
     if ($kind === 'slide') {
@@ -161,6 +186,7 @@ class HomeCards {
       'title' => $node->label(),
       'url' => $node->toUrl()->toString(),
       'img' => $image['url'],
+      'srcset' => $image['srcset'] ?? '',
       'width' => $image['width'],
       'height' => $image['height'],
       'count' => $count,
@@ -172,6 +198,51 @@ class HomeCards {
   }
 
   /**
+   * Loads cover media, files and model terms before cards are built.
+   *
+   * @param \Drupal\node\NodeInterface[] $nodes
+   *   Nodes about to be rendered.
+   */
+  protected function preloadCardReferences(array $nodes, string $image_field, string $kind): void {
+    $media_ids = [];
+    $term_ids = [];
+    foreach ($nodes as $node) {
+      if (!$node instanceof NodeInterface) {
+        continue;
+      }
+      if ($node->hasField($image_field) && !$node->get($image_field)->isEmpty()) {
+        $media_ids[] = $node->get($image_field)->target_id;
+      }
+      if ($kind === 'photo' && $node->hasField('field_model')) {
+        foreach ($node->get('field_model')->getValue() as $item) {
+          if (!empty($item['target_id'])) {
+            $term_ids[] = $item['target_id'];
+          }
+        }
+      }
+    }
+    $medias = $media_ids ? $this->entityTypeManager->getStorage('media')->loadMultiple($media_ids) : [];
+    $file_ids = [];
+    foreach ($medias as $media) {
+      if (!$media instanceof MediaInterface) {
+        continue;
+      }
+      if ($media->hasField('field_media_image') && !$media->get('field_media_image')->isEmpty()) {
+        $file_ids[] = $media->get('field_media_image')->target_id;
+      }
+      elseif ($media->hasField('thumbnail') && !$media->get('thumbnail')->isEmpty()) {
+        $file_ids[] = $media->get('thumbnail')->target_id;
+      }
+    }
+    if ($file_ids) {
+      $this->entityTypeManager->getStorage('file')->loadMultiple($file_ids);
+    }
+    if ($term_ids) {
+      $this->entityTypeManager->getStorage('taxonomy_term')->loadMultiple($term_ids);
+    }
+  }
+
+  /**
    * Model names from field_model, joined for a single line.
    */
   protected function modelName(NodeInterface $node): string {
@@ -179,8 +250,9 @@ class HomeCards {
       return '';
     }
     $names = [];
+    $repository = \Drupal::service('entity.repository');
     foreach ($node->get('field_model')->referencedEntities() as $term) {
-      $label = trim((string) $term->label());
+      $label = trim((string) $repository->getTranslationFromContext($term)->label());
       if ($label !== '') {
         $names[] = $label;
       }
@@ -189,11 +261,11 @@ class HomeCards {
   }
 
   /**
-   * @return array{url: string, width: int, height: int}
+   * @return array{url: string, width: int, height: int, srcset: string}
    *   Styled image URL and dimensions.
    */
   protected function image(NodeInterface $node, string $field, string $style_name): array {
-    $empty = ['url' => '', 'width' => 0, 'height' => 0];
+    $empty = ['url' => '', 'width' => 0, 'height' => 0, 'srcset' => ''];
     if (!$node->hasField($field) || $node->get($field)->isEmpty()) {
       return $empty;
     }
@@ -222,6 +294,13 @@ class HomeCards {
     }
     $style = ImageStyle::load($style_name);
     $url = $style ? $style->buildUrl($file->getFileUri()) : $this->fileUrlGenerator->generateString($file->getFileUri());
+    $srcset = '';
+    if ($style_name === 'xa_hero' && $style) {
+      $small = ImageStyle::load('xa_hero_840');
+      if ($small) {
+        $srcset = $small->buildUrl($file->getFileUri()) . ' 840w, ' . $url . ' 1200w';
+      }
+    }
     if ($style) {
       foreach ($style->getEffects() as $effect) {
         $data = $effect->getConfiguration()['data'] ?? [];
@@ -232,7 +311,7 @@ class HomeCards {
         }
       }
     }
-    return ['url' => $url, 'width' => $width, 'height' => $height];
+    return ['url' => $url, 'width' => $width, 'height' => $height, 'srcset' => $srcset];
   }
 
   /**

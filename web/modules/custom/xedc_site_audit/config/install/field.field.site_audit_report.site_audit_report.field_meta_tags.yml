@@ -1,0 +1,24 @@
+uuid: a380cf0b-69c7-47e7-8a73-5ad327373870
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_meta_tags
+  module:
+    - options
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+id: site_audit_report.site_audit_report.field_meta_tags
+field_name: field_meta_tags
+entity_type: site_audit_report
+bundle: site_audit_report
+label: '标题和 Meta 描述'
+description: '首页、美图、文章、视频、基础页和模特详情的标题与描述。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

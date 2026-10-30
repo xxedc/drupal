@@ -66,20 +66,20 @@
     if (dialog) { return; }
     dialog = document.createElement('dialog');
     dialog.className = 'xedc-login-dialog';
-    dialog.setAttribute('aria-label', '登录');
+    dialog.setAttribute('aria-label', Drupal.t('登录'));
 
     var close = document.createElement('button');
     close.type = 'button';
     close.className = 'xedc-login-dialog__close';
-    close.setAttribute('aria-label', '关闭');
+    close.setAttribute('aria-label', Drupal.t('关闭'));
     close.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 
     frame = document.createElement('iframe');
-    frame.title = '登录';
+    frame.title = Drupal.t('登录');
 
     var done = document.createElement('div');
     done.className = 'xedc-login-dialog__done';
-    done.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>登录成功</span>';
+    done.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>' + Drupal.t('登录成功') + '</span>';
 
     dialog.appendChild(close);
     dialog.appendChild(frame);

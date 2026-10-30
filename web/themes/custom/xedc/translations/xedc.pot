@@ -1,0 +1,548 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh-hans\n"
+
+msgid "登录"
+msgstr ""
+
+msgid "注册"
+msgstr ""
+
+msgid "退出"
+msgstr ""
+
+msgid "搜索"
+msgstr ""
+
+msgid "会员中心"
+msgstr ""
+
+msgid "语言"
+msgstr ""
+
+msgid "菜单"
+msgstr ""
+
+msgid "打开菜单"
+msgstr ""
+
+msgid "关闭菜单"
+msgstr ""
+
+msgid "关闭"
+msgstr ""
+
+msgid "切换主题"
+msgstr ""
+
+msgid "切换到浅色"
+msgstr ""
+
+msgid "切换到深色"
+msgstr ""
+
+msgid "搜索美图、视频、文章…"
+msgstr ""
+
+msgid "搜索美图、视频、文章、模特…"
+msgstr ""
+
+msgid "首页"
+msgstr ""
+
+msgid "美图"
+msgstr ""
+
+msgid "视频"
+msgstr ""
+
+msgid "文章"
+msgstr ""
+
+msgid "模特"
+msgstr ""
+
+msgid "标签"
+msgstr ""
+
+msgid "查看更多"
+msgstr ""
+
+msgid "最新美图"
+msgstr ""
+
+msgid "热门视频"
+msgstr ""
+
+msgid "最新文章"
+msgstr ""
+
+msgid "关于我们"
+msgstr ""
+
+msgid "隐私政策"
+msgstr ""
+
+msgid "用户协议"
+msgstr ""
+
+msgid "站点地图"
+msgstr ""
+
+msgid "全部"
+msgstr ""
+
+msgid "最新"
+msgstr ""
+
+msgid "最热"
+msgstr ""
+
+msgid "相关"
+msgstr ""
+
+msgid "展开"
+msgstr ""
+
+msgid "收起"
+msgstr ""
+
+msgid "更多"
+msgstr ""
+
+msgid "上一页"
+msgstr ""
+
+msgid "下一页"
+msgstr ""
+
+msgid "上一篇"
+msgstr ""
+
+msgid "下一篇"
+msgstr ""
+
+msgid "相关推荐"
+msgstr ""
+
+msgid "暂无美图"
+msgstr ""
+
+msgid "暂无文章"
+msgstr ""
+
+msgid "未分类"
+msgstr ""
+
+msgid "播放"
+msgstr ""
+
+msgid "暂停"
+msgstr ""
+
+msgid "静音"
+msgstr ""
+
+msgid "取消静音"
+msgstr ""
+
+msgid "设置"
+msgstr ""
+
+msgid "倍速"
+msgstr ""
+
+msgid "正常"
+msgstr ""
+
+msgid "画中画"
+msgstr ""
+
+msgid "全屏"
+msgstr ""
+
+msgid "退出全屏"
+msgstr ""
+
+msgid "音量"
+msgstr ""
+
+msgid "返回"
+msgstr ""
+
+msgid "当前时间"
+msgstr ""
+
+msgid "时长"
+msgstr ""
+
+msgid "拖动进度"
+msgstr ""
+
+msgid "描述"
+msgstr ""
+
+msgid "分类："
+msgstr ""
+
+msgid "模特："
+msgstr ""
+
+msgid "人物："
+msgstr ""
+
+msgid "标签："
+msgstr ""
+
+msgid "评论"
+msgstr ""
+
+msgid "图片数量"
+msgstr ""
+
+msgid "发布时间"
+msgstr ""
+
+msgid "原图总大小"
+msgstr ""
+
+msgid "原图:"
+msgstr ""
+
+msgid "登录成功"
+msgstr ""
+
+msgid "回到顶部"
+msgstr ""
+
+msgid "已复制"
+msgstr ""
+
+msgid "复制链接"
+msgstr ""
+
+msgid "分享"
+msgstr ""
+
+msgid "查看原文"
+msgstr ""
+
+msgid "摘要"
+msgstr ""
+
+msgid "目录"
+msgstr ""
+
+msgid "相关阅读"
+msgstr ""
+
+msgid "热门文章"
+msgstr ""
+
+msgid "热门标签"
+msgstr ""
+
+msgid "热门模特"
+msgstr ""
+
+msgid "搜索文章标题"
+msgstr ""
+
+msgid "文章分类"
+msgstr ""
+
+msgid "分页"
+msgstr ""
+
+msgid "分类"
+msgstr ""
+
+msgid "浏览"
+msgstr ""
+
+msgid "美图栏目"
+msgstr ""
+
+msgid "文章栏目"
+msgstr ""
+
+msgid "视频栏目"
+msgstr ""
+
+msgid "关于 DcLili"
+msgstr ""
+
+msgid "DcLili 的主要栏目与页面。"
+msgstr ""
+
+msgid "DcLili - 精选美图、视频与优质文章"
+msgstr ""
+
+msgid "主导航"
+msgstr ""
+
+msgid "图片分类"
+msgstr ""
+
+msgid "全部图片"
+msgstr ""
+
+msgid "全部模特"
+msgstr ""
+
+msgid "全部分类"
+msgstr ""
+
+msgid "最新视频"
+msgstr ""
+
+msgid "分类栏目"
+msgstr ""
+
+msgid "搜索关键词"
+msgstr ""
+
+msgid "清除关键词"
+msgstr ""
+
+msgid "搜索类型"
+msgstr ""
+
+msgid "匹配的模特"
+msgstr ""
+
+msgid "排序"
+msgstr ""
+
+msgid "表情"
+msgstr ""
+
+msgid "写下你的评论…"
+msgstr ""
+
+msgid "匿名"
+msgstr ""
+
+msgid "阅读"
+msgstr ""
+
+msgid "图片预览"
+msgstr ""
+
+msgid "上一张"
+msgstr ""
+
+msgid "下一张"
+msgstr ""
+
+msgid "首页轮播"
+msgstr ""
+
+msgid "美图列表"
+msgstr ""
+
+msgid "用户名"
+msgstr ""
+
+msgid "密码"
+msgstr ""
+
+msgid "忘记密码？"
+msgstr ""
+
+msgid "还没有账号？"
+msgstr ""
+
+msgid "注册账号"
+msgstr ""
+
+msgid "创建账号"
+msgstr ""
+
+msgid "注册后即可评论、收藏和互动。"
+msgstr ""
+
+msgid "邮箱地址"
+msgstr ""
+
+msgid "请输入用户名"
+msgstr ""
+
+msgid "请输入用户名或邮箱"
+msgstr ""
+
+msgid "请输入密码"
+msgstr ""
+
+msgid "请输入邮箱地址"
+msgstr ""
+
+msgid "已有账号？"
+msgstr ""
+
+msgid "新密码"
+msgstr ""
+
+msgid "确认新密码"
+msgstr ""
+
+msgid "确认密码"
+msgstr ""
+
+msgid "至少 8 位，包含字母和数字"
+msgstr ""
+
+msgid "请再次输入密码"
+msgstr ""
+
+msgid "找回密码"
+msgstr ""
+
+msgid "输入账号信息，我们会向账号绑定的邮箱发送重置链接。"
+msgstr ""
+
+msgid "用户名或邮箱"
+msgstr ""
+
+msgid "发送重置链接"
+msgstr ""
+
+msgid "想起密码了？"
+msgstr ""
+
+msgid "返回登录"
+msgstr ""
+
+msgid "重置密码"
+msgstr ""
+
+msgid "正在验证链接，请稍候。若没有自动跳转，请点击下方按钮。"
+msgstr ""
+
+msgid "继续设置新密码"
+msgstr ""
+
+msgid "密码至少 8 位，且必须同时包含字母和数字。"
+msgstr ""
+
+msgid "设置新密码"
+msgstr ""
+
+msgid "保存新密码"
+msgstr ""
+
+msgid "该重置链接已被使用或已过期，请在下方重新获取。"
+msgstr ""
+
+msgid "状态消息"
+msgstr ""
+
+msgid "错误消息"
+msgstr ""
+
+msgid "警告消息"
+msgstr ""
+
+msgid "搜索：@query"
+msgstr ""
+
+msgid "@title - 第 @page 页"
+msgstr ""
+
+msgid " - 第 @page 页"
+msgstr ""
+
+msgid "@title - 图@index"
+msgstr ""
+
+msgid "@count 张"
+msgstr ""
+
+msgid "@count张"
+msgstr ""
+
+msgid "第 @index 张"
+msgstr ""
+
+msgid "查看全部 @title"
+msgstr ""
+
+msgid "全部 @title"
+msgstr ""
+
+msgid "展开 @title 分类"
+msgstr ""
+
+msgid "展开分类"
+msgstr ""
+
+msgid "展开二级分类"
+msgstr ""
+
+msgid "搜索 @label"
+msgstr ""
+
+msgid "没有匹配的@label"
+msgstr ""
+
+msgid "更多标签"
+msgstr ""
+
+msgid "@count 阅读"
+msgstr ""
+
+msgid "@count 分钟"
+msgstr ""
+
+msgid "@count 分钟读完"
+msgstr ""
+
+msgid "@count 次播放"
+msgstr ""
+
+msgid "@count万"
+msgstr ""
+
+msgid "@count 个作品"
+msgstr ""
+
+msgid "来源：@source"
+msgstr ""
+
+msgid "回复 @name"
+msgstr ""
+
+msgid "没有找到「@query」相关内容"
+msgstr ""
+
+msgid "搜索建议：检查是否有错别字，或换一个更短、更常见的关键词试试。"
+msgstr ""
+
+msgid "搜索美图、视频、文章和模特"
+msgstr ""
+
+msgid "输入模特名、作品标题或关键词，开始发现内容。"
+msgstr ""
+
+msgid "加载更多（还剩 @count 张）"
+msgstr ""
+
+msgid "上一篇下一篇"
+msgstr ""
+
+msgid "保存修改"
+msgstr ""
+
+msgid "发表评论"
+msgstr ""
+
+msgid "取消"
+msgstr ""
+
+msgid "编辑评论"
+msgstr ""
+
+msgid "评论已提交，审核通过后才会显示。"
+msgstr ""
+

@@ -1,0 +1,9 @@
+services:
+  xedc_site_audit.checker:
+    class: Drupal\xedc_site_audit\AuditChecker
+    arguments:
+      - '@config.factory'
+      - '@database'
+      - '@module_handler'
+      - '@language_manager'
+      - '@entity_type.manager'

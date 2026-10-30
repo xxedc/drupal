@@ -1,0 +1,6 @@
+services:
+  xedc_auto_translate.commands:
+    class: Drupal\xedc_auto_translate\Drush\Commands\AutoTranslateCommands
+    arguments: ['@xedc_auto_translate.translator', '@entity_type.manager']
+    tags:
+      - { name: drush.command }

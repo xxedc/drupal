@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     button.addEventListener('click', function () {
       var open = wrap.classList.toggle('is-open');
-      button.textContent = open ? '收起' : '展开';
+      button.textContent = open ? Drupal.t('收起') : Drupal.t('展开');
       button.setAttribute('aria-expanded', open ? 'true' : 'false');
       if (!open) update();
     });

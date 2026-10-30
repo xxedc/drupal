@@ -17,6 +17,7 @@ dependencies:
     - node
     - statistics
     - user
+    - xedc_home
 id: xedc_home
 label: 首页
 module: views
@@ -119,7 +120,7 @@ display:
         options:
           perm: 'access content'
       cache:
-        type: none
+        type: xedc_bundle_tag
         options: {  }
       empty: {  }
       sorts:
@@ -161,6 +162,21 @@ display:
           plugin_id: bundle
           value:
             photo: photo
+        langcode:
+          id: langcode
+          table: node_field_data
+          field: langcode
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: langcode
+          plugin_id: language
+          operator: in
+          value:
+            '***LANGUAGE_language_content***': '***LANGUAGE_language_content***'
+          group: 1
+          exposed: false
       style:
         type: default
         options: {  }
@@ -414,7 +430,7 @@ display:
           offset: 0
           items_per_page: 6
       cache:
-        type: none
+        type: xedc_bundle_tag
         options: {  }
       sorts:
         created:
@@ -454,6 +470,21 @@ display:
           plugin_id: bundle
           value:
             article: article
+        langcode:
+          id: langcode
+          table: node_field_data
+          field: langcode
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: langcode
+          plugin_id: language
+          operator: in
+          value:
+            '***LANGUAGE_language_content***': '***LANGUAGE_language_content***'
+          group: 1
+          exposed: false
       filter_groups:
         operator: AND
         groups:
@@ -621,9 +652,9 @@ display:
         type: some
         options:
           offset: 0
-          items_per_page: 5
+          items_per_page: 8
       cache:
-        type: none
+        type: xedc_bundle_tag
         options: {  }
       sorts:
         created:
@@ -663,6 +694,21 @@ display:
           plugin_id: bundle
           value:
             photo: photo
+        langcode:
+          id: langcode
+          table: node_field_data
+          field: langcode
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: langcode
+          plugin_id: language
+          operator: in
+          value:
+            '***LANGUAGE_language_content***': '***LANGUAGE_language_content***'
+          group: 1
+          exposed: false
       filter_groups:
         operator: AND
         groups:
@@ -896,7 +942,7 @@ display:
           offset: 0
           items_per_page: 8
       cache:
-        type: none
+        type: xedc_bundle_tag
         options: {  }
       sorts:
         totalcount:
@@ -949,6 +995,21 @@ display:
           plugin_id: bundle
           value:
             video: video
+        langcode:
+          id: langcode
+          table: node_field_data
+          field: langcode
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: langcode
+          plugin_id: language
+          operator: in
+          value:
+            '***LANGUAGE_language_content***': '***LANGUAGE_language_content***'
+          group: 1
+          exposed: false
       filter_groups:
         operator: AND
         groups:

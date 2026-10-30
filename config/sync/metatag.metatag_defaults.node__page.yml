@@ -1,0 +1,11 @@
+uuid: 7c1e0a44-6b2d-4f8a-9c31-0a5e8d2b71f4
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: node__page
+label: '内容: 基础页'
+tags:
+  title: '[node:title] | [site:name]'
+  description: '[node:title] - DcLili'
+  canonical_url: '[node:url]'
+  robots: 'index, follow'

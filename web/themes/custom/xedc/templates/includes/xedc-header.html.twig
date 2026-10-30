@@ -1,20 +1,20 @@
 {{ attach_library('xedc/navbar') }}
-{% set search_action = '/search' %}
+{% set search_action = xedc_href.search|default('/search') %}
 {% set search_name = 'q' %}
-{% set account_url = member_center_url|default(path('user.page')) %}
 {% set i_search %}<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>{% endset %}
 {% set i_chev %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{% endset %}
+{% set i_globe %}<svg class="xn-lang-globe" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.2 2.6 3.4 5.6 3.4 9s-1.2 6.4-3.4 9c-2.2-2.6-3.4-5.6-3.4-9s1.2-6.4 3.4-9"/></svg>{% endset %}
 
 <header class="xn" data-xn>
   <div class="xn-bar">
     <div class="xn-left">
       <a class="xn-logo" href="{{ path('<front>') }}" aria-label="DcLili">dclili<i class="xn-dot"></i></a>
-      <nav class="xn-links" aria-label="主导航">
+      <nav class="xn-links" aria-label="{{ '主导航'|t }}">
         {% for item in xn.items|default([]) %}
           {% if item.cats %}
             <div class="xn-dd">
               <a class="xn-link" href="{{ item.url }}">{{ item.title }}</a>
-              <button type="button" class="xn-dd-btn" aria-expanded="false" aria-label="展开{{ item.title }}分类">{{ i_chev }}</button>
+              <button type="button" class="xn-dd-btn" aria-expanded="false" aria-label="{{ '展开 @title 分类'|t({'@title': item.title}) }}">{{ i_chev }}</button>
               <div class="xn-dd-panel"><div class="xn-dd-card">
                 <div class="xn-dd-grid" style="--cols: {{ min(item.cats|length, 4) }}">
                   {% for c in item.cats %}
@@ -24,7 +24,7 @@
                     </div>
                   {% endfor %}
                 </div>
-                <a class="xn-dd-all" href="{{ item.url }}">查看全部{{ item.title }} →</a>
+                <a class="xn-dd-all" href="{{ item.url }}">{{ '查看全部 @title'|t({'@title': item.title}) }} →</a>
               </div></div>
             </div>
           {% else %}
@@ -36,23 +36,35 @@
 
     <form class="xn-search" action="{{ search_action }}" method="get" role="search">
       {{ i_search }}
-      <input type="search" name="{{ search_name }}" placeholder="搜索美图、视频、文章…" autocomplete="off">
+      <input type="search" name="{{ search_name }}" placeholder="{{ '搜索美图、视频、文章…'|t }}" autocomplete="off">
     </form>
 
     <div class="xn-actions">
-      <button type="button" class="xn-icon xn-only-m" data-xn-search aria-label="搜索">{{ i_search }}</button>
-      <button type="button" class="xn-icon xn-theme" data-xn-theme aria-label="切换主题">
+      <button type="button" class="xn-icon xn-only-m" data-xn-search aria-label="{{ '搜索'|t }}">{{ i_search }}</button>
+      <button type="button" class="xn-icon xn-theme" data-xn-theme aria-label="{{ '切换主题'|t }}">
         <svg class="xn-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
         <svg class="xn-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-2.93 1.41-1.41m11.32-11.32 1.41-1.41M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41"/></svg>
       </button>
-      {% if logged_in %}
-        <a class="xn-icon xn-account" href="{{ account_url }}" aria-label="会员中心">{% if member_avatar_url %}<img class="xn-avatar" src="{{ member_avatar_url }}" alt="" width="32" height="32">{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>{% endif %}</a>
-      {% else %}
-        <a class="xn-icon xn-only-m" href="{{ path('user.login') }}" aria-label="登录"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
-        <a class="xn-text xn-only-d" href="{{ path('user.login') }}">登录</a>
-        <a class="xn-text xn-only-d" href="{{ path('user.register') }}">注册</a>
+      {% if xedc_lang_current and xedc_lang_others %}
+        <nav class="xn-lang xn-only-d" aria-label="{{ '语言'|t }}">
+          <button type="button" class="xn-lang-btn" aria-expanded="false" aria-haspopup="true" aria-controls="xn-lang-menu">
+            <span>{{ xedc_lang_current.label }}</span>{{ i_chev }}
+          </button>
+          <div class="xn-lang-menu" id="xn-lang-menu" hidden>
+            {% for lang in xedc_lang_others %}
+              <a href="{{ lang.url }}" hreflang="{{ lang.id }}">{{ lang.label }}</a>
+            {% endfor %}
+          </div>
+        </nav>
       {% endif %}
-      <button type="button" class="xn-icon xn-only-m" data-xn-open aria-label="打开菜单" aria-controls="xn-sheet">
+      {% if logged_in %}
+        {{ member_account_icon }}
+      {% else %}
+        <a class="xn-icon xn-only-m" href="{{ path('user.login') }}" aria-label="{{ '登录'|t }}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+        <a class="xn-text xn-only-d" href="{{ path('user.login') }}">{{ '登录'|t }}</a>
+        <a class="xn-text xn-only-d" href="{{ path('user.register') }}">{{ '注册'|t }}</a>
+      {% endif %}
+      <button type="button" class="xn-icon xn-only-m" data-xn-open aria-label="{{ '打开菜单'|t }}" aria-controls="xn-sheet">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
     </div>
@@ -60,15 +72,15 @@
 
   <form class="xn-msearch" action="{{ search_action }}" method="get" role="search">
     {{ i_search }}
-    <input type="search" name="{{ search_name }}" placeholder="搜索美图、视频、文章…" autocomplete="off">
+    <input type="search" name="{{ search_name }}" placeholder="{{ '搜索美图、视频、文章…'|t }}" autocomplete="off">
   </form>
 </header>
 
 <div class="xn-overlay" data-xn-close></div>
-<aside class="xn-sheet" id="xn-sheet" aria-hidden="true" aria-label="菜单">
+<aside class="xn-sheet" id="xn-sheet" aria-hidden="true" aria-label="{{ '菜单'|t }}">
   <div class="xn-sheet-head">
     <a class="xn-logo" href="{{ path('<front>') }}" aria-label="DcLili">dclili<i class="xn-dot"></i></a>
-    <button type="button" class="xn-icon" data-xn-close aria-label="关闭菜单"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <button type="button" class="xn-icon" data-xn-close aria-label="{{ '关闭菜单'|t }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
   <nav class="xn-sheet-nav">
     {% for item in xn.items|default([]) %}
@@ -76,16 +88,16 @@
         <div class="xn-acc">
           <div class="xn-row">
             <a class="xn-m-link" href="{{ item.url }}">{{ item.title }}</a>
-            <button type="button" class="xn-chev" aria-expanded="false" aria-label="展开分类">{{ i_chev }}</button>
+            <button type="button" class="xn-chev" aria-expanded="false" aria-label="{{ '展开分类'|t }}">{{ i_chev }}</button>
           </div>
           <div class="xn-panel"><div>
-            <a class="xn-m-sub" href="{{ item.url }}">全部{{ item.title }}</a>
+            <a class="xn-m-sub" href="{{ item.url }}">{{ '全部 @title'|t({'@title': item.title}) }}</a>
             {% for c in item.cats %}
               {% if c.children %}
                 <div class="xn-acc">
                   <div class="xn-row">
                     <a class="xn-m-sub" href="{{ c.url }}">{{ c.name }}</a>
-                    <button type="button" class="xn-chev" aria-expanded="false" aria-label="展开二级分类">{{ i_chev }}</button>
+                    <button type="button" class="xn-chev" aria-expanded="false" aria-label="{{ '展开二级分类'|t }}">{{ i_chev }}</button>
                   </div>
                   <div class="xn-panel"><div>
                     {% for ch in c.children %}<a class="xn-m-sub xn-m-sub2" href="{{ ch.url }}">{{ ch.name }}</a>{% endfor %}
@@ -102,13 +114,27 @@
       {% endif %}
     {% endfor %}
   </nav>
+  {% if xedc_lang_current and xedc_lang_others %}
+    <nav class="xn-lang xn-lang--sheet" aria-label="{{ '语言'|t }}">
+      <button type="button" class="xn-lang-btn" aria-expanded="false" aria-haspopup="true" aria-controls="xn-lang-menu-m">
+        <span class="xn-lang-current">{{ i_globe }}<span>{{ xedc_lang_current.label }}</span></span>{{ i_chev }}
+      </button>
+      <div class="xn-lang-menu" id="xn-lang-menu-m" aria-hidden="true">
+        {% for lang in xedc_lang_others %}
+          <a href="{{ lang.url }}" hreflang="{{ lang.id }}">{{ lang.label }}</a>
+        {% endfor %}
+      </div>
+    </nav>
+  {% endif %}
   <div class="xn-sheet-foot">
-    {% if logged_in %}
-      <a class="xn-btn xn-btn-ghost" href="{{ account_url }}">会员中心</a>
-      <a class="xn-btn xn-btn-primary" href="{{ path('user.logout') }}">退出</a>
-    {% else %}
-      <a class="xn-btn xn-btn-ghost" href="{{ path('user.login') }}">登录</a>
-      <a class="xn-btn xn-btn-primary" href="{{ path('user.register') }}">注册</a>
-    {% endif %}
+    <div class="xn-sheet-actions">
+      {% if logged_in %}
+        {{ member_account_sheet }}
+        <a class="xn-btn xn-btn-primary" href="{{ path('user.logout') }}">{{ '退出'|t }}</a>
+      {% else %}
+        <a class="xn-btn xn-btn-ghost" href="{{ path('user.login') }}">{{ '登录'|t }}</a>
+        <a class="xn-btn xn-btn-primary" href="{{ path('user.register') }}">{{ '注册'|t }}</a>
+      {% endif %}
+    </div>
   </div>
 </aside>

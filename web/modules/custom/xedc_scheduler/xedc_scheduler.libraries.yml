@@ -1,0 +1,7 @@
+tomorrow:
+  js:
+    js/tomorrow.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/drupalSettings

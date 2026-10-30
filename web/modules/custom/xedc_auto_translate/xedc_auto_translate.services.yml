@@ -1,0 +1,18 @@
+services:
+  logger.channel.xedc_auto_translate:
+    parent: logger.channel_base
+    arguments: ['xedc_auto_translate']
+  xedc_auto_translate.translator:
+    class: Drupal\xedc_auto_translate\Translator
+    arguments:
+      - '@config.factory'
+      - '@state'
+      - '@entity_type.manager'
+      - '@http_client'
+      - '@logger.channel.xedc_auto_translate'
+      - '@current_user'
+      - '@datetime.time'
+      - '@module_handler'
+      - '@content_translation.manager'
+      - '@path_alias.manager'
+      - '@content_moderation.moderation_information'

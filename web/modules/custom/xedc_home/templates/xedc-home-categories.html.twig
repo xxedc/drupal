@@ -5,12 +5,12 @@
 #}
 {% if categories %}
 {{ attach_library('xedc/home') }}
-<section class="xedc-section xedc-tax" data-xedc-tax aria-label="图片分类">
+<section class="xedc-section xedc-tax" data-xedc-tax aria-label="{{ '图片分类'|t }}">
   <div class="xedc-tax__list">
     {% for cat in categories %}
       <a class="xedc-tax__chip xedc-pill" href="{{ cat.url }}">{{ cat.name }}</a>
     {% endfor %}
   </div>
-  <button type="button" class="xedc-tax__more xedc-pill" aria-expanded="false">更多</button>
+  <button type="button" class="xedc-tax__more xedc-pill" aria-expanded="false">{{ '更多'|t }}</button>
 </section>
 {% endif %}

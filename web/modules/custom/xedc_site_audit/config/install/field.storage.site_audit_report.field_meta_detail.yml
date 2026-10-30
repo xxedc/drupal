@@ -1,0 +1,19 @@
+uuid: 641f6100-588f-4ff0-bbcc-29ce6a9cdcde
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - site_audit_report_entity
+id: site_audit_report.field_meta_detail
+field_name: field_meta_detail
+entity_type: site_audit_report
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

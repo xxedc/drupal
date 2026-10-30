@@ -1,7 +1,7 @@
 {{ attach_library('xedc/article-detail') }}
 <article{{ attributes.addClass('xa', 'xa-article').setAttribute('data-xa-nid', node.id) }}>
-  <nav class="xa-crumb" aria-label="面包屑">
-    <a href="/">首页</a><span>/</span><a href="/articles">文章</a>
+  <nav class="xa-crumb" aria-label="{{ '面包屑'|t }}">
+    <a href="{{ path('<front>') }}">{{ '首页'|t }}</a><span>/</span><a href="{{ path('view.article_list.page_1') }}">{{ '文章'|t }}</a>
     {% if xa_cat %}<span>/</span><a href="{{ xa_cat.url }}">{{ xa_cat.name }}</a>{% endif %}
   </nav>
 
@@ -11,10 +11,10 @@
         <h1 class="xa-art__title">{{ node.label }}</h1>
         <div class="xa-art__meta">
           {% if xa_author and xa_author != xa_source %}<span>{{ xa_author }}</span>{% endif %}
-          {% if xa_source %}<span>来源：{{ xa_source }}</span>{% endif %}
+          {% if xa_source %}<span>{{ '来源：@source'|t({'@source': xa_source}) }}</span>{% endif %}
           <span>{{ xa_date }}</span>
-          <span><b data-xa-views>{{ xa_views }}</b> 阅读</span>
-          <span>{{ xa_read }} 分钟读完</span>
+          <span><b data-xa-views>{{ xa_views }}</b> {{ '阅读'|t }}</span>
+          <span>{{ '@count 分钟读完'|t({'@count': xa_read}) }}</span>
         </div>
       </header>
 
@@ -25,7 +25,7 @@
       {% endif %}
 
       {% if xa_summary %}
-        <aside class="xa-art__summary"><b>摘要</b>{{ xa_summary }}</aside>
+        <aside class="xa-art__summary"><b>{{ '摘要'|t }}</b>{{ xa_summary }}</aside>
       {% endif %}
 
       <div class="xa-prose" id="xa-prose">{{ xa_body }}</div>
@@ -39,17 +39,17 @@
         <div class="xa-art__actions">
           {{ xedc_member_favorite|default('') }}
           {% if xa_source_url %}
-            <a class="xa-btn xa-btn--primary" href="{{ xa_source_url }}" target="_blank" rel="nofollow noopener noreferrer" title="{{ xa_source_host }}">查看原文 ↗</a>
+            <a class="xa-btn xa-btn--primary" href="{{ xa_source_url }}" target="_blank" rel="nofollow noopener noreferrer" title="{{ xa_source_host }}">{{ '查看原文'|t }} ↗</a>
           {% endif %}
-          <button class="xa-btn" type="button" data-xa-share hidden>分享</button>
-          <button class="xa-btn" type="button" data-xa-copy>复制链接</button>
+          <button class="xa-btn" type="button" data-xa-share hidden>{{ '分享'|t }}</button>
+          <button class="xa-btn" type="button" data-xa-copy>{{ '复制链接'|t }}</button>
         </div>
       </footer>
 
       {% if xa_prev or xa_next %}
-        <nav class="xa-pn" aria-label="上一篇下一篇">
-          {% if xa_prev %}<a class="xa-pn__item" href="{{ xa_prev.url }}" rel="prev"><small>← 上一篇</small><span>{{ xa_prev.title }}</span></a>{% endif %}
-          {% if xa_next %}<a class="xa-pn__item is-next" href="{{ xa_next.url }}" rel="next"><small>下一篇 →</small><span>{{ xa_next.title }}</span></a>{% endif %}
+        <nav class="xa-pn" aria-label="{{ '上一篇下一篇'|t }}">
+          {% if xa_prev %}<a class="xa-pn__item" href="{{ xa_prev.url }}" rel="prev"><small>← {{ '上一篇'|t }}</small><span>{{ xa_prev.title }}</span></a>{% endif %}
+          {% if xa_next %}<a class="xa-pn__item is-next" href="{{ xa_next.url }}" rel="next"><small>{{ '下一篇'|t }} →</small><span>{{ xa_next.title }}</span></a>{% endif %}
         </nav>
       {% endif %}
     </div>
@@ -57,12 +57,12 @@
     <aside class="xa-art__side">
       <div class="xa-side__sticky">
         <section class="xa-toc" data-xa-toc hidden>
-          <h3>目录</h3>
+          <h3>{{ '目录'|t }}</h3>
           <nav></nav>
         </section>
         {% if xa_related %}
           <section class="xa-sec-rel">
-            <h3>相关阅读</h3>
+            <h3>{{ '相关阅读'|t }}</h3>
             <div class="xa-sl">
               {% for a in xa_related %}<a href="{{ a.url }}"><span>{{ a.title }}</span><small>{{ a.meta }}</small></a>{% endfor %}
             </div>
@@ -70,7 +70,7 @@
         {% endif %}
         {% if xa_hot %}
           <section class="xa-sec-hot">
-            <h3>热门文章</h3>
+            <h3>{{ '热门文章'|t }}</h3>
             <div class="xa-sl">
               {% for a in xa_hot %}<a href="{{ a.url }}"><span>{{ a.title }}</span><small>{{ a.meta }}</small></a>{% endfor %}
             </div>

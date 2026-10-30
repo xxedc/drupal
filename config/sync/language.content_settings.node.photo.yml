@@ -1,0 +1,16 @@
+uuid: e1807f25-7534-4fe5-9e71-8b17be6c1627
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - node.type.photo
+  module:
+    - content_translation
+third_party_settings:
+  content_translation:
+    enabled: true
+id: node.photo
+target_entity_type_id: node
+target_bundle: photo
+default_langcode: site_default
+language_alterable: true

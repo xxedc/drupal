@@ -4,17 +4,19 @@
  * 返回一组媒体 ID 的原图总字节数（没有记录的返回 0）。
  */
 function xedc_quick_original_size(array $mids): int {
-  $db = \Drupal::database();
-  if (!$mids || !$db->schema()->tableExists('xedc_quick_orig')) {
-    return 0;
-  }
-  return (int) $db->query('SELECT SUM(bytes) FROM {xedc_quick_orig} WHERE mid IN (:mids[])', [':mids[]' => $mids])->fetchField();
+  return \Drupal::service('xedc_quick.store')->originalSize($mids);
 }
 
 function xedc_quick_original_sizes(array $mids): array {
-  $db = \Drupal::database();
-  if (!$mids || !$db->schema()->tableExists('xedc_quick_orig')) {
-    return [];
-  }
-  return $db->query('SELECT mid, bytes FROM {xedc_quick_orig} WHERE mid IN (:mids[])', [':mids[]' => $mids])->fetchAllKeyed();
+  return \Drupal::service('xedc_quick.store')->originalSizes($mids);
+}
+
+/**
+ * Creates the hash and original-size tables once.
+ *
+ * Upload used to run CREATE TABLE on the request path. After the tables
+ * exist, later requests only read a state flag.
+ */
+function xedc_quick_ensure_tables(): void {
+  \Drupal::service('xedc_quick.store')->ensureTables();
 }

@@ -1,0 +1,4 @@
+services:
+  xedc_quick.store:
+    class: Drupal\xedc_quick\QuickStore
+    arguments: ['@database', '@state']

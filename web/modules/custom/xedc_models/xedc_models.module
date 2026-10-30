@@ -32,7 +32,7 @@ function xedc_models_theme() {
       'template' => 'xedc-models-page',
     ],
     'xedc_models_detail' => [
-      'variables' => ['items' => [], 'count' => 0, 'photos' => 0, 'avatar' => NULL, 'aliases' => []],
+      'variables' => ['items' => [], 'count' => 0, 'photos' => 0, 'avatar' => NULL, 'aliases' => [], 'name' => ''],
       'template' => 'xedc-models-detail',
     ],
   ];

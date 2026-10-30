@@ -1,0 +1,71 @@
+display:
+  default:
+    display_title: マスター
+    display_options:
+      exposed_form:
+        options:
+          submit_button: フィルター
+          reset_button_label: リセット
+          exposed_sorts_label: 並び替え基準
+          sort_asc_label: 昇順
+          sort_desc_label: 降順
+      pager:
+        options:
+          expose:
+            items_per_page_label: ページ毎の件数
+            items_per_page_options_all_label: '- 全て -'
+            offset_label: オフセット
+          tags:
+            previous: '‹ 前へ'
+            next: '次へ ›'
+            first: '« 最初へ'
+            last: '最後 »'
+      fields:
+        media_bulk_form:
+          label: 一括更新
+          action_title: アクション
+        name:
+          label: メディア名
+          separator: ', '
+        bundle:
+          label: メディアタイプ
+          separator: ', '
+        uid:
+          label: 投稿者
+          separator: ', '
+        status:
+          label: 状態
+          settings:
+            format_custom_true: 掲載
+            format_custom_false: 非掲載
+          separator: ', '
+        publish_on:
+          label: 公開する
+          separator: ', '
+        unpublish_on:
+          label: 非公開にする
+          separator: ', '
+        operations:
+          label: 操作
+      filters:
+        name:
+          expose:
+            label: メディア名
+        bundle:
+          expose:
+            label: タイプ
+        status:
+          expose:
+            label: 状態
+          group_info:
+            label: 掲載ステータス
+            group_items:
+              1:
+                title: 掲載
+              2:
+                title: 非掲載
+        langcode:
+          expose:
+            label: 言語
+  user_page:
+    display_title: ユーザー

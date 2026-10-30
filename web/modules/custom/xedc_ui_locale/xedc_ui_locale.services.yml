@@ -1,0 +1,17 @@
+services:
+  logger.channel.xedc_ui_locale:
+    parent: logger.channel_base
+    arguments: ['xedc_ui_locale']
+  xedc_ui_locale.filler:
+    class: Drupal\xedc_ui_locale\UiTranslationFiller
+    arguments:
+      - '@module_handler'
+      - '@extension.list.module'
+      - '@locale.storage'
+      - '@database'
+      - '@state'
+      - '@logger.channel.xedc_ui_locale'
+      - '@Drupal\locale\LocaleProjectRepository'
+      - '@Drupal\locale\LocaleFetch'
+      - '@Drupal\locale\LocaleSource'
+      - '@xedc_auto_translate.translator'

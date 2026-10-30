@@ -1,0 +1,15 @@
+uuid: cf36069f-b868-4ad7-90fa-70eb083fbc40
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - content_translation
+    - menu_link_content
+third_party_settings:
+  content_translation:
+    enabled: true
+id: menu_link_content.account
+target_entity_type_id: menu_link_content
+target_bundle: account
+default_langcode: site_default
+language_alterable: true

@@ -1,0 +1,9 @@
+uuid: e64031c4-3ac2-4ebc-9709-58fd04bac47e
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: ru
+label: Russian(俄语)
+direction: ltr
+weight: 2
+locked: false

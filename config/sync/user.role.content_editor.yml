@@ -31,10 +31,9 @@ dependencies:
     - path
     - pathauto
     - redirect_404
+    - scheduler
     - system
     - taxonomy
-    - views_bulk_operations
-    - xedc_moderation
 _core:
   default_config_hash: og55Zu0F-q-X8zG0Ohrls49zws6IrmmosZS-30Es8vw
 id: content_editor
@@ -100,6 +99,7 @@ permissions:
   - 'ignore 404 requests'
   - 'notify of path changes'
   - 'revert all revisions'
+  - 'schedule publishing of nodes'
   - 'translate editable entities'
   - 'translate user'
   - 'update content translations'
@@ -113,4 +113,5 @@ permissions:
   - 'view any unpublished content'
   - 'view latest version'
   - 'view own unpublished content'
+  - 'view scheduled content'
   - 'view the administration theme'

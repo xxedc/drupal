@@ -1,0 +1,6 @@
+services:
+  xedc_ui_locale.commands:
+    class: Drupal\xedc_ui_locale\Drush\Commands\UiTranslateCommands
+    arguments: ['@xedc_ui_locale.filler']
+    tags:
+      - { name: drush.command }

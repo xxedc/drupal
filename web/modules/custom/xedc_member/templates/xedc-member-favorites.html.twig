@@ -1,11 +1,11 @@
 <header class="xm-head">
   <div>
-    <h1 class="xm-title">我的收藏</h1>
-    <p class="xm-sub">共 {{ total }} 个收藏</p>
+    <h1 class="xm-title">{{ '我的收藏'|t }}</h1>
+    <p class="xm-sub">{{ '共 @count 个收藏'|t({'@count': total}) }}</p>
   </div>
 </header>
 
-<nav class="xm-tabs" aria-label="收藏筛选">
+<nav class="xm-tabs" aria-label="{{ '收藏筛选'|t }}">
   {% for filter in filters %}
     <a href="{{ filter.url }}" class="xm-tab{% if filter.active %} is-active{% endif %}"{% if filter.active %} aria-current="page"{% endif %}>{{ filter.label }}</a>
   {% endfor %}
@@ -23,11 +23,11 @@
 {% else %}
   <div class="xm-empty">
     <strong>{{ empty }}</strong>
-    <p>打开内容页，点一下收藏，之后可以在这里回看。</p>
+    <p>{{ '打开内容页，点一下收藏，之后可以在这里回看。'|t }}</p>
     <div class="xm-empty__links">
-      <a href="/meitu">看看美图</a>
-      <a href="/video">看看视频</a>
-      <a href="/articles">看看文章</a>
+      <a href="{{ path('view.image_gallery.page_1') }}">{{ '看看美图'|t }}</a>
+      <a href="{{ path('view.video_list.page_1') }}">{{ '看看视频'|t }}</a>
+      <a href="{{ path('view.article_list.page_1') }}">{{ '看看文章'|t }}</a>
     </div>
   </div>
 {% endif %}

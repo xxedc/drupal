@@ -1,0 +1,23 @@
+uuid: 91fb7bc2-3470-4d64-9373-110c46350cfd
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_translation_detail
+  module:
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+id: site_audit_report.site_audit_report.field_translation_detail
+field_name: field_translation_detail
+entity_type: site_audit_report
+bundle: site_audit_report
+label: '翻译说明'
+description: '最近一次翻译覆盖率检查的说明。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

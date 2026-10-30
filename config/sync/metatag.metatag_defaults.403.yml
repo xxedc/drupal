@@ -5,8 +5,7 @@ dependencies: {  }
 _core:
   default_config_hash: RDCkFL0NDt75Gwioooxo1iuA1S50xTVsBOgX__c6wTw
 id: '403'
-label: '403 access denied'
+label: '403 访问被拒绝'
 tags:
-  robots: noindex
-  canonical_url: '[site:url]'
-  shortlink: '[site:url]'
+  canonical_url: '<none>'
+  shortlink: '<none>'

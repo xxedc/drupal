@@ -32,7 +32,7 @@
           const canToggle = !q && matched.length > max;
           moreWrap.hidden = !canToggle;
           if (canToggle) {
-            moreBtn.textContent = expanded ? '收起' : '展开更多（还有 ' + (matched.length - max) + ' 个）';
+            moreBtn.textContent = expanded ? Drupal.t('收起') : Drupal.t('展开更多（还有 @count 个）', {'@count': matched.length - max});
           }
         };
 

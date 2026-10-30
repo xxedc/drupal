@@ -8,7 +8,7 @@ dependencies:
 _core:
   default_config_hash: xEiwRlPcHIHzIa2IWKrMChHbyV62cH2lobBY0rHDsQA
 id: redirect_404
-label: 'Redirect 404'
+label: 重定向404
 module: views
 description: ''
 tag: ''
@@ -17,11 +17,11 @@ base_field: ''
 display:
   default:
     id: default
-    display_title: Master
+    display_title: 主
     display_plugin: default
     position: 0
     display_options:
-      title: 'Fix 404 pages'
+      title: 修正404页
       fields:
         path:
           id: path
@@ -133,7 +133,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: serialized
-          label: 'Daily count'
+          label: 每日计数
           exclude: false
           alter:
             alter_text: false
@@ -184,7 +184,7 @@ display:
           group_type: group
           admin_label: ''
           plugin_id: date
-          label: 'Last accessed'
+          label: 上次访问
           exclude: false
           alter:
             alter_text: false
@@ -371,7 +371,7 @@ display:
           admin_label: ''
           plugin_id: text_custom
           empty: true
-          content: 'There are no 404 errors to fix.'
+          content: '没有 404 错误需要修复。'
           tokenize: false
       sorts: {  }
       arguments: {  }
@@ -463,7 +463,7 @@ display:
           exposed: false
           expose:
             operator_id: ''
-            label: Resolved
+            label: 已解决
             description: ''
             use_operator: false
             operator: resolved_op
@@ -565,7 +565,7 @@ display:
     position: 1
     display_options:
       enabled: true
-      display_description: 'Lists 404 error paths with no redirect assigned yet.'
+      display_description: '列出尚未分配重定向的 404 错误路径。'
       display_extenders: {  }
       path: admin/config/search/redirect/404
     cache_metadata:

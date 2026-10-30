@@ -83,7 +83,7 @@ xedc_member.alias_denied:
     _controller: '\Drupal\xedc_member\Controller\MemberController::aliasDenied'
     _title: '无权访问'
   requirements:
-    _access: 'TRUE'
+    _permission: 'access content'
   options:
     no_cache: TRUE
 

@@ -1,10 +1,10 @@
 {% if xa_pager %}
-<nav class="xa-pager" aria-label="分页">
-  {% if xa_pager.prev %}<a class="xa-pager__btn" href="{{ xa_pager.prev }}" rel="prev">‹ 上一页</a>{% else %}<span class="xa-pager__btn is-disabled">‹ 上一页</span>{% endif %}
+<nav class="xa-pager" aria-label="{{ '分页'|t }}">
+  {% if xa_pager.prev %}<a class="xa-pager__btn" href="{{ xa_pager.prev }}" rel="prev">‹ {{ '上一页'|t }}</a>{% else %}<span class="xa-pager__btn is-disabled">‹ {{ '上一页'|t }}</span>{% endif %}
   <span class="xa-pager__info">{{ xa_pager.cur }} / {{ xa_pager.last }}</span>
   <span class="xa-pager__nums">
     {% for i in xa_pager.items %}{% if i.gap %}<span class="xa-pager__gap">…</span>{% else %}<a class="xa-pager__num{{ i.active ? ' is-active' : '' }}" href="{{ i.url }}">{{ i.n }}</a>{% endif %}{% endfor %}
   </span>
-  {% if xa_pager.next %}<a class="xa-pager__btn" href="{{ xa_pager.next }}" rel="next">下一页 ›</a>{% else %}<span class="xa-pager__btn is-disabled">下一页 ›</span>{% endif %}
+  {% if xa_pager.next %}<a class="xa-pager__btn" href="{{ xa_pager.next }}" rel="next">{{ '下一页'|t }} ›</a>{% else %}<span class="xa-pager__btn is-disabled">{{ '下一页'|t }} ›</span>{% endif %}
 </nav>
 {% endif %}

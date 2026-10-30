@@ -1,0 +1,10 @@
+name: 'XEDC Scheduler'
+type: module
+description: '为美图、文章、视频和基本页面提供定时发布，并在审核内容到点后切换为已发布。'
+package: XEDC
+core_version_requirement: ^11
+dependencies:
+  - scheduler:scheduler
+  - drupal:node
+  - drupal:content_moderation
+  - drupal:datetime

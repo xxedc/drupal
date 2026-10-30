@@ -64,7 +64,7 @@ class PhotoCategoriesBlock extends BlockBase implements ContainerFactoryPluginIn
    * {@inheritdoc}
    */
   public function getCacheTags(): array {
-    return Cache::mergeTags(parent::getCacheTags(), ['node_list', 'taxonomy_term_list']);
+    return Cache::mergeTags(parent::getCacheTags(), ['node_list:photo', 'taxonomy_term_list:photo_category']);
   }
 
   /**

@@ -7,7 +7,7 @@ excluded_paths: ''
 replaced_titles: ''
 custom_paths: ''
 include_home_segment: true
-alternative_title_field: field_breadcrumb_title
+alternative_title_field: 字段面包屑标题
 home_segment_title: 首页
 home_segment_keep: false
 include_title_segment: true
@@ -28,11 +28,11 @@ capitalizator_ignored_words:
   - 的
   - 与
   - 或者
-  - de
-  - del
+  - 德
+  - 德尔
   - 'y'
-  - o
-  - a
+  - 哦
+  - 一个
 capitalizator_forced_words: {  }
 capitalizator_forced_words_case_sensitivity: true
 capitalizator_forced_words_first_letter: false

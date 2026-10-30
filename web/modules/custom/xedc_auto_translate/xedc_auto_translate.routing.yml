@@ -1,0 +1,7 @@
+xedc_auto_translate.settings:
+  path: '/admin/config/regional/xedc-auto-translate'
+  defaults:
+    _form: '\Drupal\xedc_auto_translate\Form\SettingsForm'
+    _title: '自动翻译'
+  requirements:
+    _permission: 'administer xedc auto translation'

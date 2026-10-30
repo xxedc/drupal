@@ -18,3 +18,9 @@ tags:
   twitter_cards_title: '[node:title]'
   twitter_cards_description: '[node:field_summary] [node:title] - [node:field_categories:entity:name]'
   twitter_cards_image: '[node:field_cover:entity:field_media_image:xa_hero:url]'
+  schema_article_type: Article
+  schema_article_headline: '[node:title]'
+  schema_article_description: '[node:title]'
+  schema_article_date_published: '[node:created:custom:c]'
+  schema_article_date_modified: '[node:changed:custom:c]'
+  schema_article_main_entity_of_page: '[node:url]'

@@ -1,0 +1,57 @@
+label: モデレート中のコンテンツ
+display:
+  default:
+    display_title: デフォルト
+    display_options:
+      title: モデレート中のコンテンツ
+      fields:
+        title:
+          label: タイトル
+          separator: ', '
+        type:
+          label: コンテンツタイプ
+          separator: ', '
+        name:
+          label: 投稿者
+          separator: ', '
+        moderation_state:
+          label: モデレーション状態
+          separator: ', '
+        changed:
+          label: 更新
+          separator: ', '
+        operations:
+          label: 操作
+      pager:
+        options:
+          tags:
+            next: '次 ›'
+            previous: '‹ 前'
+            first: '« 最初'
+            last: '最後 »'
+          expose:
+            items_per_page_label: ページ毎の件数
+            items_per_page_options_all_label: '- 全て -'
+            offset_label: オフセット
+      exposed_form:
+        options:
+          submit_button: フィルター
+          reset_button_label: リセット
+          exposed_sorts_label: 並び替え基準
+          sort_asc_label: 昇順
+          sort_desc_label: 降順
+      filters:
+        title:
+          expose:
+            label: タイトル
+        type:
+          expose:
+            label: コンテンツタイプ
+        moderation_state:
+          expose:
+            label: モデレーション状態
+        langcode:
+          expose:
+            label: 言語
+  moderated_content:
+    display_title: モデレート中のコンテンツ

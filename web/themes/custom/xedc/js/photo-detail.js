@@ -100,9 +100,9 @@
     lb.className = 'img-lb';
     lb.setAttribute('role', 'dialog');
     lb.setAttribute('aria-modal', 'true');
-    lb.setAttribute('aria-label', '图片预览');
+    lb.setAttribute('aria-label', Drupal.t('图片预览'));
     lb.setAttribute('aria-hidden', 'true');
-    lb.innerHTML = '<div class="img-lb__bar"><span class="img-lb__count"></span><div class="img-lb__actions"><button type="button" class="xedc-pill img-lb__all" data-img-all aria-haspopup="dialog" aria-controls="img-sheet" aria-expanded="false">' + GRID_SVG + '<span>全部</span></button><button type="button" class="img-lb__close" aria-label="关闭">×</button></div></div><button type="button" class="img-lb__nav img-lb__prev" aria-label="上一张">‹</button><img class="img-lb__img" alt=""><button type="button" class="img-lb__nav img-lb__next" aria-label="下一张">›</button>';
+    lb.innerHTML = '<div class="img-lb__bar"><span class="img-lb__count"></span><div class="img-lb__actions"><button type="button" class="xedc-pill img-lb__all" data-img-all aria-haspopup="dialog" aria-controls="img-sheet" aria-expanded="false">' + GRID_SVG + '<span>' + Drupal.t('全部') + '</span></button><button type="button" class="img-lb__close" aria-label="' + Drupal.t('关闭') + '">×</button></div></div><button type="button" class="img-lb__nav img-lb__prev" aria-label="' + Drupal.t('上一张') + '">‹</button><img class="img-lb__img" alt=""><button type="button" class="img-lb__nav img-lb__next" aria-label="' + Drupal.t('下一张') + '">›</button>';
     document.body.appendChild(lb);
     var img = lb.querySelector('.img-lb__img');
     img.addEventListener('error', function () {
@@ -427,8 +427,8 @@
 
   function initRelated(context) {
     once('xedc-photo-related', '.img-rel__c img', context).forEach(function (image) {
-      image.loading = 'eager';
-      image.setAttribute('fetchpriority', 'low');
+      image.loading = 'lazy';
+      image.removeAttribute('fetchpriority');
     });
   }
 
@@ -450,11 +450,11 @@
     toggle.hidden = false;
     if (!opened) {
       desc.classList.add('is-collapsed');
-      toggle.textContent = '展开';
+      toggle.textContent = Drupal.t('展开');
       toggle.setAttribute('aria-expanded', 'false');
     }
     else {
-      toggle.textContent = '收起';
+      toggle.textContent = Drupal.t('收起');
       toggle.setAttribute('aria-expanded', 'true');
     }
   }
@@ -472,7 +472,7 @@
       toggle.addEventListener('click', function () {
         var collapsed = desc.classList.toggle('is-collapsed');
         toggle.dataset.user = collapsed ? '' : 'open';
-        toggle.textContent = collapsed ? '展开' : '收起';
+        toggle.textContent = collapsed ? Drupal.t('展开') : Drupal.t('收起');
         toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
       });
       window.requestAnimationFrame(run);

@@ -1,0 +1,25 @@
+uuid: 320f8332-0f4c-4bd8-87d9-db8c4114b07e
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_url_alias_detail
+  module:
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+_core:
+  default_config_hash: MaNJxC8ihsFMQfP3gHZIsTq6i7PN2qGA_1zuskfB6aQ
+id: site_audit_report.site_audit_report.field_url_alias_detail
+field_name: field_url_alias_detail
+entity_type: site_audit_report
+bundle: site_audit_report
+label: 'URL 别名说明'
+description: 最近一次别名检查的说明。
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

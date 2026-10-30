@@ -3,11 +3,26 @@
 namespace Drupal\xa_views\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Database\Connection;
 use Drupal\node\Entity\Node;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 class Hit extends ControllerBase {
+
+  public function __construct(
+    protected Connection $database,
+  ) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('database'),
+    );
+  }
 
   public function hit(Request $request, $nid) {
     $node = Node::load((int) $nid);
@@ -25,7 +40,9 @@ class Hit extends ControllerBase {
     }
     $flood->register($event, 1800, $who);
 
-    $db = \Drupal::database();
+    // Atomic counter on the field tables. The node was already loaded and
+    // limited to a published article before this write.
+    $db = $this->database;
     $vid = (int) $node->getRevisionId();
     $rows = $db->update('node__field_views')
       ->expression('field_views_value', 'field_views_value + 1')

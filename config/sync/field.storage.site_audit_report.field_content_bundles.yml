@@ -1,0 +1,23 @@
+uuid: a2117e98-8887-477f-85fc-13e5285c8b05
+langcode: zh-hans
+status: true
+dependencies:
+  module:
+    - site_audit_report_entity
+_core:
+  default_config_hash: Zfhi3F6RGdinroGYOYGwbO_4WmOQK3PuOHAyqkMh6eA
+id: site_audit_report.field_content_bundles
+field_name: field_content_bundles
+entity_type: site_audit_report
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

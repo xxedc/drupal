@@ -1,0 +1,25 @@
+uuid: f4a9108e-5284-40ff-a6b8-7cd45d91850c
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - field.storage.site_audit_report.field_image_alt_detail
+  module:
+    - site_audit_report_entity
+  enforced:
+    module:
+      - xedc_site_audit
+_core:
+  default_config_hash: 7nkHyL1vR6yE2cKUoIA6PSMWJzxYw7h-2mAqGDLZhrk
+id: site_audit_report.site_audit_report.field_image_alt_detail
+field_name: field_image_alt_detail
+entity_type: site_audit_report
+bundle: site_audit_report
+label: '图片 alt 说明'
+description: '最近一次图片 alt 检查的说明。'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

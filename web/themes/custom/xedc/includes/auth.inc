@@ -38,15 +38,16 @@ function _xedc_auth_wrap(array &$form, string $key, string $title, string $desc)
   _xedc_auth_localize_messages();
   $form['#cache']['contexts'][] = 'url.query_args:destination';
   $form['#cache']['contexts'][] = 'url.query_args:xedc_embed';
+  $form['#cache']['max-age'] = 0;
   $form['#pre_render'][] = 'Drupal\xedc\AuthCallbacks::messages';
   $form['xedc_head'] = [
     '#type' => 'inline_template',
     '#weight' => -1000,
     '#template' => <<<'TWIG'
 <div class="xedc-auth__head">
-  <a class="xedc-auth__brand" href="{{ path('<front>') }}" target="_top" aria-label="XEDC">
+  <a class="xedc-auth__brand" href="{{ path('<front>') }}" target="_top" aria-label="DcLili">
     <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="currentColor"/><path d="M9.5 9.5l9 9m0-9l-9 9" style="stroke:var(--xa-bg)" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
-    <span>XEDC</span>
+    <span>DcLili</span>
   </a>
   <h1 class="xedc-auth__title">{{ title }}</h1>
   {% if desc %}<p class="xedc-auth__desc">{{ desc }}</p>{% endif %}
@@ -72,13 +73,25 @@ function _xedc_auth_foot(array &$form, string $text, string $label, string $rout
 }
 
 /**
+ * Replaces the document title without appending the site name twice.
+ */
+function _xedc_set_head_title(array &$variables, string $title): void {
+  if (!is_array($variables['head_title'] ?? NULL)) {
+    $variables['head_title'] = ['title' => $title];
+    return;
+  }
+  $variables['head_title']['title'] = $title;
+  unset($variables['head_title']['name'], $variables['head_title']['slogan']);
+}
+
+/**
  * Implements hook_preprocess_html().
  */
 function xedc_preprocess_html(array &$variables): void {
   if (_xedc_search_is_route()) {
     [$q] = _xedc_search_params();
     $variables['head_title'] = [
-      'title' => $q !== '' ? '搜索：' . $q : '搜索',
+      'title' => $q !== '' ? t('搜索：@query', ['@query' => $q]) : t('搜索'),
       'name' => \Drupal::config('system.site')->get('name'),
     ];
     $variables['page']['#attached']['library'][] = 'xedc/search-page';
@@ -86,6 +99,38 @@ function xedc_preprocess_html(array &$variables): void {
     return;
   }
   $variables['page']['#attached']['library'][] = 'xedc/xedc_auth';
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  $term = \Drupal::routeMatch()->getParameter('taxonomy_term');
+  if ($route_name === 'xedc_models.detail' && $term instanceof \Drupal\taxonomy\TermInterface) {
+    $term = _xedc_translated($term);
+    _xedc_set_head_title($variables, (string) t('@name 的作品', ['@name' => $term->label()]) . ' | DcLili');
+    $variables['#cache']['contexts'][] = 'languages:language_content';
+    $variables['#cache']['contexts'][] = 'languages:language_interface';
+  }
+  elseif ($term instanceof \Drupal\taxonomy\TermInterface && is_array($variables['head_title'] ?? NULL)) {
+    $term = _xedc_translated($term);
+    _xedc_set_head_title($variables, (string) t('@name 列表页', ['@name' => $term->label()]) . ' | DcLili');
+    $variables['#cache']['contexts'][] = 'languages:language_content';
+    $variables['#cache']['contexts'][] = 'languages:language_interface';
+  }
+  elseif (\Drupal::service('path.matcher')->isFrontPage()) {
+    _xedc_set_head_title($variables, (string) t('DcLili - 精选美图、视频与优质文章'));
+  }
+  elseif ($route_name === 'xedc_tags.index') {
+    _xedc_set_head_title($variables, (string) t('全部标签') . ' | DcLili');
+  }
+  elseif ($route_name === 'xedc.html_sitemap') {
+    _xedc_set_head_title($variables, (string) t('站点地图') . ' | DcLili');
+  }
+  elseif ($route_name === 'view.image_gallery.page_1') {
+    _xedc_set_head_title($variables, (string) t('美图列表') . ' | DcLili');
+  }
+  elseif ($route_name === 'view.video_list.page_1') {
+    _xedc_set_head_title($variables, (string) t('视频列表页') . ' | DcLili');
+  }
+  elseif ($route_name === 'view.article_list.page_1') {
+    _xedc_set_head_title($variables, (string) t('文章列表') . ' | DcLili');
+  }
   if (_xedc_auth_is_auth_route()) {
     $variables['attributes']['class'][] = 'xedc-auth-page';
   }
@@ -93,7 +138,7 @@ function xedc_preprocess_html(array &$variables): void {
     $variables['attributes']['class'][] = 'xedc-embed';
   }
   if (_xedc_is_photo_list_route() && ($page = _xedc_photo_current_page()) > 0) {
-    $suffix = ' - 第 ' . ($page + 1) . ' 页';
+    $suffix = t(' - 第 @page 页', ['@page' => $page + 1]);
     if (isset($variables['head_title']['title']) && is_string($variables['head_title']['title'])) {
       $variables['head_title']['title'] .= $suffix;
     }
@@ -110,31 +155,31 @@ function xedc_form_user_login_form_alter(array &$form, FormStateInterface $form_
   if (_xedc_auth_route() !== 'user.login') {
     return;
   }
-  _xedc_auth_wrap($form, 'login', '登录', '');
+  _xedc_auth_wrap($form, 'login', t('登录'), '');
 
-  $form['name']['#title'] = '用户名';
+  $form['name']['#title'] = t('用户名');
   $form['name']['#description'] = '';
   $form['name']['#maxlength'] = 254;
-  $form['name']['#attributes']['placeholder'] = '请输入用户名或邮箱';
+  $form['name']['#attributes']['placeholder'] = t('请输入用户名或邮箱');
   $form['name']['#element_validate'][] = '_xedc_auth_login_email_to_name';
   $form['name']['#weight'] = 1;
 
-  $form['pass']['#title'] = '密码';
+  $form['pass']['#title'] = t('密码');
   $form['pass']['#description'] = '';
-  $form['pass']['#attributes']['placeholder'] = '请输入密码';
+  $form['pass']['#attributes']['placeholder'] = t('请输入密码');
   $form['pass']['#weight'] = 2;
 
   $form['xedc_forgot'] = [
     '#type' => 'link',
-    '#title' => '忘记密码？',
+    '#title' => t('忘记密码？'),
     '#url' => Url::fromRoute('user.pass', [], ['query' => _xedc_auth_dest()]),
     '#attributes' => ['class' => ['xedc-auth__forgot'], 'target' => '_top'],
     '#weight' => 3,
   ];
 
   $form['actions']['#weight'] = 10;
-  $form['actions']['submit']['#value'] = '登录';
-  _xedc_auth_foot($form, '还没有账号？', '注册账号', 'user.register');
+  $form['actions']['submit']['#value'] = t('登录');
+  _xedc_auth_foot($form, t('还没有账号？'), t('注册账号'), 'user.register');
 
   $form['#submit'][] = '_xedc_auth_login_submit';
 }
@@ -164,7 +209,7 @@ function xedc_form_user_register_form_alter(array &$form, FormStateInterface $fo
   if (_xedc_auth_route() !== 'user.register') {
     return;
   }
-  _xedc_auth_wrap($form, 'register', '创建账号', '注册后即可评论、收藏和互动。');
+  _xedc_auth_wrap($form, 'register', t('创建账号'), t('注册后即可评论、收藏和互动。'));
 
   // 精简注册表单：只留 用户名 / 邮箱 / 密码
   foreach (['user_picture', 'timezone', 'language', 'contact'] as $f) {
@@ -176,15 +221,15 @@ function xedc_form_user_register_form_alter(array &$form, FormStateInterface $fo
     $a = &$form['account'];
     if (isset($a['name'])) {
       $a['name']['#weight'] = -30;
-      $a['name']['#title'] = '用户名';
+      $a['name']['#title'] = t('用户名');
       $a['name']['#description'] = '';
-      $a['name']['#attributes']['placeholder'] = '请输入用户名';
+      $a['name']['#attributes']['placeholder'] = t('请输入用户名');
     }
     if (isset($a['mail'])) {
       $a['mail']['#weight'] = -20;
-      $a['mail']['#title'] = '邮箱地址';
+      $a['mail']['#title'] = t('邮箱地址');
       $a['mail']['#description'] = '';
-      $a['mail']['#attributes']['placeholder'] = '请输入邮箱地址';
+      $a['mail']['#attributes']['placeholder'] = t('请输入邮箱地址');
     }
     if (isset($a['pass'])) {
       $a['pass']['#weight'] = -10;
@@ -193,8 +238,8 @@ function xedc_form_user_register_form_alter(array &$form, FormStateInterface $fo
     }
     unset($a);
   }
-  $form['actions']['submit']['#value'] = '创建账号';
-  _xedc_auth_foot($form, '已有账号？', '登录', 'user.login');
+  $form['actions']['submit']['#value'] = t('创建账号');
+  _xedc_auth_foot($form, t('已有账号？'), t('登录'), 'user.login');
   _xedc_auth_add_handler($form, 'submit', '_xedc_auth_register_submit');
 }
 
@@ -219,14 +264,14 @@ function _xedc_auth_register_submit(array &$form, FormStateInterface $form_state
 function _xedc_auth_pass_after_build(array $element, FormStateInterface $form_state): array {
   if (isset($element['pass1'])) {
     $new = (bool) \Drupal::request()->query->get('pass-reset-token');
-    $element['pass1']['#title'] = $new ? '新密码' : '密码';
+    $element['pass1']['#title'] = $new ? t('新密码') : t('密码');
     $element['pass1']['#description'] = '';
-    $element['pass1']['#attributes']['placeholder'] = '至少 8 位，包含字母和数字';
+    $element['pass1']['#attributes']['placeholder'] = t('至少 8 位，包含字母和数字');
   }
   if (isset($element['pass2'])) {
-    $element['pass2']['#title'] = !empty($new) ? '确认新密码' : '确认密码';
+    $element['pass2']['#title'] = !empty($new) ? t('确认新密码') : t('确认密码');
     $element['pass2']['#description'] = '';
-    $element['pass2']['#attributes']['placeholder'] = '请再次输入密码';
+    $element['pass2']['#attributes']['placeholder'] = t('请再次输入密码');
   }
   return $element;
 }
@@ -238,25 +283,25 @@ function xedc_form_user_pass_alter(array &$form, FormStateInterface $form_state)
   if (_xedc_auth_route() !== 'user.pass') {
     return;
   }
-  _xedc_auth_wrap($form, 'pass', '找回密码', '输入账号信息，我们会向账号绑定的邮箱发送重置链接。');
+  _xedc_auth_wrap($form, 'pass', t('找回密码'), t('输入账号信息，我们会向账号绑定的邮箱发送重置链接。'));
   if (isset($form['name'])) {
-    $form['name']['#title'] = '用户名或邮箱';
+    $form['name']['#title'] = t('用户名或邮箱');
     $form['name']['#description'] = '';
-    $form['name']['#attributes']['placeholder'] = '请输入用户名或邮箱';
+    $form['name']['#attributes']['placeholder'] = t('请输入用户名或邮箱');
   }
   if (isset($form['actions']['submit'])) {
-    $form['actions']['submit']['#value'] = '发送重置链接';
+    $form['actions']['submit']['#value'] = t('发送重置链接');
   }
-  _xedc_auth_foot($form, '想起密码了？', '返回登录', 'user.login');
+  _xedc_auth_foot($form, t('想起密码了？'), t('返回登录'), 'user.login');
 }
 
 /**
  * Implements hook_form_FORM_ID_alter() for user_pass_reset (一次性登录链接页).
  */
 function xedc_form_user_pass_reset_alter(array &$form, FormStateInterface $form_state): void {
-  _xedc_auth_wrap($form, 'reset', '重置密码', '正在验证链接，请稍候。若没有自动跳转，请点击下方按钮。');
+  _xedc_auth_wrap($form, 'reset', t('重置密码'), t('正在验证链接，请稍候。若没有自动跳转，请点击下方按钮。'));
   if (isset($form['actions']['submit'])) {
-    $form['actions']['submit']['#value'] = '继续设置新密码';
+    $form['actions']['submit']['#value'] = t('继续设置新密码');
   }
 }
 
@@ -295,7 +340,7 @@ function _xedc_auth_validate_password(array &$form, FormStateInterface $form_sta
     return;
   }
   if (mb_strlen($pass) < 8 || !preg_match('/[A-Za-z]/', $pass) || !preg_match('/\\d/', $pass)) {
-    $form_state->setErrorByName('pass', '密码至少 8 位，且必须同时包含字母和数字。');
+    $form_state->setErrorByName('pass', t('密码至少 8 位，且必须同时包含字母和数字。'));
   }
 }
 
@@ -307,7 +352,7 @@ function xedc_form_user_form_alter(array &$form, FormStateInterface $form_state)
   if (_xedc_auth_route() !== 'entity.user.edit_form' || !\Drupal::request()->query->has('pass-reset-token')) {
     return;
   }
-  _xedc_auth_wrap($form, 'setpass', '设置新密码', '');
+  _xedc_auth_wrap($form, 'setpass', t('设置新密码'), '');
   foreach (['user_picture', 'timezone', 'language', 'contact', 'path', 'langcode', 'roles', 'status', 'notify'] as $f) {
     if (isset($form[$f])) {
       $form[$f]['#access'] = FALSE;
@@ -322,7 +367,7 @@ function xedc_form_user_form_alter(array &$form, FormStateInterface $form_state)
     $form['account']['pass']['#description'] = '';
     $form['account']['pass']['#after_build'][] = '_xedc_auth_pass_after_build';
   }
-  $form['actions']['submit']['#value'] = '保存新密码';
+  $form['actions']['submit']['#value'] = t('保存新密码');
   _xedc_auth_add_handler($form, 'submit', '_xedc_auth_setpass_submit');
 }
 
@@ -348,7 +393,7 @@ function _xedc_auth_add_handler(array &$form, string $type, string $callback): v
  */
 function _xedc_auth_localize_messages(): void {
   $map = [
-    'one-time login link that has either been used' => '该重置链接已被使用或已过期，请在下方重新获取。',
+    'one-time login link that has either been used' => t('该重置链接已被使用或已过期，请在下方重新获取。'),
     'You have used a one-time login link' => '',
   ];
   $messenger = \Drupal::messenger();

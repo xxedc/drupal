@@ -1,0 +1,11 @@
+uuid: 81c2d3e4-f506-4789-a012-bbccddeeff03
+langcode: zh-hans
+status: true
+dependencies: {  }
+id: xedc_tags.index
+label: 标签索引
+tags:
+  title: '全部标签 | [site:name]'
+  description: 'DcLili 标签目录，按标签浏览美图、文章与视频。'
+  canonical_url: '[current-page:url]'
+  robots: 'index, follow'

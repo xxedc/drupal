@@ -1,7 +1,7 @@
 <header class="xm-head">
   <div>
-    <h1 class="xm-title">我的投稿</h1>
-    <p class="xm-sub">共 {{ total }} 篇投稿</p>
+    <h1 class="xm-title">{{ '我的投稿'|t }}</h1>
+    <p class="xm-sub">{{ '共 @count 篇投稿'|t({'@count': total}) }}</p>
   </div>
 </header>
 
@@ -25,14 +25,14 @@
         <h2 class="xm-submission-card__title">{{ item.title }}</h2>
         {% if item.review_note %}
           <div class="xm-review-note">
-            <strong>审核意见</strong>
+            <strong>{{ '审核意见'|t }}</strong>
             <p>{{ item.review_note }}</p>
           </div>
         {% endif %}
         {% if item.edit_url or item.view_url %}
           <div class="xm-submission-card__actions">
-            {% if item.edit_url %}<a href="{{ item.edit_url }}">编辑 / 提交审核</a>{% endif %}
-            {% if item.view_url %}<a href="{{ item.view_url }}">查看已发布内容</a>{% endif %}
+            {% if item.edit_url %}<a href="{{ item.edit_url }}">{{ '编辑 / 提交审核'|t }}</a>{% endif %}
+            {% if item.view_url %}<a href="{{ item.view_url }}">{{ '查看已发布内容'|t }}</a>{% endif %}
           </div>
         {% endif %}
       </article>
@@ -42,7 +42,7 @@
 {% else %}
   <div class="xm-empty">
     <strong>{{ empty }}</strong>
-    <p>从上方选择一种内容开始写，可以先存成草稿。</p>
+    <p>{{ '从上方选择一种内容开始写，可以先存成草稿。'|t }}</p>
     {% if create_links %}
       <div class="xm-empty__links">
         {% for link in create_links %}

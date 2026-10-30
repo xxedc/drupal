@@ -7,4 +7,4 @@ _core:
 id: medium
 label: 默认中等日期
 locked: false
-pattern: 'D, j M Y - H:i'
+pattern: 'Y年n月j日 D H:i'

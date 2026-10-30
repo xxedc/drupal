@@ -1,0 +1,23 @@
+uuid: 5e6a7b8c-9d0e-4f11-a222-333344445502
+langcode: zh-hans
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.article_category
+  module:
+    - taxonomy
+id: article_category
+label: '文章栏目 URL'
+type: 'canonical_entities:taxonomy_term'
+pattern: '/articles/category/[term:name]'
+selection_criteria:
+  6f7a8b9c-0d1e-4f22-b333-444455556602:
+    id: 'entity_bundle:taxonomy_term'
+    negate: false
+    context_mapping:
+      taxonomy_term: taxonomy_term
+    bundles:
+      article_category: article_category
+selection_logic: and
+weight: -5
+relationships: {  }

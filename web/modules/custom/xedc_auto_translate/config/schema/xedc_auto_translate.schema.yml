@@ -1,0 +1,47 @@
+xedc_auto_translate.settings:
+  type: config_object
+  label: 'XEDC auto translation'
+  mapping:
+    enabled:
+      type: boolean
+      label: 'Enabled'
+    source_langcode:
+      type: string
+      label: 'Source language'
+    provider:
+      type: string
+      label: 'Translation provider'
+    microsoft_region:
+      type: string
+      label: 'Microsoft Translator region'
+    microsoft_endpoint:
+      type: string
+      label: 'Microsoft Translator endpoint'
+    deepl_endpoint:
+      type: string
+      label: 'DeepL endpoint'
+    overwrite:
+      type: boolean
+      label: 'Overwrite existing translations'
+    save_as:
+      type: string
+      label: 'Save translations as'
+    targets:
+      type: mapping
+      label: 'Target languages'
+      mapping:
+        en:
+          type: string
+          label: 'English'
+        ru:
+          type: string
+          label: 'Russian'
+        ja:
+          type: string
+          label: 'Japanese'
+    bundles:
+      type: sequence
+      label: 'Bundles'
+      sequence:
+        type: string
+        label: 'Entity type and bundle'

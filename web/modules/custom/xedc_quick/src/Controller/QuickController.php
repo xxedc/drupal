@@ -5,172 +5,331 @@ namespace Drupal\xedc_quick\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\File\FileExists;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\file\Entity\File;
+use Drupal\file\FileInterface;
 use Drupal\media\Entity\Media;
+use Drupal\media\MediaInterface;
 use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
+use Drupal\xedc_quick\QuickStore;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * Admin form that uploads photos and creates one photo node.
+ */
 class QuickController extends ControllerBase {
 
+  public function __construct(
+    protected QuickStore $store,
+  ) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('xedc_quick.store'),
+    );
+  }
+
+  /**
+   * Cached [node bundle, media bundle, source field].
+   *
+   * @var array{0: string, 1: string, 2: string}|null
+   */
+  protected ?array $info = NULL;
+
+  /**
+   * @return array{0: string, 1: string, 2: string}
+   *   Node bundle, media bundle and the media source field name.
+   */
   protected function info(): array {
-    $fm = \Drupal::service('entity_field.manager');
-    $bundle = array_key_first($fm->getFieldMap()['node']['field_images']['bundles'] ?? []);
-    $def = $fm->getFieldDefinitions('node', $bundle)['field_images'];
-    $mt = array_key_first($def->getSetting('handler_settings')['target_bundles']);
-    $type = $this->entityTypeManager()->getStorage('media_type')->load($mt);
-    $src = $type->getSource()->getConfiguration()['source_field'];
-    return [$bundle, $mt, $src];
+    if ($this->info) {
+      return $this->info;
+    }
+    $manager = \Drupal::service('entity_field.manager');
+    $bundle = array_key_first($manager->getFieldMap()['node']['field_images']['bundles'] ?? []) ?: 'photo';
+    $definitions = $manager->getFieldDefinitions('node', $bundle);
+    $definition = $definitions['field_images'] ?? NULL;
+    $media_type = $definition ? array_key_first($definition->getSetting('handler_settings')['target_bundles'] ?? []) : 'image';
+    $media_type = $media_type ?: 'image';
+    $type = $this->entityTypeManager()->getStorage('media_type')->load($media_type);
+    $source = $type ? ($type->getSource()->getConfiguration()['source_field'] ?? 'field_media_image') : 'field_media_image';
+    return $this->info = [$bundle, $media_type, $source];
   }
 
-  protected function vocab(string $bundle, string $field) {
-    $d = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', $bundle)[$field] ?? NULL;
-    return $d ? array_key_first($d->getSetting('handler_settings')['target_bundles'] ?? []) : NULL;
+  /**
+   * Vocabulary id referenced by a node field.
+   */
+  protected function vocab(string $bundle, string $field): ?string {
+    $definition = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', $bundle)[$field] ?? NULL;
+    if (!$definition) {
+      return NULL;
+    }
+    $vocab = array_key_first($definition->getSetting('handler_settings')['target_bundles'] ?? []);
+    return $vocab ? (string) $vocab : NULL;
   }
 
+  /**
+   * Resolves term names in one query, creating only the missing ones.
+   *
+   * @return array<int, array{target_id: int|string}>
+   *   Entity reference values.
+   */
   protected function terms(string $bundle, string $field, array $names): array {
-    $v = $this->vocab($bundle, $field);
-    if (!$v) {
+    $vocab = $this->vocab($bundle, $field);
+    if (!$vocab) {
       return [];
     }
-    $st = $this->entityTypeManager()->getStorage('taxonomy_term');
-    $out = [];
+    $clean = [];
     foreach ($names as $name) {
-      $name = trim($name);
-      if ($name === '') {
-        continue;
+      $name = trim((string) $name);
+      if ($name !== '' && !in_array($name, $clean, TRUE)) {
+        $clean[] = $name;
       }
-      $found = $st->loadByProperties(['name' => $name, 'vid' => $v]);
-      if ($found) {
-        $t = reset($found);
+    }
+    $clean = array_slice($clean, 0, 30);
+    if (!$clean) {
+      return [];
+    }
+    $storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+    $by_name = [];
+    foreach ($storage->loadByProperties(['name' => $clean, 'vid' => $vocab]) as $term) {
+      $by_name[$term->label()] = $term;
+    }
+    $out = [];
+    foreach ($clean as $name) {
+      if (!isset($by_name[$name])) {
+        $term = Term::create(['name' => $name, 'vid' => $vocab]);
+        $term->save();
+        $by_name[$name] = $term;
       }
-      else {
-        $t = Term::create(['name' => $name, 'vid' => $v]);
-        $t->save();
-      }
-      $out[] = ['target_id' => $t->id()];
+      $out[] = ['target_id' => $by_name[$name]->id()];
     }
     return $out;
   }
 
-  public function page() {
-    [$bundle] = $this->info();
-    $names = [];
-    foreach (['field_model' => 'models', 'field_tags' => 'tags', 'field_categories' => 'cats'] as $fld => $key) {
-      $names[$key] = [];
-      if ($v = $this->vocab($bundle, $fld)) {
-        foreach (array_slice($this->entityTypeManager()->getStorage('taxonomy_term')->loadTree($v), 0, 3000) as $t) {
-          $names[$key][] = $t->name;
-        }
-      }
-    }
+  /**
+   * Empty shell. Term lists are loaded by the suggest endpoint.
+   */
+  public function page(): array {
     return [
       '#type' => 'html_tag',
       '#tag' => 'div',
       '#attributes' => ['id' => 'xq-app'],
       '#attached' => [
         'library' => ['xedc_quick/app'],
-        'drupalSettings' => ['xq' => $names],
       ],
-      '#cache' => ['max-age' => 0],
+      '#cache' => [
+        'contexts' => ['user.permissions'],
+        'max-age' => 0,
+      ],
     ];
   }
 
-  public function upload(Request $r) {
-    [, $mt, $src] = $this->info();
-    $f = $r->files->get('file');
-    if (!$f || !$f->isValid() || !@getimagesize($f->getPathname())) {
-      return new JsonResponse(['error' => 'bad file'], 400);
+  /**
+   * Term name suggestions for person, tag and category fields.
+   */
+  public function suggest(Request $request): JsonResponse {
+    $key = (string) $request->query->get('field', '');
+    $map = [
+      'models' => 'field_model',
+      'tags' => 'field_tags',
+      'cats' => 'field_categories',
+    ];
+    if (!isset($map[$key])) {
+      return new JsonResponse([], 400);
     }
-    $db = \Drupal::database();
-    $schema = $db->schema();
-    if (!$schema->tableExists('xedc_quick_hash')) {
-      $schema->createTable('xedc_quick_hash', [
-        'fields' => [
-          'hash' => ['type' => 'varchar', 'length' => 64, 'not null' => TRUE],
-          'mid' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
-        ],
-        'primary key' => ['hash'],
-      ]);
+    [$bundle] = $this->info();
+    $vocab = $this->vocab($bundle, $map[$key]);
+    if (!$vocab) {
+      return new JsonResponse([]);
     }
-    $hash = hash_file('sha256', $f->getPathname());
-    $old = (int) $db->select('xedc_quick_hash', 'h')->fields('h', ['mid'])->condition('hash', $hash)->execute()->fetchField();
-    if ($old && Media::load($old)) {
-      return new JsonResponse(['mid' => $old, 'dup' => TRUE]);
+    $q = trim((string) $request->query->get('q', ''));
+    $q = mb_substr($q, 0, 80);
+    $storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+    $query = $storage->getQuery()->accessCheck(TRUE)->condition('vid', $vocab);
+    if ($q !== '') {
+      $query->condition('name', $q, 'CONTAINS');
     }
-    $title = trim((string) $r->request->get('title', 'gallery'));
-    $n = (int) $r->request->get('n', 1);
-    $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', \Drupal::service('transliteration')->transliterate($title, 'en')), '-')) ?: 'gallery';
-    $slug = substr($slug, 0, 60);
-    $ext = strtolower($f->getClientOriginalExtension()) === 'jpg' ? 'jpg' : 'webp';
-    $dir = 'public://gallery/' . date('Y-m');
-    \Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
-    $file = \Drupal::service('file.repository')->writeData(
-      file_get_contents($f->getPathname()),
-      sprintf('%s/%s-%03d.%s', $dir, $slug, $n, $ext),
-      FileExists::Rename
-    );
-    $media = Media::create([
-      'bundle' => $mt,
-      'name' => $title . ' ' . $n,
-      'uid' => $this->currentUser()->id(),
-      'status' => 1,
-      $src => ['target_id' => $file->id(), 'alt' => $title . ' - 图' . $n],
-    ]);
-    $media->save();
-    $db->merge('xedc_quick_hash')->key('hash', $hash)->fields(['mid' => $media->id()])->execute();
-    if (!$schema->tableExists('xedc_quick_orig')) {
-      $schema->createTable('xedc_quick_orig', [
-        'fields' => [
-          'mid' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE],
-          'bytes' => ['type' => 'int', 'size' => 'big', 'unsigned' => TRUE, 'not null' => TRUE],
-        ],
-        'primary key' => ['mid'],
-      ]);
+    $ids = $query->sort('name')->range(0, 20)->execute();
+    $names = [];
+    foreach ($storage->loadMultiple($ids) as $term) {
+      $label = trim((string) $term->label());
+      if ($label !== '') {
+        $names[] = $label;
+      }
     }
-    $db->merge('xedc_quick_orig')->key('mid', $media->id())->fields(['bytes' => (int) $r->request->get('orig', 0)])->execute();
-    return new JsonResponse(['mid' => $media->id()]);
+    return new JsonResponse($names);
   }
 
-  public function createNode(Request $r) {
-    [$bundle] = $this->info();
-    $d = json_decode($r->getContent(), TRUE) ?: [];
-    $title = trim($d['title'] ?? '');
-    $mids = array_values(array_unique(array_filter($d['mids'] ?? [])));
+  /**
+   * Stores one already-compressed image as media, reusing an identical file.
+   */
+  public function upload(Request $request): JsonResponse {
+    [, $media_type, $source] = $this->info();
+    $uploaded = $request->files->get('file');
+    if (!$uploaded || !$uploaded->isValid()) {
+      return new JsonResponse(['error' => 'bad file'], 400);
+    }
+    if ($uploaded->getSize() > 25 * 1024 * 1024) {
+      return new JsonResponse(['error' => '文件过大'], 400);
+    }
+    $info = @getimagesize($uploaded->getPathname());
+    $type = (int) ($info[2] ?? 0);
+    $extension = match ($type) {
+      IMAGETYPE_JPEG => 'jpg',
+      IMAGETYPE_PNG => 'png',
+      IMAGETYPE_GIF => 'gif',
+      IMAGETYPE_WEBP => 'webp',
+      default => (defined('IMAGETYPE_AVIF') && $type === IMAGETYPE_AVIF) ? 'avif' : '',
+    };
+    if ($extension === '') {
+      return new JsonResponse(['error' => 'bad file'], 400);
+    }
+    $this->store->ensureTables();
+    $hash = hash_file('sha256', $uploaded->getPathname());
+    $lock_name = 'xedc_quick:' . $hash;
+    $lock = \Drupal::lock();
+    if (!$lock->acquire($lock_name, 30)) {
+      $lock->wait($lock_name, 5);
+      $existing = $this->mediaForHash($hash);
+      if ($existing) {
+        return new JsonResponse(['mid' => (int) $existing, 'dup' => TRUE]);
+      }
+      if (!$lock->acquire($lock_name, 30)) {
+        return new JsonResponse(['error' => '请稍后重试'], 429);
+      }
+    }
+    try {
+      $existing = $this->mediaForHash($hash);
+      if ($existing) {
+        return new JsonResponse(['mid' => (int) $existing, 'dup' => TRUE]);
+      }
+      $title = trim((string) $request->request->get('title', 'gallery'));
+      $title = $title !== '' ? mb_substr($title, 0, 200) : 'gallery';
+      $n = max(1, (int) $request->request->get('n', 1));
+      $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', \Drupal::service('transliteration')->transliterate($title, 'en')), '-'));
+      $slug = substr($slug !== '' ? $slug : 'gallery', 0, 60);
+      $directory = 'public://gallery/' . date('Y-m');
+      $filesystem = \Drupal::service('file_system');
+      $filesystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+      $destination = sprintf('%s/%s-%03d.%s', $directory, $slug, $n, $extension);
+      $uri = $filesystem->copy($uploaded->getRealPath(), $destination, FileExists::Rename);
+      $file = File::create([
+        'uri' => $uri,
+        'uid' => $this->currentUser()->id(),
+        'status' => FileInterface::STATUS_PERMANENT,
+        'filename' => basename($uri),
+      ]);
+      $file->save();
+      $media = Media::create([
+        'bundle' => $media_type,
+        'name' => $title . ' ' . $n,
+        'uid' => $this->currentUser()->id(),
+        'status' => 1,
+        $source => [
+          'target_id' => $file->id(),
+          'alt' => $title . ' - 图' . $n,
+        ],
+      ]);
+      $media->save();
+      $this->store->rememberUpload($hash, (int) $media->id(), (int) $request->request->get('orig', 0));
+      return new JsonResponse(['mid' => (int) $media->id()]);
+    }
+    catch (\Throwable $e) {
+      $this->getLogger('xedc_quick')->error('Gallery upload failed: @message', ['@message' => $e->getMessage()]);
+      return new JsonResponse(['error' => '上传失败'], 500);
+    }
+    finally {
+      $lock->release($lock_name);
+    }
+  }
+
+  /**
+   * Media id already stored for this file hash.
+   */
+  protected function mediaForHash(string $hash): int {
+    $id = $this->store->mediaIdForHash($hash);
+    if ($id && Media::load($id)) {
+      return $id;
+    }
+    return 0;
+  }
+
+  /**
+   * Creates the photo node from uploaded media ids.
+   */
+  public function createNode(Request $request): JsonResponse {
+    [$bundle, $media_type] = $this->info();
+    $data = json_decode($request->getContent(), TRUE) ?: [];
+    $title = trim((string) ($data['title'] ?? ''));
+    $title = mb_substr($title, 0, 255);
+    $mids = array_values(array_unique(array_filter(array_map('intval', $data['mids'] ?? []))));
     if ($title === '' || !$mids) {
       return new JsonResponse(['error' => '缺少标题或图片'], 400);
     }
-    $cover = $d['cover'] ?? $mids[0];
-    $node = Node::create([
-      'type' => $bundle,
-      'title' => $title,
-      'uid' => $this->currentUser()->id(),
-      'status' => empty($d['publish']) ? 0 : 1,
-      'field_images' => array_map(fn($m) => ['target_id' => $m], $mids),
-    ]);
-    if ($node->hasField('moderation_state')) {
-      $node->set('moderation_state', empty($d['publish']) ? 'draft' : 'published');
-    }
-    if ($node->hasField('field_cover_image')) {
-      if ($node->getFieldDefinition('field_cover_image')->getType() === 'image') {
-        $m = Media::load($cover);
-        $node->set('field_cover_image', ['target_id' => $m->getSource()->getSourceFieldValue($m), 'alt' => $title]);
-      }
-      else {
-        $node->set('field_cover_image', ['target_id' => $cover]);
+    $loaded = $this->entityTypeManager()->getStorage('media')->loadMultiple($mids);
+    $ordered = [];
+    foreach ($mids as $mid) {
+      $media = $loaded[$mid] ?? NULL;
+      if ($media instanceof MediaInterface && $media->bundle() === $media_type) {
+        $ordered[] = (int) $media->id();
       }
     }
-    if ($node->hasField('field_model') && !empty($d['model'])) {
-      $node->set('field_model', $this->terms($bundle, 'field_model', [$d['model']]));
+    if (!$ordered) {
+      return new JsonResponse(['error' => '图片无效'], 400);
     }
-    if ($node->hasField('field_tags')) {
-      $node->set('field_tags', $this->terms($bundle, 'field_tags', $d['tags'] ?? []));
+    $cover = (int) ($data['cover'] ?? 0);
+    if (!in_array($cover, $ordered, TRUE)) {
+      $cover = $ordered[0];
     }
-    if ($node->hasField('field_categories')) {
-      $node->set('field_categories', $this->terms($bundle, 'field_categories', $d['cats'] ?? []));
+    $publish = !empty($data['publish']);
+    try {
+      $node = Node::create([
+        'type' => $bundle,
+        'title' => $title,
+        'uid' => $this->currentUser()->id(),
+        'status' => $publish ? 1 : 0,
+        'field_images' => array_map(static fn(int $mid): array => ['target_id' => $mid], $ordered),
+      ]);
+      if ($node->hasField('moderation_state')) {
+        $node->set('moderation_state', $publish ? 'published' : 'draft');
+      }
+      if ($node->hasField('field_cover_image')) {
+        $cover_media = $loaded[$cover] ?? NULL;
+        if ($cover_media instanceof MediaInterface) {
+          if ($node->getFieldDefinition('field_cover_image')->getType() === 'image') {
+            $node->set('field_cover_image', [
+              'target_id' => $cover_media->getSource()->getSourceFieldValue($cover_media),
+              'alt' => $title,
+            ]);
+          }
+          else {
+            $node->set('field_cover_image', ['target_id' => $cover]);
+          }
+        }
+      }
+      $model = trim((string) ($data['model'] ?? ''));
+      if ($node->hasField('field_model') && $model !== '') {
+        $node->set('field_model', $this->terms($bundle, 'field_model', [$model]));
+      }
+      if ($node->hasField('field_tags')) {
+        $node->set('field_tags', $this->terms($bundle, 'field_tags', $data['tags'] ?? []));
+      }
+      if ($node->hasField('field_categories')) {
+        $node->set('field_categories', $this->terms($bundle, 'field_categories', $data['cats'] ?? []));
+      }
+      $node->save();
+      $url = $publish ? $node->toUrl()->toString() : $node->toUrl('edit-form')->toString();
+      return new JsonResponse(['edit' => $url]);
     }
-    $node->save();
-    return new JsonResponse(['edit' => '/node/' . $node->id() . (empty($d['publish']) ? '/edit' : '')]);
+    catch (\Throwable $e) {
+      $this->getLogger('xedc_quick')->error('Gallery create failed: @message', ['@message' => $e->getMessage()]);
+      return new JsonResponse(['error' => '创建失败'], 500);
+    }
   }
 
 }
