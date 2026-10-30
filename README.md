@@ -4,7 +4,7 @@
 
 ## 快速恢复（新服务器）
 
-在全新的 Ubuntu 24.04 服务器上执行以下命令即可完成环境安装、代码部署、空站点安装和配置导入：
+在全新的 Ubuntu 24.04 或 26.04 服务器上执行以下命令即可完成环境安装、代码部署、空站点安装和配置导入：
 
 ```bash
 curl -fsSL -o /root/install-restore.sh \
@@ -24,6 +24,7 @@ sudo /root/install-restore.sh example.com
 - 仅恢复代码、主题、模块、`config/sync` 和翻译文件。不恢复用户内容、上传文件或数据库数据。
 - 严格使用仓库中的 `composer.lock`，安装 Drupal 11.4.11 及所有已锁定的 contrib 模块，不会执行 `composer update`。
 - 每次运行脚本都会从本仓库拉取最新内容。
+- 导入前会把配置里属于本站的绝对地址改成传入的域名。外部统计、SMTP 服务器和外部邮箱保持不变，详见 `docs/RESTORE.md`。
 - 仓库中的 `PROJECT-STATUS.md` 提到实际运行配置与提交的 `config/sync` 存在差异，直接导入可能与原站点不完全一致。
 
 ## 仓库结构概览

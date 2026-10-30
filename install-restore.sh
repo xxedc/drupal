@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# install-restore.sh — 在全新 Ubuntu 24.04 上恢复本仓库的代码与配置结构。
+# install-restore.sh — 在 Ubuntu 24.04 或 26.04 上恢复本仓库的代码与配置结构。
 #
 # 恢复范围：Git 代码、Composer 锁定的 Drupal 11.4.11 与 contrib、自定义主题 xedc、
 # 自定义模块、config/sync、仓库中的翻译文件。
@@ -11,9 +11,11 @@
 #    （未导出的界面改动、settings.php 里的 $config 覆盖、服务器上的临时配置）。
 #    本脚本在空站点上执行 drush cim -y，有差异也会继续导入。
 #    导入结果以仓库中的 config/sync 为准，不保证与原生产环境完全一致。
-# 2. config/sync 可能包含原环境的绝对 URL、邮件参数或第三方服务地址。
-#    这些值会随配置导入生效。脚本只在导入后把 simple_sitemap 的 base_url
-#    改成本次域名，其余绝对地址需要人工核对。本脚本不记录、不输出仓库中的口令。
+# 2. 导入前会把本站自己的绝对地址改成本次域名，包括：
+#    simple_sitemap 的 base_url、Metatag 里指向本站的 http(s) URL（含序列化字段）、
+#    @旧域名 的站点邮箱，以及与旧域名完全相同的主机名（如 smtp_client_hostname）。
+#    不替换子域上的外部统计（例如 Matomo）、SMTP 服务器、外部邮箱、Drupal.org、
+#    oEmbed 和搜索引擎 IndexNow。这些会在日志里列出。脚本不打印配置中的口令。
 # 3. 每次运行都会重新 git clone 指定分支的最新提交。目标目录已存在时，
 #    先整目录改名备份，再克隆。备份里可能有旧的上传文件，新站点不会使用它们。
 # 4. 仅当显式传入 --reinstall --yes 时才会删除已有数据库。
@@ -91,8 +93,9 @@ usage() {
   cat <<'EOF'
 用法：sudo ./install-restore.sh [域名] [选项]
 
-在 Ubuntu 24.04 上安装运行环境，克隆 https://github.com/xxedc/drupal 的最新代码，
+在 Ubuntu 24.04 或 26.04 上安装运行环境，克隆 https://github.com/xxedc/drupal 的最新代码，
 按 composer.lock 安装 Drupal 11.4.11，构建 xedc 主题，安装空站点并导入 config/sync。
+导入前会把配置里属于本站的绝对地址改成本次域名，并保留第三方服务地址。
 
 选项：
   --domain 域名         站点域名，也可作为第一个位置参数
@@ -146,9 +149,14 @@ check_os() {
   if [[ "${ID:-}" != "ubuntu" ]]; then
     die "此脚本只支持 Ubuntu。"
   fi
-  if [[ "${VERSION_ID:-}" != "24.04" ]]; then
-    warn "当前系统是 ${PRETTY_NAME:-unknown}。脚本按 Ubuntu 24.04 编写，其他版本可能无法完成安装。"
-  fi
+  case "${VERSION_ID:-}" in
+    24.04|26.04)
+      log "系统 ${PRETTY_NAME:-Ubuntu ${VERSION_ID}}，继续安装。"
+      ;;
+    *)
+      warn "当前系统是 ${PRETTY_NAME:-unknown}。脚本针对 Ubuntu 24.04 和 26.04，将继续尝试安装依赖。"
+      ;;
+  esac
 }
 
 parse_args() {
@@ -297,7 +305,7 @@ regex_host() {
 
 install_packages() {
   export DEBIAN_FRONTEND=noninteractive
-  log "安装基础软件包与 PHP 8.5（ondrej/php）。"
+  log "安装基础软件包与 PHP 8.5。"
   apt-get update
   apt-get install -y \
     ca-certificates \
@@ -308,8 +316,16 @@ install_packages() {
     openssl \
     software-properties-common \
     apt-transport-https
-  add-apt-repository -y ppa:ondrej/php
-  apt-get update
+  if ! apt-cache show php8.5-cli >/dev/null 2>&1; then
+    log "系统源没有 PHP 8.5，添加 ondrej/php。"
+    add-apt-repository -y ppa:ondrej/php
+    apt-get update
+  else
+    log "软件源已提供 PHP 8.5，不再重复添加 PPA。"
+  fi
+  if ! apt-cache show php8.5-cli >/dev/null 2>&1; then
+    die "Ubuntu ${VERSION_ID:-unknown} 的软件源中没有 php8.5-cli。请确认 ondrej/php 已支持该版本。"
+  fi
   apt-get install -y \
     nginx \
     mariadb-server \
@@ -360,8 +376,12 @@ install_node() {
     return 0
   fi
   log "安装 Node.js 22。"
-  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  apt-get install -y nodejs
+  if ! curl -fsSL https://deb.nodesource.com/setup_22.x | bash -; then
+    warn "NodeSource 安装脚本失败，改用 Ubuntu 软件源中的 Node.js。"
+    apt-get install -y nodejs npm
+  else
+    apt-get install -y nodejs
+  fi
   major=$(node -p 'Number(process.versions.node.split(".")[0])')
   if [[ "$major" -lt 18 ]]; then
     die "Node.js 版本低于 18。"
@@ -1117,11 +1137,265 @@ import_translations() {
   done
 }
 
-update_public_base_url() {
+rewrite_site_urls() {
+  log "导入前改写 config/sync：只替换与旧站点域名完全相同的绝对地址、站点邮箱和主机名。"
+  log "不替换子域上的外部统计、SMTP 服务器、外部邮箱，以及 Drupal.org、oEmbed、IndexNow 等第三方地址。"
+  APP_ROOT="$APP_ROOT" PUBLIC_BASE="$PUBLIC_BASE" php <<'PHP'
+<?php
+declare(strict_types=1);
+
+$appRoot = getenv('APP_ROOT') ?: '';
+$publicBase = getenv('PUBLIC_BASE') ?: '';
+$sync = $appRoot . '/config/sync';
+$baseParts = parse_url($publicBase);
+$newHost = strtolower((string) ($baseParts['host'] ?? ''));
+$newScheme = (string) ($baseParts['scheme'] ?? 'http');
+if ($appRoot === '' || $newHost === '' || !is_dir($sync)) {
+    fwrite(STDERR, "缺少 APP_ROOT、PUBLIC_BASE 或 config/sync，已跳过地址替换。\n");
+    exit(1);
+}
+require $appRoot . '/vendor/autoload.php';
+
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
+
+$denySuffixes = [
+    'drupal.org', 'google.com', 'gmail.com', 'googleapis.com', 'gstatic.com',
+    'github.com', 'githubusercontent.com', 'bing.com', 'yandex.com', 'naver.com',
+    'seznam.cz', 'yep.com', 'indexnow.org', 'oembed.com', 'schema.org', 'w3.org',
+    'youtube.com', 'youtu.be', 'vimeo.com', 'twitter.com', 'x.com', 'facebook.com',
+];
+
+function host_denied(string $host, array $suffixes): bool {
+    $host = strtolower($host);
+    foreach ($suffixes as $suffix) {
+        if ($host === $suffix || str_ends_with($host, '.' . $suffix)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function is_site_host(string $host, string $oldHost): bool {
+    $host = strtolower($host);
+    return $host === $oldHost || $host === 'www.' . $oldHost;
+}
+
+function looks_serialized(string $value): bool {
+    return (bool) preg_match('/^(?:N;|b:[01];|i:-?\d+;|d:|s:\d+:"|a:\d+:\{|O:\d+:"|C:\d+:")/', $value);
+}
+
+function replace_plain(string $value, string $oldHost, string $newScheme, string $newHost): string {
+    $value = preg_replace_callback(
+        '#\bhttps?://[^\s\'"<>)]+#i',
+        static function (array $match) use ($oldHost, $newScheme, $newHost): string {
+            $url = $match[0];
+            $bits = parse_url($url);
+            if (!is_array($bits) || empty($bits['host']) || !is_site_host((string) $bits['host'], $oldHost)) {
+                return $url;
+            }
+            $path = $bits['path'] ?? '';
+            $query = isset($bits['query']) ? '?' . $bits['query'] : '';
+            $fragment = isset($bits['fragment']) ? '#' . $bits['fragment'] : '';
+            return $newScheme . '://' . $newHost . $path . $query . $fragment;
+        },
+        $value
+    ) ?? $value;
+    $pattern = '/(?<![A-Za-z0-9._%+-])([A-Za-z0-9._%+-]+)@' . preg_quote($oldHost, '/') . '(?![A-Za-z0-9.-])/i';
+    $value = preg_replace($pattern, '$1@' . $newHost, $value) ?? $value;
+    if (is_site_host($value, $oldHost)) {
+        return $newHost;
+    }
+    return $value;
+}
+
+function map_data(mixed $data, string $oldHost, string $newScheme, string $newHost): mixed {
+    if (is_array($data)) {
+        foreach ($data as $key => $item) {
+            $data[$key] = map_data($item, $oldHost, $newScheme, $newHost);
+        }
+        return $data;
+    }
+    if (is_string($data)) {
+        return replace_plain($data, $oldHost, $newScheme, $newHost);
+    }
+    return $data;
+}
+
+function transform_leaf(string $value, string $oldHost, string $newScheme, string $newHost): string {
+    if (looks_serialized($value)) {
+        $decoded = @unserialize($value, ['allowed_classes' => false]);
+        if ($decoded !== false || $value === 'b:0;') {
+            return serialize(map_data($decoded, $oldHost, $newScheme, $newHost));
+        }
+    }
+    return replace_plain($value, $oldHost, $newScheme, $newHost);
+}
+
+function walk_strings(mixed $data, callable $visitor): void {
+    if (is_array($data)) {
+        foreach ($data as $item) {
+            walk_strings($item, $visitor);
+        }
+        return;
+    }
+    if (is_string($data)) {
+        $visitor($data);
+    }
+}
+
+function yaml_host(string $file, string $key): string {
+    if (!is_file($file)) {
+        return '';
+    }
+    try {
+        $data = Yaml::parseFile($file);
+    } catch (ParseException) {
+        return '';
+    }
+    if (!is_array($data)) {
+        return '';
+    }
+    $value = $data[$key] ?? '';
+    if ($key === 'mail' && is_string($value) && str_contains($value, '@')) {
+        return strtolower((string) substr(strrchr($value, '@'), 1));
+    }
+    if (!is_string($value) || $value === '') {
+        return '';
+    }
+    $host = parse_url($value, PHP_URL_HOST);
+    return is_string($host) ? strtolower($host) : '';
+}
+
+$oldHost = yaml_host($sync . '/simple_sitemap.settings.yml', 'base_url');
+if ($oldHost === '' || strcasecmp($oldHost, $newHost) === 0 || host_denied($oldHost, $denySuffixes)) {
+    $mailHost = yaml_host($sync . '/system.site.yml', 'mail');
+    if ($mailHost !== '' && strcasecmp($mailHost, $newHost) !== 0 && !host_denied($mailHost, $denySuffixes)) {
+        $oldHost = $mailHost;
+    }
+}
+if ($oldHost === '' || strcasecmp($oldHost, $newHost) === 0) {
+    echo "未发现需要替换的旧站点域名，配置中的绝对地址保持不变。\n";
+    exit(0);
+}
+
+echo "旧站点域名：{$oldHost}\n";
+echo "新站点地址：{$newScheme}://{$newHost}\n";
+
+$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sync, FilesystemIterator::SKIP_DOTS));
+$changed = [];
+$skippedHosts = [];
+foreach ($iterator as $fileInfo) {
+    if (!$fileInfo->isFile() || !str_ends_with($fileInfo->getFilename(), '.yml')) {
+        continue;
+    }
+    $path = $fileInfo->getPathname();
+    $relative = 'config/sync/' . substr($path, strlen($sync) + 1);
+    try {
+        $parsed = Yaml::parseFile($path);
+    } catch (ParseException $exception) {
+        fwrite(STDERR, "跳过无法解析的配置 {$relative}：{$exception->getMessage()}\n");
+        continue;
+    }
+    $original = file_get_contents($path);
+    if ($original === false) {
+        continue;
+    }
+    walk_strings($parsed, static function (string $value) use ($oldHost, $relative, &$skippedHosts, $denySuffixes): void {
+        if (preg_match_all('#\bhttps?://([^/\s\'"<>)]+)#i', $value, $matches)) {
+            foreach ($matches[1] as $host) {
+                $host = strtolower(preg_replace('/:\d+$/', '', $host) ?? $host);
+                if (!is_site_host($host, $oldHost)) {
+                    $skippedHosts[$host][$relative] = true;
+                }
+            }
+        }
+        if (preg_match_all('/[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/', $value, $emails)) {
+            foreach ($emails[1] as $domain) {
+                $domain = strtolower($domain);
+                if (!is_site_host($domain, $oldHost)) {
+                    $skippedHosts[$domain][$relative] = true;
+                }
+            }
+        }
+    });
+    $replacements = [];
+    walk_strings($parsed, static function (string $value) use (&$replacements, $oldHost, $newScheme, $newHost): void {
+        $newValue = transform_leaf($value, $oldHost, $newScheme, $newHost);
+        if ($newValue !== $value && (str_contains($value, '://') || str_contains($value, '@') || looks_serialized($value))) {
+            $replacements[$value] = $newValue;
+        }
+    });
+    uksort($replacements, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
+    $updated = $original;
+    foreach ($replacements as $old => $new) {
+        $updated = str_replace($old, $new, $updated);
+    }
+    $updated = preg_replace(
+        '/(?<![A-Za-z0-9.-])(?:www\.)?' . preg_quote($oldHost, '/') . '(?![A-Za-z0-9.-])/i',
+        $newHost,
+        $updated
+    ) ?? $updated;
+    if ($updated === $original) {
+        continue;
+    }
+    try {
+        $check = Yaml::parse($updated);
+    } catch (ParseException $exception) {
+        fwrite(STDERR, "已放弃改写 {$relative}，YAML 无效：{$exception->getMessage()}\n");
+        continue;
+    }
+    $serializedOk = true;
+    walk_strings($check, static function (string $value) use (&$serializedOk): void {
+        if (looks_serialized($value)) {
+            $decoded = @unserialize($value, ['allowed_classes' => false]);
+            if ($decoded === false && $value !== 'b:0;') {
+                $serializedOk = false;
+            }
+        }
+    });
+    if (!$serializedOk) {
+        fwrite(STDERR, "已放弃改写 {$relative}，序列化字段无法还原。\n");
+        continue;
+    }
+    if (file_put_contents($path, $updated) === false) {
+        fwrite(STDERR, "无法写入 {$relative}\n");
+        exit(1);
+    }
+    $changed[] = $relative;
+}
+
+if ($changed === []) {
+    echo "没有配置文件需要改写。\n";
+} else {
+    echo "已改写本站地址的配置：\n";
+    foreach ($changed as $relative) {
+        echo "  - {$relative}\n";
+    }
+}
+if ($skippedHosts !== []) {
+    echo "保留未改的外部主机或邮箱域名：\n";
+    ksort($skippedHosts);
+    foreach ($skippedHosts as $host => $files) {
+        $names = array_keys($files);
+        sort($names);
+        echo "  - {$host}（" . implode(', ', $names) . "）\n";
+    }
+}
+PHP
+}
+
+verify_site_base_url() {
+  local current
+  current=$(run_drush config:get simple_sitemap.settings base_url --format=string 2>/dev/null | tr -d '[:space:]' || true)
+  if [[ "$current" == "$PUBLIC_BASE" ]]; then
+    log "simple_sitemap.settings:base_url 已是 ${PUBLIC_BASE}。"
+    return 0
+  fi
   if run_drush config:set simple_sitemap.settings base_url "$PUBLIC_BASE" -y; then
-    log "已把 simple_sitemap.settings:base_url 设为 ${PUBLIC_BASE}。配置里的其他绝对 URL 仍保持仓库中的值。"
+    log "导入后补写 simple_sitemap.settings:base_url=${PUBLIC_BASE}。"
   else
-    warn "未能更新 simple_sitemap base_url，请在导入后手动修改。"
+    warn "未能确认 sitemap base_url，请手动检查。"
   fi
 }
 
@@ -1182,7 +1456,7 @@ EOF
   cat <<'EOF'
 
 建议立即检查：首页、/user/login、管理主题、语言切换、静态资源是否 200。
-配置中的邮件、统计和除 sitemap 以外的绝对 URL 需要按新域名人工核对。
+本站绝对地址已按本次域名改写。外部统计、SMTP 服务器和外部邮箱保持原配置，请核对日志。
 本脚本没有恢复用户内容、上传文件或原数据库。
 EOF
 }
@@ -1240,10 +1514,11 @@ main() {
   else
     log "检测到已安装且无用户内容的站点，跳过 drush site:install。"
   fi
+  rewrite_site_urls
   import_config
   ensure_theme
   import_translations
-  update_public_base_url
+  verify_site_base_url
   run_drush cr
   fix_permissions
   install_cron
