@@ -62,8 +62,8 @@
 .xedc-view-photos .views-field-title ~ .views-field{padding:0 .75rem .75rem;font-size:.75rem;line-height:1.25;color:var(--bs-secondary-color)}
 .xedc-view-photos .views-field-title{padding-bottom:.25rem}
 .xedc-view-photos .views-field-title ~ .views-field{margin-top:auto}
-h1.page-title,.block-page-title-block h1,.region-content h1:first-of-type{font-size:1.5rem;font-weight:600;letter-spacing:-.01em;margin:.25rem 0 1rem}
-@media(min-width:768px){h1.page-title,.block-page-title-block h1,.region-content h1:first-of-type{font-size:1.75rem;margin-bottom:1.25rem}}
+h1.page-title,.block-page-title-block h1,.region-content h1:first-of-type{font-size:1.375rem;font-weight:600;letter-spacing:-.02em;line-height:1.35;margin:0 0 1rem;color:#1c1917}
+@media(min-width:768px){h1.page-title,.block-page-title-block h1,.region-content h1:first-of-type{font-size:1.5rem}}
 .breadcrumb{margin-bottom:.5rem}
 nav[aria-label="breadcrumb"]:has(.breadcrumb-item:only-child){display:none}
 .xedc-view-photos .view-empty{padding:4rem 1rem;text-align:center;font-size:.875rem;color:var(--bs-secondary-color)}

@@ -2,5 +2,16 @@
   {% block page_navigation %}
     {% include '@xedc/templates/includes/xedc-header.html.twig' %}
   {% endblock %}
-  {% block page_footer %}{% include "@xedc/templates/includes/home-footer.html.twig" %}{% endblock %}
+  {% block page_content %}
+    {% set page_main_utility_classes = ['xedc-main'] %}
+    {% set page_header_container_utility_classes = ['xedc-page-head'] %}
+    {% include 'radix:page-content' with {
+      page_main_utility_classes,
+      page_header_container_utility_classes,
+    } %}
+  {% endblock %}
+  {# 全站只输出这一处页脚，不渲染 footer region 里的菜单区块。 #}
+  {% block page_footer %}
+    {% include '@xedc/templates/includes/home-footer.html.twig' %}
+  {% endblock %}
 {% endembed %}

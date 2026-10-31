@@ -3,10 +3,11 @@ body:has(.html-sitemap) .block-page-title-block {
 }
 
 .html-sitemap {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 8px 0 80px;
-  color: var(--xn-fg, #18181b);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 0 2rem;
+  color: #1c1917;
 }
 
 .html-sitemap__head {
@@ -15,8 +16,8 @@ body:has(.html-sitemap) .block-page-title-block {
 
 .html-sitemap__title {
   margin: 0 0 12px;
-  font-size: clamp(1.75rem, 3vw, 2.125rem);
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.2;
 }

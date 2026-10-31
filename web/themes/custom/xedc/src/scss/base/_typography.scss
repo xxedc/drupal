@@ -1,2 +1,52 @@
-// Define your custom typography/classes here.
+// 简约白底：主文字、次要文字、导航和页面标题。
 // -----------------------------------------------------------------------------
+body {
+  color: #1c1917;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+h1,
+.h1,
+.page-title {
+  color: #1c1917;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+h2,
+.h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+h3,
+.h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+@media (min-width: 768px) {
+  h1,
+  .h1,
+  .page-title {
+    font-size: 1.5rem;
+  }
+}
+
+.navbar-nav .nav-link {
+  font-size: 0.9375rem;
+}
+
+p,
+.xa-prose,
+.field--name-body,
+.field--name-field-body {
+  font-size: 1rem;
+  line-height: 1.75;
+}

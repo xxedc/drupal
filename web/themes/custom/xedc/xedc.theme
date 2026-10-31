@@ -472,27 +472,39 @@ function xedc_page_attachments_alter(array &$attachments) {
 /**
  * Published photo counts per model inside one photo category.
  *
- * @return array<int, array{id: int, t: string, n: int}>
- *   Models ordered by photo count.
+ * @return array<int, array{id: int, t: string, n: int, updated: int}>
+ *   Models with the most recently updated photo first.
  */
 function _xedc_photo_category_models(int $tid): array {
   $rows = _xedc_database()->query(
-    "SELECT m.field_model_target_id AS tid, COUNT(DISTINCT m.entity_id) AS n
+    "SELECT m.field_model_target_id AS tid, COUNT(DISTINCT m.entity_id) AS n, MAX(n.changed) AS updated
      FROM {node__field_model} m
      INNER JOIN {node__field_categories} c ON c.entity_id = m.entity_id AND c.langcode = m.langcode AND c.deleted = 0
      INNER JOIN {node_field_data} n ON n.nid = m.entity_id AND n.langcode = m.langcode
      WHERE m.deleted = 0 AND n.status = 1 AND n.type = :type AND c.field_categories_target_id = :tid
      GROUP BY m.field_model_target_id",
     [':type' => 'photo', ':tid' => $tid]
-  )->fetchAllKeyed();
+  )->fetchAll();
   if (!$rows) {
     return [];
   }
-  $items = [];
-  foreach (\Drupal\taxonomy\Entity\Term::loadMultiple(array_keys($rows)) as $term) {
-    $items[] = ['id' => (int) $term->id(), 't' => _xedc_translated($term)->label(), 'n' => (int) $rows[$term->id()]];
+  $by_tid = [];
+  foreach ($rows as $row) {
+    $by_tid[(int) $row->tid] = $row;
   }
-  usort($items, static fn(array $a, array $b) => $b['n'] <=> $a['n']);
+  $items = [];
+  foreach (\Drupal\taxonomy\Entity\Term::loadMultiple(array_keys($by_tid)) as $term) {
+    $row = $by_tid[(int) $term->id()];
+    $items[] = [
+      'id' => (int) $term->id(),
+      't' => _xedc_translated($term)->label(),
+      'n' => (int) $row->n,
+      'updated' => (int) $row->updated,
+    ];
+  }
+  usort($items, static function (array $a, array $b): int {
+    return [$b['updated'], $b['n'], $a['t']] <=> [$a['updated'], $a['n'], $b['t']];
+  });
   return $items;
 }
 
@@ -532,7 +544,7 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
     $models = _xedc_photo_category_models($cur);
   }
 
-  // 顶部条：栏目页且有人物 -> 人物；否则 -> 栏目。横条只露前若干项，其余进弹出层。
+  // 顶部条：栏目页且有人物 -> 人物；否则 -> 栏目。可见个数由前端按宽度计算。
   // 模特筛选留在当前栏目页，用 ?model= 收窄列表。
   $model_id = 0;
   if ($is_cat) {
@@ -576,44 +588,27 @@ function xedc_form_views_exposed_form_alter(array &$form, $form_state, $form_id)
 
   $label = $is_cat ? t('模特') : t('分类');
   $sheet_title = $is_cat ? t('全部模特') : t('全部分类');
-  $bar_limit = 6;
-  $lead = $tabs[0] ?? NULL;
-  $rest = array_slice($tabs, 1);
-  $bar = array_slice($rest, 0, $bar_limit);
-  $seen = [];
-  foreach ($bar as $item) {
-    $seen[$item['u']] = TRUE;
+  foreach ($tabs as $index => &$tab) {
+    $tab['id'] = $index;
   }
-  foreach ($rest as $item) {
-    if (!empty($item['a']) && empty($seen[$item['u']])) {
-      $bar[] = $item;
-      break;
-    }
-  }
-  $show_more = count($rest) > $bar_limit;
+  unset($tab);
+  $show_more = count($tabs) > 1;
 
-  $pill = '<a class="xedc-pill{{ i.a ? \' is-active\' : \'\' }}" href="{{ i.u }}"{% if i.a %} aria-current="page"{% endif %}>{{ i.t }}</a>';
-  $tpl = '<div class="photo-bar"><div class="photo-tabs-wrap">';
-  $tpl .= '<div class="photo-tabs-scroll"><nav class="photo-tabs" aria-label="{{ label }}">';
-  $tpl .= '{% if lead %}<a class="xedc-pill{{ lead.a ? \' is-active\' : \'\' }}" href="{{ lead.u }}"{% if lead.a %} aria-current="page"{% endif %}>{{ lead.t }}</a>{% endif %}';
-  $tpl .= '{% for i in bar %}' . $pill . '{% endfor %}';
-  $tpl .= '</nav><span class="photo-tabs-fade" hidden></span></div>';
-  $tpl .= '{% if show_more %}<button type="button" class="xedc-pill photo-more" aria-haspopup="dialog" aria-expanded="false" aria-controls="photo-filter-sheet">{{ \'更多\'|t }}</button>{% endif %}';
-  $tpl .= '</div><nav class="photo-sorts" aria-label="{{ \'排序\'|t }}">';
+  $pill = '<a class="xedc-pill{{ i.a ? \' is-active\' : \'\' }}" data-photo-id="{{ i.id }}" href="{{ i.u }}"{% if i.a %} aria-current="page"{% endif %}>{{ i.t }}</a>';
+  $drop = '<a class="photo-drop__link{{ i.a ? \' is-active\' : \'\' }}" data-photo-id="{{ i.id }}" href="{{ i.u }}"{% if i.a %} aria-current="page"{% endif %}>{{ i.t }}</a>';
+  $tpl = '<div class="photo-filters"><div class="photo-bar"><nav class="photo-tabs" aria-label="{{ label }}">';
+  $tpl .= '{% for i in tabs %}' . $pill . '{% endfor %}</nav>';
+  $tpl .= '{% if show_more %}<div class="photo-rule">';
+  $tpl .= '<button type="button" class="photo-more" aria-expanded="false" aria-controls="photo-filter-drop">{{ \'更多\'|t }}</button>';
+  $tpl .= '<div class="photo-drop" id="photo-filter-drop" hidden>';
+  $tpl .= '<label class="photo-drop__search"><span class="visually-hidden">{{ \'搜索@label\'|t({\'@label\': label}) }}</span>';
+  $tpl .= '<input type="search" placeholder="{{ \'搜索@label\'|t({\'@label\': label}) }}" autocomplete="off" enterkeyhint="search"></label>';
+  $tpl .= '<div class="photo-drop__list" role="listbox" aria-label="{{ sheet_title }}">{% for i in tabs %}' . $drop . '{% endfor %}</div>';
+  $tpl .= '<p class="photo-drop__empty" hidden>{{ \'没有匹配的@label\'|t({\'@label\': label}) }}</p></div></div>{% endif %}</div>';
+  $tpl .= '<nav class="photo-sorts" aria-label="{{ \'排序\'|t }}">';
   $tpl .= '{% for i in sorts %}<a class="xedc-pill{{ i.a ? \' is-active\' : \'\' }}" href="{{ i.u }}"{% if i.a %} aria-current="page"{% endif %}>{{ i.t }}</a>{% endfor %}</nav></div>';
-  $tpl .= '{% if show_more %}<div class="photo-sheet" id="photo-filter-sheet" hidden>';
-  $tpl .= '<div class="photo-sheet__backdrop" data-photo-sheet-close></div>';
-  $tpl .= '<div class="photo-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="photo-filter-sheet-title">';
-  $tpl .= '<div class="photo-sheet__head"><h2 id="photo-filter-sheet-title">{{ sheet_title }}</h2>';
-  $tpl .= '<button type="button" class="photo-sheet__close" data-photo-sheet-close aria-label="{{ \'关闭\'|t }}">&times;</button></div>';
-  $tpl .= '<label class="photo-sheet__search"><span class="visually-hidden">{{ \'搜索 @label\'|t({\'@label\': label}) }}</span>';
-  $tpl .= '<input type="search" placeholder="{{ \'搜索 @label\'|t({\'@label\': label}) }}" autocomplete="off" enterkeyhint="search"></label>';
-  $tpl .= '<div class="photo-sheet__grid">{% for i in tabs %}' . $pill . '{% endfor %}</div>';
-  $tpl .= '<p class="photo-sheet__empty" hidden>{{ \'没有匹配的@label\'|t({\'@label\': label}) }}</p></div></div>{% endif %}';
   $form['pills'] = ['#type' => 'inline_template', '#template' => $tpl,
     '#context' => [
-      'lead' => $lead,
-      'bar' => $bar,
       'tabs' => $tabs,
       'sorts' => $sorts,
       'label' => $label,
@@ -1172,7 +1167,6 @@ function _xedc_photo_related_cards(array $ids, array &$variables): array {
   [$medias] = _xedc_warm_media_files($loaded, ['field_cover_image']);
   $style = \Drupal\image\Entity\ImageStyle::load('meitu_card_cover');
   $generator = \Drupal::service('file_url_generator');
-  $date_formatter = \Drupal::service('date.formatter');
   $variables['#cache']['tags'][] = 'config:image.style.meitu_card_cover';
   $cards = [];
   foreach ($ids as $id) {
@@ -1201,8 +1195,6 @@ function _xedc_photo_related_cards(array $ids, array &$variables): array {
       'title' => $related->label(),
       'img' => $img,
       'count' => $related->hasField('field_images') ? (int) $related->get('field_images')->count() : 0,
-      'category' => _xedc_photo_card_badge($related, []),
-      'date' => $date_formatter->format($related->getCreatedTime(), 'custom', 'Y-m-d'),
       'loading' => 'lazy',
       'fetchpriority' => '',
       'width' => $img ? 480 : 0,
@@ -1437,7 +1429,9 @@ function xedc_preprocess_page_title(array &$variables) {
     $variables['title'] = t('美图列表');
   }
   if ($route_name === 'xedc.html_sitemap') {
-    $variables['title'] = t('站点地图');
+    // 标题由站点地图模板里的 h1 输出，避免和页头标题块重复。
+    $variables['title'] = '';
+    return;
   }
   if ($route_name === 'xedc_tags.index') {
     $variables['title'] = '';

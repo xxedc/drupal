@@ -14,11 +14,11 @@ a.sr-sort.xedc-pill{
   align-items:center;
   justify-content:center;
   flex:none;
-  height:30px;
-  min-height:30px;
-  max-height:30px;
+  height:32px;
+  min-height:32px;
+  max-height:32px;
   margin:0;
-  padding:0 12px;
+  padding:0 .875rem;
   border:1px solid var(--bs-border-color,#e4e4e7);
   border-radius:15px;
   background:var(--bs-body-bg,#fff);
@@ -107,7 +107,7 @@ summary.xedc-pill::marker{content:none}
 .xa .xa-chips,
 .sr-tabs,
 .sr-info .sr-sorts,
-.xedc-chips{gap:8px}
+.xedc-chips{gap:.75rem}
 .photo-sorts,
 .sr-info .sr-sorts,
 .xedc-view-photos .photo-sorts{

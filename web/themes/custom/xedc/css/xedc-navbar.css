@@ -9,14 +9,15 @@
 .xn-left{display:flex;align-items:center;gap:20px;flex:none}
 
 /* logo */
-.xn-logo{display:inline-flex;align-items:baseline;font-size:22px;font-weight:800;letter-spacing:-.055em;line-height:1;color:var(--xn-fg);text-decoration:none;flex:none;white-space:nowrap}
-.xn-logo:hover{color:var(--xn-fg)}
-.xn-dot{display:inline-block;width:.3em;height:.3em;margin-left:.07em;border-radius:50%;background:linear-gradient(135deg,#f472b6,#8b5cf6)}
+.xn-logo{display:inline-flex;align-items:baseline;font-size:1.25rem;font-weight:600;letter-spacing:-.02em;line-height:1;color:#111827;text-decoration:none;flex:none;white-space:nowrap}
+.xn-logo:hover{color:#111827}
+.xn-dot{display:inline-block;width:.28em;height:.28em;margin-left:.08em;border-radius:50%;background:#f472b6;transform:translateY(-.04em)}
+@media(min-width:992px){.xn-logo{font-size:1.375rem}}
 
 /* links（禁止换行） */
 .xn-links{display:flex;align-items:center;gap:2px;flex:none}
 .xn-link,.xn-dd{white-space:nowrap;flex:none}
-.xn-link{padding:6px 12px;border-radius:6px;font-size:14px;font-weight:500;color:var(--xn-muted);text-decoration:none;transition:background .15s,color .15s}
+.xn-link{padding:6px 12px;border-radius:6px;font-size:.9375rem;font-weight:500;color:var(--xn-muted);text-decoration:none;transition:background .15s,color .15s}
 .xn-link:hover{background:var(--xn-accent);color:var(--xn-fg)}
 .xn-link[aria-current]{color:var(--xn-fg)}
 

@@ -1,0 +1,157 @@
+/* 全站版心、页脚、面包屑和基础排版。后加载，用来对齐各页的左右间距。 */
+
+.page__header > .container,
+.page__content > .container,
+.xedc-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+main.xedc-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding-top: 1.25rem;
+  padding-bottom: 2.5rem;
+}
+
+.page__header .xedc-page-head {
+  margin-bottom: 0.75rem;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  color: #1c1917;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.dialog-off-canvas-main-canvas,
+.page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+}
+
+.page > main {
+  flex: 1 1 auto;
+}
+
+h1.page-title,
+.block-page-title-block h1 {
+  margin: 0 0 1rem;
+  color: #1c1917;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+@media (min-width: 768px) {
+  h1.page-title,
+  .block-page-title-block h1 {
+    font-size: 1.5rem;
+  }
+}
+
+.breadcrumb,
+.xa-crumb,
+.vd-crumb,
+.xt-crumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.breadcrumb .breadcrumb-item {
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  padding-right: 0.35rem;
+  color: #d1d5db;
+  content: "/";
+}
+
+.breadcrumb a,
+.xa-crumb a,
+.vd-crumb a,
+.xt-crumb a {
+  color: #6b7280;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover,
+.xa-crumb a:hover,
+.vd-crumb a:hover,
+.xt-crumb a:hover {
+  color: #1c1917;
+}
+
+.breadcrumb .breadcrumb-item.active,
+.breadcrumb .active {
+  color: #1c1917;
+  font-weight: 500;
+}
+
+.xa-prose a,
+.field--name-body a,
+.field--name-field-body a {
+  color: #2563eb;
+}
+
+.xa-prose a:hover,
+.field--name-body a:hover,
+.field--name-field-body a:hover {
+  color: #1d4ed8;
+}
+
+.xedc-footer {
+  margin-top: auto;
+  padding: 3.5rem 1rem;
+  border-top: 1px solid #e7e5e4;
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.xedc-footer a,
+.page-footer a,
+.page__footer a,
+footer.xedc-footer a {
+  color: #6b7280;
+  text-decoration: none !important;
+}
+
+.xedc-footer a:hover,
+.page-footer a:hover,
+.page__footer a:hover,
+footer.xedc-footer a:hover {
+  color: #111827;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+/* 页脚区块不再输出。若旧模板仍打印 region，避免和站点页脚叠成两个。 */
+.page > footer.page__footer {
+  display: none !important;
+}

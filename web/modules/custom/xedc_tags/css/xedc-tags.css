@@ -4,9 +4,9 @@
 .xt-page h1.page-title { display: none; }
 
 .xt {
-  --xt-bg: #fff; --xt-fg: #0a0a0a; --xt-mut: #737373; --xt-bd: #e5e5e5;
-  --xt-soft: #f5f5f5; --xt-ac: #8b5cf6; --xt-r: 12px;
-  max-width: 1200px; margin: 0 auto; padding: 20px 16px 56px; color: var(--xt-fg);
+  --xt-bg: #fff; --xt-fg: #1c1917; --xt-mut: #6b7280; --xt-bd: #e7e5e4;
+  --xt-soft: #f5f5f5; --xt-ac: #f472b6; --xt-r: 12px;
+  width: 100%; max-width: none; margin: 0; padding: 0 0 2.5rem; color: var(--xt-fg);
 }
 :is(.dark, [data-theme=dark], [data-bs-theme=dark]) .xt {
   --xt-bg: #0a0a0a; --xt-fg: #fafafa; --xt-mut: #a3a3a3; --xt-bd: #262626; --xt-soft: #171717;
@@ -23,7 +23,7 @@
 
 /* header */
 .xt-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
-.xt-title { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -.02em; }
+.xt-title { margin: 0; font-size: 1.5rem; line-height: 1.35; font-weight: 600; letter-spacing: -.02em; color: #1c1917; }
 .xt-hash { color: var(--xt-ac); margin-right: 2px; }
 .xt-sub { margin: 6px 0 0; font-size: 14px; color: var(--xt-mut); }
 .xt-sub b { color: var(--xt-fg); font-weight: 600; }
@@ -74,16 +74,15 @@
 .xt-page .pager__item a, .xt-page .pagination a, .xt-page .pagination span { display: inline-flex; min-width: 36px; height: 36px; padding: 0 10px; align-items: center; justify-content: center; font-size: 14px; border: 1px solid #e5e5e5; border-radius: 8px; text-decoration: none; }
 .xt-page .pager__item.is-active a, .xt-page .active > .page-link, .xt-page .page-item.active .page-link { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
 /* v2 */
-.xt { padding: 16px 0 40px; }
-@media (min-width: 768px) { .xt { padding: 24px 16px 56px; } }
+.xt { padding: 0 0 2.5rem; }
 
 .xt-grid { gap: 8px; }
 @media (min-width: 768px) { .xt-grid { gap: 16px; } }
 .xt-body { padding: 10px 12px 12px; }
 .xt-card-title { margin: 0; }
 
-.xt-tags { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.xt-tag { padding: 10px 10px 9px; }
+.xt-tags { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.xt-tag { padding: .75rem .875rem; }
 .xt-tag-row { gap: 4px; margin-bottom: 9px; }
 .xt-tag-name { font-size: 14px; }
 .xt-tag-count { font-size: 11px; padding: 0 6px; }

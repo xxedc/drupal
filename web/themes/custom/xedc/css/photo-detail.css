@@ -739,7 +739,7 @@ html.img-overlay-open body { overflow: hidden; }
 }
 
 .img-detail .img-detail__name {
-  color: var(--bs-link-color, #18181b);
+  color: #f472b6;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.6;
@@ -747,6 +747,7 @@ html.img-overlay-open body { overflow: hidden; }
 }
 
 .img-detail .img-detail__name:hover {
+  color: #f472b6;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -1074,29 +1075,8 @@ html.img-overlay-open body { overflow: hidden; }
   }
 }
 
-.img-detail > .img-rel{min-width:0;max-width:100%;margin-top:28px}
-.img-detail .img-rel__t{margin:0 0 12px;font-size:1.0625rem;font-weight:600}
-.img-detail .img-rel__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}
-.img-detail .img-rel .meitu-card,
-.img-detail .img-rel .meitu-card__link,
-.img-detail .img-rel .meitu-card__body{min-width:0;max-width:100%}
-.img-detail .img-rel .meitu-card__title{
-  display:-webkit-box;
-  -webkit-box-orient:vertical;
-  -webkit-line-clamp:2;
-  line-clamp:2;
-  max-height:2.9em;
-  overflow:hidden;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-}
-.img-detail .img-rel .meitu-card__date{
-  display:block;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.img-detail .img-rel .meitu-card__cat{max-width:calc(100% - 16px)}
+.img-detail > .img-rel{min-width:0;max-width:100%;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--bs-border-color,#e7e5e4)}
+.img-detail .img-rel__t{margin:0 0 16px;color:var(--bs-body-color,#1c1917);font-size:20px;font-weight:700;line-height:1.25}
 .img-detail .img-nav{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;min-width:0}
 .img-detail .img-nav__a{min-width:0;white-space:normal;overflow:hidden}
 .img-detail .img-nav__a span{
@@ -1109,6 +1089,30 @@ html.img-overlay-open body { overflow: hidden; }
   overflow-wrap:anywhere;
   word-break:break-word;
 }
+/* 左右间距交给全站 1280px 容器，详情页本身不再另加一圈内边距。 */
+body:has(.img-detail) .page__header > .container,
+body:has(.img-detail) .page__content > .container,
+main .container:has(.img-detail){
+  max-width:1280px!important;
+  width:100%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  padding-left:1rem!important;
+  padding-right:1rem!important;
+}
+.img-detail{
+  max-width:none!important;
+  width:100%!important;
+  margin:0!important;
+  padding-left:0!important;
+  padding-right:0!important;
+}
+.img-detail .img-detail__title{
+  color:#1c1917;
+  font-size:1.375rem;
+  font-weight:600;
+  letter-spacing:-.02em;
+}
 @media(min-width:768px){
-  .img-detail .img-rel__grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+  .img-detail .img-detail__title{font-size:1.5rem}
 }

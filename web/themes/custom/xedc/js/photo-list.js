@@ -48,88 +48,143 @@
     updateBacktop();
     window.addEventListener('scroll', updateBacktop, { passive: true });
 
-    view.querySelectorAll('.photo-tabs-scroll').forEach(function (scroll) {
-      var nav = scroll.querySelector('.photo-tabs');
-      var fade = scroll.querySelector('.photo-tabs-fade');
-      if (!nav || !fade) return;
-      var sync = function () {
-        var overflow = nav.scrollWidth - nav.clientWidth > 2;
-        var atEnd = nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 2;
-        fade.hidden = !overflow || atEnd;
-      };
-      sync();
-      nav.addEventListener('scroll', sync, { passive: true });
-      window.addEventListener('resize', sync);
-    });
-
+    var bar = view.querySelector('.photo-bar');
+    var nav = bar && bar.querySelector('.photo-tabs');
     var opener = view.querySelector('.photo-more');
-    var sheet = view.querySelector('.photo-sheet');
-    if (!opener || !sheet) return;
-    var panel = sheet.querySelector('.photo-sheet__panel');
-    var input = sheet.querySelector('.photo-sheet__search input');
-    var empty = sheet.querySelector('.photo-sheet__empty');
-    var links = sheet.querySelectorAll('.photo-sheet__grid a');
-    var bodyOverflow = '';
+    var drop = view.querySelector('.photo-drop');
+    var rule = view.querySelector('.photo-rule');
+    var pills = nav ? Array.prototype.slice.call(nav.querySelectorAll(':scope > a.xedc-pill')) : [];
+    var input = drop && drop.querySelector('.photo-drop__search input');
+    var empty = drop && drop.querySelector('.photo-drop__empty');
+    var links = drop ? Array.prototype.slice.call(drop.querySelectorAll('.photo-drop__link')) : [];
+    var fittedWidth = -1;
 
-    if (sheet.parentElement !== document.body) {
-      document.body.appendChild(sheet);
+    function gapOf(el) {
+      if (!el) return 0;
+      var style = window.getComputedStyle(el);
+      var value = parseFloat(style.columnGap || style.gap);
+      return isNaN(value) ? 0 : value;
     }
 
-    function filterPills() {
-      var q = (input.value || '').trim().toLowerCase();
+    function rowWidth(widths, indexes, gap) {
+      var total = 0;
+      indexes.forEach(function (index, order) {
+        total += widths[index] + (order ? gap : 0);
+      });
+      return total;
+    }
+
+    function chooseVisible(widths, available, gap) {
+      var active = -1;
+      pills.forEach(function (pill, index) {
+        if (pill.classList.contains('is-active')) active = index;
+      });
+      var chosen = [];
+      if (active >= 0 && widths[active] <= available) chosen.push(active);
+      widths.forEach(function (width, index) {
+        if (index === active) return;
+        var trial = chosen.concat(index).sort(function (a, b) { return a - b; });
+        if (rowWidth(widths, trial, gap) <= available + 0.5) chosen = trial;
+      });
+      if (!chosen.length) {
+        widths.some(function (width, index) {
+          if (width <= available + 0.5) {
+            chosen = [index];
+            return true;
+          }
+          return false;
+        });
+      }
+      return chosen;
+    }
+
+    function filterLinks() {
+      var q = (input && input.value ? input.value : '').trim().toLowerCase();
       var count = 0;
       links.forEach(function (link) {
-        var show = !q || link.textContent.toLowerCase().indexOf(q) !== -1;
+        var show = link.getAttribute('data-photo-id') !== '0' && (!q || link.textContent.toLowerCase().indexOf(q) !== -1);
         link.hidden = !show;
         if (show) count += 1;
       });
-      empty.hidden = count > 0;
+      if (empty) empty.hidden = count > 0;
     }
 
-    function openSheet() {
-      bodyOverflow = document.body.style.overflow;
-      sheet.hidden = false;
+    function fitPills() {
+      if (!bar || !pills.length) return;
+      var barWidth = bar.clientWidth;
+      if (!barWidth || barWidth === fittedWidth) return;
+      fittedWidth = barWidth;
+      pills.forEach(function (pill) { pill.hidden = false; });
+      var widths = pills.map(function (pill) { return pill.getBoundingClientRect().width; });
+      var pillGap = gapOf(nav);
+      if (!rule || !opener) return;
+      rule.hidden = false;
+      var reserve = parseFloat(window.getComputedStyle(rule).paddingLeft) || 0;
+      var available = barWidth - opener.getBoundingClientRect().width - reserve;
+      var visible = {};
+      if (available > 0) {
+        chooseVisible(widths, Math.max(0, available - 1), pillGap).forEach(function (index) {
+          visible[index] = true;
+        });
+      }
+      pills.forEach(function (pill, index) {
+        pill.hidden = !visible[index];
+      });
+    }
+
+    function openDrop() {
+      drop.hidden = false;
       opener.setAttribute('aria-expanded', 'true');
-      document.body.style.overflow = 'hidden';
-      filterPills();
+      filterLinks();
       window.setTimeout(function () {
         if (input) input.focus();
       }, 0);
     }
 
-    function closeSheet() {
-      if (sheet.hidden) return;
-      sheet.hidden = true;
+    function closeDrop() {
+      if (drop.hidden) return;
+      drop.hidden = true;
       opener.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = bodyOverflow;
-      opener.focus();
+      if (input) input.value = '';
+      filterLinks();
     }
 
-    opener.addEventListener('click', openSheet);
-    sheet.querySelectorAll('[data-photo-sheet-close]').forEach(function (el) {
-      el.addEventListener('click', closeSheet);
+    fitPills();
+    if (bar && window.ResizeObserver) {
+      new ResizeObserver(function () { fitPills(); }).observe(bar);
+    }
+    else {
+      window.addEventListener('resize', fitPills);
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        fittedWidth = -1;
+        fitPills();
+      });
+    }
+    if (!opener || !drop || !rule) return;
+
+    opener.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (drop.hidden) openDrop();
+      else closeDrop();
     });
-    if (input) input.addEventListener('input', filterPills);
+    if (input) {
+      input.addEventListener('input', filterLinks);
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') event.preventDefault();
+      });
+    }
+    document.addEventListener('click', function (event) {
+      if (drop.hidden || rule.contains(event.target)) return;
+      closeDrop();
+    });
     document.addEventListener('keydown', function (event) {
-      if (sheet.hidden) return;
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeSheet();
-        return;
-      }
-      if (event.key !== 'Tab' || !panel) return;
-      var focusable = panel.querySelectorAll('a:not([hidden]), button, input');
-      if (!focusable.length) return;
-      var first = focusable[0];
-      var last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      }
-      else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+      if (drop.hidden || event.key !== 'Escape') return;
+      event.preventDefault();
+      closeDrop();
+      opener.focus();
     });
   });
 })();

@@ -1,10 +1,11 @@
 style:
-  version: 1.3
+  version: 1.4
   css:
     theme:
       build/css/main.style.css: {}
       css/inputs.css: {}
       css/xedc-pill.css: {}
+      css/xedc-layout.css: {}
   js:
     build/js/main.script.js: {}
   dependencies:
@@ -20,6 +21,7 @@ xedc_auth:
     - core/drupal
 
 xedc_auth_form:
+  version: 1.1
   css:
     theme:
       css/auth.css: {}
@@ -30,7 +32,7 @@ meta:
       css/xedc-meta.css: {}
 
 navbar:
-  version: 1.7
+  version: 1.8
   css:
     theme:
       css/xedc-navbar.css: {}
@@ -106,7 +108,7 @@ article-detail:
     - core/drupal
 
 photo-detail:
-  version: 1.19
+  version: 1.20
   css:
     theme:
       css/photo-detail.css: {}
@@ -116,6 +118,7 @@ photo-detail:
     - core/drupal
     - core/once
     - xedc/style
+    - xedc/meitu-card
 
 comment-form:
   version: 1.2
@@ -140,7 +143,7 @@ term-intro:
     - core/drupal
 
 photo-list:
-  version: 1.5
+  version: 1.10
   css:
     theme:
       css/photo-list.css: {}

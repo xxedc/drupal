@@ -45,10 +45,7 @@ function _xedc_auth_wrap(array &$form, string $key, string $title, string $desc)
     '#weight' => -1000,
     '#template' => <<<'TWIG'
 <div class="xedc-auth__head">
-  <a class="xedc-auth__brand" href="{{ path('<front>') }}" target="_top" aria-label="DcLili">
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="currentColor"/><path d="M9.5 9.5l9 9m0-9l-9 9" style="stroke:var(--xa-bg)" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
-    <span>DcLili</span>
-  </a>
+  <a class="xedc-auth__brand" href="{{ path('<front>') }}" target="_top" aria-label="DcLili">dclili<i class="xn-dot" aria-hidden="true"></i></a>
   <h1 class="xedc-auth__title">{{ title }}</h1>
   {% if desc %}<p class="xedc-auth__desc">{{ desc }}</p>{% endif %}
 </div>

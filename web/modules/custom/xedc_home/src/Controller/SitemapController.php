@@ -69,15 +69,6 @@ class SitemapController extends ControllerBase {
       ],
     ];
     $tags[] = 'taxonomy_term_list:models';
-    $sections[] = [
-      'title' => $this->t('关于 DcLili'),
-      'links' => [
-        ['title' => $this->t('关于我们'), 'url' => $href('/about')],
-        ['title' => $this->t('隐私政策'), 'url' => $href('/privacy-policy')],
-        ['title' => $this->t('用户协议'), 'url' => $href('/terms')],
-        ['title' => $this->t('站点地图'), 'url' => $href('/sitemap')],
-      ],
-    ];
     return [
       '#theme' => 'xedc_html_sitemap',
       '#sections' => $sections,

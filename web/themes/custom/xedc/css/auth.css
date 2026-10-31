@@ -19,8 +19,9 @@
 form.xedc-auth{box-sizing:border-box;width:100%;max-width:400px;margin:16px auto 64px;padding:28px 24px 24px;background:var(--xa-bg);color:var(--xa-fg);border:1px solid var(--xa-border);border-radius:calc(var(--xa-radius) + 4px);box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:14px;line-height:1.5}
 form.xedc-auth *{box-sizing:border-box}
 .xedc-auth__head{text-align:center;margin-bottom:24px}
-.xedc-auth__brand{display:inline-flex;align-items:center;gap:8px;color:var(--xa-primary);font-weight:700;font-size:20px;letter-spacing:-.01em;text-decoration:none;margin-bottom:16px}
-.xedc-auth__brand:hover{color:var(--xa-primary)}
+.xedc-auth__brand{display:inline-flex;align-items:baseline;justify-content:center;margin:0 0 22px;color:var(--xa-fg);font-weight:500;font-size:1.75rem;letter-spacing:-.055em;line-height:1;text-decoration:none}
+.xedc-auth__brand:hover{color:var(--xa-fg)}
+.xedc-auth__brand .xn-dot{display:inline-block;flex:none;width:.2em;height:.2em;margin-left:.06em;border-radius:50%;background:#f472b6;transform:translateY(-.08em)}
 .xedc-auth__title{margin:0 0 6px;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.01em;color:var(--xa-fg)}
 .xedc-auth__desc{margin:0;color:var(--xa-muted);font-size:14px}
 
@@ -93,6 +94,7 @@ form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit)+:is(inp
 /* iPhone 上输入框 16px，避免聚焦时页面被放大 */
 @media (max-width:640px){
   form.xedc-auth{margin:8px auto 40px;border-radius:12px}
+  .xedc-auth__brand{margin-bottom:18px;font-size:1.625rem;letter-spacing:-.05em}
   form.xedc-auth :is(input[type=text],input[type=password],input[type=email],input[type=tel],input[type=url],input[type=number],select,textarea){font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){

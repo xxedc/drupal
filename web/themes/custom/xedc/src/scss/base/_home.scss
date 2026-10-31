@@ -1,4 +1,4 @@
-.xedc-container{max-width:1320px;margin-inline:auto;padding-inline:.75rem;min-height:calc(100dvh - 220px)}
+.xedc-container{max-width:1280px;margin-inline:auto;padding-inline:1rem;min-height:calc(100dvh - 220px)}
 .xedc-grid:not(.xedc-grid--video){display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
 .xedc-grid:not(.xedc-grid--video)>:nth-child(n+5){display:none}
 @media(min-width:768px){

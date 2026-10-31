@@ -4,9 +4,7 @@ body:has(.xa-article) [id*="page-title"],
 body:has(.xa-article) .breadcrumb,
 body:has(.xa-article) [id*="breadcrumb"]{display:none}
 
-.xa.xa-article{max-width:46rem;margin-inline:auto;padding-bottom:3rem}
-@media(max-width:639px){.xa.xa-article{padding-inline:.25rem}}
-@media(min-width:1024px){.xa.xa-article{max-width:66.5rem}}
+.xa.xa-article{width:100%;max-width:none;margin:0;padding-bottom:3rem}
 
 /* 阅读进度条 / 回到顶部 */
 .xa-progress{position:fixed;top:0;left:0;right:0;height:2px;background:#18181b;transform:scaleX(0);transform-origin:0 50%;z-index:10000;pointer-events:none}
@@ -14,7 +12,7 @@ body:has(.xa-article) [id*="breadcrumb"]{display:none}
 .xa-top.is-on{opacity:1;transform:none;pointer-events:auto}
 
 /* 面包屑 */
-.xa .xa-crumb{display:flex;align-items:center;gap:.5rem;padding:.25rem 0 1.5rem;font-size:.8125rem;color:var(--muted-foreground);white-space:nowrap;overflow:hidden}
+.xa .xa-crumb{display:flex;align-items:center;gap:.35rem;margin:0 0 .75rem;padding:0;font-size:.8125rem;color:#6b7280;white-space:nowrap;overflow:hidden}
 .xa .xa-crumb a:hover{color:var(--foreground)}
 .xa .xa-crumb span{opacity:.5}
 
@@ -25,9 +23,8 @@ body:has(.xa-article) [id*="breadcrumb"]{display:none}
 }
 
 /* 标题与元信息 */
-.xa .xa-art__title{margin:0 0 1rem;font-size:1.625rem;font-weight:700;letter-spacing:-.03em;line-height:1.35;overflow-wrap:anywhere}
-@media(min-width:640px){.xa .xa-art__title{font-size:1.875rem}}
-@media(min-width:768px){.xa .xa-art__title{font-size:2.25rem;line-height:1.3}}
+.xa .xa-art__title{margin:0 0 1rem;font-size:1.375rem;font-weight:600;letter-spacing:-.02em;line-height:1.35;color:#1c1917;overflow-wrap:anywhere}
+@media(min-width:768px){.xa .xa-art__title{font-size:1.5rem;line-height:1.35}}
 .xa .xa-art__meta{display:flex;flex-wrap:wrap;gap:.25rem .5rem;font-size:.8125rem;color:var(--muted-foreground)}
 .xa .xa-art__meta>span{white-space:nowrap}
 .xa .xa-art__meta>span:not(:last-child)::after{content:"·";margin-left:.5rem}
@@ -48,7 +45,7 @@ body:has(.xa-article) [id*="breadcrumb"]{display:none}
 .xa .xa-art__summary b{display:block;margin-bottom:.25rem;font-size:.75rem;font-weight:600;letter-spacing:.04em;color:var(--muted-foreground)}
 
 /* 正文 */
-.xa .xa-prose{margin-top:2rem;font-size:1.0625rem;line-height:1.9;color:#27272a;overflow-wrap:anywhere}
+.xa .xa-prose{margin-top:2rem;font-size:1rem;line-height:1.75;color:#1c1917;overflow-wrap:anywhere}
 .xa .xa-prose>:first-child{margin-top:0}
 .xa .xa-prose p{margin:0 0 1.25em;font-size:inherit;line-height:inherit}
 .xa .xa-prose p:empty{display:none}
@@ -56,8 +53,8 @@ body:has(.xa-article) [id*="breadcrumb"]{display:none}
 .xa .xa-prose h2,.xa .xa-prose h3{scroll-margin-top:5.5rem}
 .xa .xa-prose h2{margin:2rem 0 .75rem;font-size:1.5rem;font-weight:600;letter-spacing:-.02em;line-height:1.4}
 .xa .xa-prose h3{margin:1.5rem 0 .5rem;font-size:1.25rem;font-weight:600;line-height:1.45}
-.xa .xa-prose a{text-decoration:underline;text-underline-offset:3px;text-decoration-color:#a1a1aa}
-.xa .xa-prose a:hover{text-decoration-color:var(--foreground)}
+.xa .xa-prose a{color:#2563eb;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(37,99,235,.35)}
+.xa .xa-prose a:hover{color:#1d4ed8;text-decoration-color:#1d4ed8}
 .xa .xa-prose img,.xa .xa-prose video{max-width:100%;height:auto;border-radius:var(--radius)}
 .xa .xa-prose ul,.xa .xa-prose ol{margin:0 0 1.25em;padding-left:1.5em}
 .xa .xa-prose li{margin:.25em 0}
@@ -102,7 +99,11 @@ body:has(.xa-article) [id*="breadcrumb"]{display:none}
 .xa .xa-sl a:last-child{border-bottom:1px solid var(--border)}
 .xa .xa-sl span{min-width:0;max-width:100%;max-height:3.1em;font-size:.875rem;line-height:1.55;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:break-word}
 .xa .xa-sl small{display:block;max-width:100%;overflow:hidden;font-size:.75rem;color:var(--muted-foreground);white-space:nowrap;text-overflow:ellipsis}
-.xa .xa-sl a:hover span{text-decoration:underline}
+.xa .xa-sec-rel .xa-sl a,
+.xa .xa-sec-rel .xa-sl a span{text-decoration:none}
+.xa .xa-sec-rel .xa-sl a:hover span,
+.xa .xa-sec-rel .xa-sl a:focus-visible span{color:#1c1917;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+.xa .xa-sl a:hover span{text-decoration:underline;text-underline-offset:.18em}
 
 /* 手机文末精简 */
 @media(max-width:1023px){

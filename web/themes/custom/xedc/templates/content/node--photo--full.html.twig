@@ -97,9 +97,18 @@
   {% if related_cards %}
     <section class="img-rel">
       <h2 class="img-rel__t">{{ '相关推荐'|t }}</h2>
-      <div class="img-rel__grid">
+      <div class="meitu-grid">
         {% for card in related_cards %}
-          {% include '@xedc/includes/meitu-card.html.twig' with card %}
+          {% include '@xedc/templates/includes/meitu-card.html.twig' with {
+            url: card.url,
+            title: card.title,
+            img: card.img,
+            count: card.count,
+            loading: card.loading|default('lazy'),
+            fetchpriority: card.fetchpriority|default(''),
+            width: card.width|default(0),
+            height: card.height|default(0)
+          } only %}
         {% endfor %}
       </div>
     </section>
