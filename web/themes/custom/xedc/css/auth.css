@@ -90,19 +90,6 @@ form.xedc-auth .form-actions :is(input[type=submit],button,.form-submit)+:is(inp
 .xedc-embed form.xedc-auth{margin:0;max-width:none;border:0;border-radius:0;box-shadow:none;padding:32px 24px 24px}
 .xedc-embed :is(.messages,.alert){max-width:none;margin:16px 24px 0}
 
-/* 登录弹窗 */
-.xedc-login-dialog{padding:0;border:1px solid var(--xa-border);border-radius:calc(var(--xa-radius) + 4px);background:var(--xa-bg);color:var(--xa-fg);width:min(420px,calc(100vw - 24px));max-width:none;max-height:92vh;overflow:hidden;box-shadow:0 10px 38px rgba(0,0,0,.18)}
-.xedc-login-dialog::backdrop{background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
-.xedc-login-dialog iframe{display:block;width:100%;height:440px;border:0;background:transparent;color-scheme:normal}
-.xedc-login-dialog__close{position:absolute;top:10px;right:10px;z-index:2;display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;border-radius:var(--xa-radius);background:transparent;background-color:transparent;color:var(--xa-muted);cursor:pointer;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
-.xedc-login-dialog__close:hover,
-.xedc-login-dialog__close:focus,
-.xedc-login-dialog__close:active{background:transparent!important;background-color:transparent!important;box-shadow:none;color:var(--xa-fg)}
-.xedc-login-dialog__close:hover,
-.xedc-login-dialog__close:active{opacity:.55}
-.xedc-login-dialog__close:focus-visible{outline:1px solid var(--xa-border);outline-offset:2px;opacity:1}
-html.xedc-dialog-open{overflow:hidden}
-
 /* iPhone 上输入框 16px，避免聚焦时页面被放大 */
 @media (max-width:640px){
   form.xedc-auth{margin:8px auto 40px;border-radius:12px}
@@ -112,20 +99,12 @@ html.xedc-dialog-open{overflow:hidden}
   form.xedc-auth *{transition:none!important}
 }
 
-.xedc-login-dialog.is-loading iframe{visibility:hidden}
-.xedc-login-dialog.is-loading::after{content:"";position:absolute;top:50%;left:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border:2px solid var(--xa-border);border-top-color:var(--xa-primary);border-radius:50%;animation:xa-spin .7s linear infinite}
 @keyframes xa-spin{to{transform:rotate(360deg)}}
 
 /* 提交中的按钮 */
 form.xedc-auth.is-submitting .form-actions{position:relative;pointer-events:none}
 form.xedc-auth.is-submitting .form-actions :is(input[type=submit],button,.form-submit){opacity:.7}
 form.xedc-auth.is-submitting .form-actions::after{content:"";position:absolute;left:16px;top:12px;width:16px;height:16px;border:2px solid color-mix(in srgb,var(--xa-primary-fg) 30%,transparent);border-top-color:var(--xa-primary-fg);border-radius:50%;animation:xa-spin .7s linear infinite}
-
-/* 弹窗登录成功状态 */
-.xedc-login-dialog__done{display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--xa-bg);color:var(--xa-fg);font-size:15px;font-weight:500}
-.xedc-login-dialog.is-done .xedc-login-dialog__done{display:flex}
-.xedc-login-dialog.is-done iframe{visibility:hidden}
-.xedc-login-dialog__done svg{width:44px;height:44px;padding:10px;border-radius:50%;background:var(--xa-primary);color:var(--xa-primary-fg)}
 
 /* 消息显示在卡片内部 */
 form.xedc-auth :is(.messages,.alert){max-width:none;margin:0 0 16px}

@@ -4,6 +4,9 @@
 #
 # 代码以 GitHub 上的仓库为准。本脚本打包或恢复数据库与上传文件。
 # export 默认不改数据库、不改上传文件、不改 settings.php。
+# import 在数据库导入完成后，会改 settings.php 里的 trusted_host_patterns、
+# 可选的 hash_salt、以及必要时的 file_private_path，并用配置 API 更新已知的
+# 域名配置（例如 simple_sitemap.settings 的 base_url）。不改节点正文和菜单链接。
 # 任何覆盖数据库或上传文件的步骤都会先把现状备份到 /root。
 # 本脚本不改写 Git 历史，也不把备份包上传到任何远程仓库。
 #
@@ -12,7 +15,7 @@
 #
 # 用法：
 #   ./migrate-site.sh export   [--root /var/www/drupal] [--out /root/xedc-migrate] [--maintenance] [--yes]
-#   ./migrate-site.sh import   --pack <包路径> --domain <域名> [--root /var/www/drupal] [--yes] [--force]
+#   ./migrate-site.sh import   --pack <包路径> --domain <域名> [--old-domain <旧域名>] [--root /var/www/drupal] [--yes] [--force]
 #   ./migrate-site.sh rollback --backup <import 前自动生成的备份文件> [--root /var/www/drupal] [--yes]
 
 set -euo pipefail
@@ -23,6 +26,7 @@ ROOT="/var/www/drupal"
 OUT="/root/xedc-migrate"
 PACK=""
 DOMAIN=""
+OLD_DOMAIN=""
 BACKUP=""
 MAINTENANCE=0
 ASSUME_YES=0
@@ -51,12 +55,18 @@ HTTP_CODE="?"
 DB_PREFIX=""
 IN_TRAP=0
 LOGGING=0
+OLD_HOST=""
+DOMAIN_LC=""
+PRIVATE_NOTE=""
+SETTINGS_NOTE=""
+DOMAIN_SCAN_PATH=""
+SETTINGS_BACKUP=""
 
 usage() {
   cat <<'EOF'
 用法：
   ./migrate-site.sh export   [--root /var/www/drupal] [--out /root/xedc-migrate] [--maintenance] [--yes]
-  ./migrate-site.sh import   --pack <包路径> --domain <域名> [--root /var/www/drupal] [--yes] [--force]
+  ./migrate-site.sh import   --pack <包路径> --domain <域名> [--old-domain <旧域名>] [--root /var/www/drupal] [--yes] [--force]
   ./migrate-site.sh rollback --backup <import 前自动生成的备份文件> [--root /var/www/drupal] [--yes]
 
 export    在旧服务器打包数据库和上传文件。默认不修改站点。
@@ -65,6 +75,7 @@ rollback  用 import 自动生成的 sql.gz 回到导入之前。必须同时给
 
 export 发现未提交改动或未出现在本机远端跟踪分支上的提交时，会列出明细并停止，除非带 --yes。
 import 发现目标库已有节点，或存在 uid>1 的用户时，必须同时带 --force 和 --yes。
+import 的 --old-domain 可省略。省略时从包内 manifest 的旧站域名读取。
 参数缺失、无法识别或写错时，只打印本说明，不读取站点、不写日志。
 EOF
 }
@@ -78,7 +89,10 @@ redact_stream() {
     -e 's/(DRUPAL_ADMIN_PASS=)[^[:space:]]+/\1***/g' \
     -e "s/('password'[[:space:]]*=>[[:space:]]*')[^']*/\\1***/g" \
     -e 's/("password"[[:space:]]*=>[[:space:]]*")[^"]*/\1***/g' \
-    -e 's/ghp_[A-Za-z0-9]+/ghp_***/g'
+    -e 's/ghp_[A-Za-z0-9]+/ghp_***/g' \
+    -e 's/^(hash_salt=).*/\1***/' \
+    -e 's/(HASH_SALT=)[^[:space:]]+/\1***/g' \
+    -e 's/(HASH_SALT_VALUE=)[^[:space:]]+/\1***/g'
 }
 
 redact_file() {
@@ -253,7 +267,7 @@ parse_args() {
   while [[ "$#" -gt 0 ]]; do
     arg="$1"
     case "$arg" in
-      --root|--out|--pack|--domain|--backup)
+      --root|--out|--pack|--domain|--old-domain|--backup)
         if [[ "$#" -lt 2 || -z "${2:-}" || "${2:-}" == --* ]]; then
           usage
           exit 2
@@ -263,6 +277,7 @@ parse_args() {
           --out) OUT="$2" ;;
           --pack) PACK="$2" ;;
           --domain) DOMAIN="$2" ;;
+          --old-domain) OLD_DOMAIN="$2" ;;
           --backup) BACKUP="$2" ;;
         esac
         shift 2
@@ -295,7 +310,7 @@ parse_args() {
   done
   case "$COMMAND" in
     export)
-      if [[ -n "$PACK" || -n "$DOMAIN" || -n "$BACKUP" ]]; then
+      if [[ -n "$PACK" || -n "$DOMAIN" || -n "$OLD_DOMAIN" || -n "$BACKUP" ]]; then
         usage
         exit 2
       fi
@@ -307,7 +322,7 @@ parse_args() {
       fi
       ;;
     rollback)
-      if [[ -z "$BACKUP" || -n "$PACK" || -n "$DOMAIN" || "$ASSUME_YES" -ne 1 ]]; then
+      if [[ -z "$BACKUP" || -n "$PACK" || -n "$DOMAIN" || -n "$OLD_DOMAIN" || "$ASSUME_YES" -ne 1 ]]; then
         usage
         exit 2
       fi
@@ -340,6 +355,10 @@ parse_args() {
   fi
   if [[ "$COMMAND" == "import" ]]; then
     if [[ ! "$DOMAIN" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$ ]]; then
+      usage
+      exit 2
+    fi
+    if [[ -n "$OLD_DOMAIN" && ! "$OLD_DOMAIN" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$ ]]; then
       usage
       exit 2
     fi
@@ -571,6 +590,17 @@ manifest_value() {
   awk -F '=' -v k="$key" '$1 == k { sub(/^[^=]*=/, ""); print; exit }' "$file"
 }
 
+show_manifest() {
+  redact_stream <"$1"
+}
+
+pattern_for_host() {
+  local escaped
+  # shellcheck disable=SC2016
+  escaped=$(printf '%s' "$1" | sed -e 's/[.[\*^$()+?{|\\]/\\&/g')
+  printf '^%s$' "$escaped"
+}
+
 gzip_has_create_table() {
   local file="$1"
   local rc
@@ -640,6 +670,8 @@ if (is_array($prefix)) {
     echo "PREFIX\t", (string) $prefix, "\n";
 }
 echo "PRIVATE\t", (string) $private, "\n";
+$public_base = $settings['file_public_base_url'] ?? '';
+echo "PUBLIC_BASE\t", (string) $public_base, "\n";
 $patterns = $settings['trusted_host_patterns'] ?? [];
 if (is_array($patterns)) {
     foreach ($patterns as $pattern) {
@@ -803,10 +835,21 @@ write_report() {
     return 0
   fi
   line="搬家验收：节点=${NEW_NODES}/${OLD_NODES}  用户=${NEW_USERS}/${OLD_USERS}  文件=${NEW_FILES}/${OLD_FILES}  bootstrap=${BOOTSTRAP_VALUE}  首页HTTP=${HTTP_CODE}  整体=${FINAL_OVERALL}"
-  line=$(printf '%s' "$line" | redact_stream)
-  printf '%s\n' "$line" | tee -a "$LOG"
   tmp=$(mktemp /root/xedc-migrate-report.XXXXXX)
-  printf '%s\n' "$line" >"$tmp"
+  {
+    printf '%s\n' "$line"
+    if [[ -n "$PRIVATE_NOTE" ]]; then
+      printf '%s\n' "$PRIVATE_NOTE"
+    fi
+    if [[ -n "$SETTINGS_NOTE" ]]; then
+      printf '%s\n' "$SETTINGS_NOTE"
+    fi
+    if [[ -n "$DOMAIN_SCAN_PATH" && -f "$DOMAIN_SCAN_PATH" ]]; then
+      printf '\n'
+      cat "$DOMAIN_SCAN_PATH"
+    fi
+  } >"$tmp"
+  redact_stream <"$tmp" | tee -a "$LOG"
   chmod 600 "$tmp"
   mv "$tmp" "$REPORT"
   chmod 600 "$REPORT"
@@ -871,6 +914,51 @@ backup_files_tree() {
   rm -f "$err"
   chmod 600 "$dest"
   log_line "已备份上传文件到 ${dest}"
+}
+
+backup_settings_file() {
+  local dest="$1"
+  local src="$ROOT/web/sites/default/settings.php"
+  if [[ ! -f "$src" ]]; then
+    log_err "没有可备份的 settings.php：${src}"
+    return 1
+  fi
+  cp -p "$src" "$dest" || return 1
+  chmod 600 "$dest"
+  log_line "已备份 settings.php 到 ${dest}"
+}
+
+restore_settings_file() {
+  local src="$1"
+  local dest="$ROOT/web/sites/default/settings.php"
+  local dir tmp err
+  if [[ ! -f "$src" ]]; then
+    log_err "找不到 settings.php 备份：${src}"
+    return 1
+  fi
+  err=$(mktemp)
+  if ! php -l "$src" >"$err" 2>&1; then
+    log_err "settings.php 备份语法无效，没有覆盖现有文件。"
+    print_captured_error "$err"
+    rm -f "$err"
+    return 1
+  fi
+  rm -f "$err"
+  dir=$(dirname "$dest")
+  tmp=$(mktemp "$dir/settings.php.restore.XXXXXX")
+  cp "$src" "$tmp" || {
+    rm -f "$tmp"
+    return 1
+  }
+  if id www-data >/dev/null 2>&1; then
+    chown root:www-data "$tmp" || {
+      rm -f "$tmp"
+      return 1
+    }
+  fi
+  chmod 640 "$tmp"
+  mv -f "$tmp" "$dest" || return 1
+  log_line "已恢复 settings.php。"
 }
 
 import_sql_gz() {
@@ -1208,15 +1296,30 @@ host_of_url() {
   ' "$1"
 }
 
+export_read_hash_salt() {
+  local raw salt
+  raw=$(drush_stdout php:eval 'echo "HASH_SALT=", (string) (\Drupal\Core\Site\Settings::get("hash_salt") ?? ""), "\n";') || return 1
+  salt=$(printf '%s\n' "$raw" | sed -n 's/^HASH_SALT=//p' | tail -n 1 | tr -d '\r')
+  if [[ "$salt" == *$'\n'* || "$salt" == *xedc-migrate:* ]]; then
+    warn "hash_salt 含有换行或迁移标记，本次不写入 manifest。导入时将保留新 settings.php 里的值。"
+    return 0
+  fi
+  printf '%s' "$salt"
+}
+
 # --- export 步骤 6：写 manifest.txt ---
 export_write_manifest() {
-  local now drupal_version php_version mariadb_version git_commit base old_domain
+  local now drupal_version php_version mariadb_version git_commit base old_domain hash_salt
   local node_rows user_rows file_rows private_raw private_abs db_hash pub_hash priv_hash
   now=$(date '+%F %T %z')
   drupal_version=$(drush_stdout status --field=drupal-version) || die "无法读取 Drupal 版本。"
   drupal_version=$(printf '%s\n' "$drupal_version" | awk 'NF { print; exit }')
   php_version=$(php -r 'echo PHP_VERSION;')
-  mariadb_version=$(sql_scalar "SELECT VERSION()") || die "无法读取 MariaDB 版本。"
+  mariadb_version=$(drush_stdout sql:query "SELECT VERSION()") || die "无法读取 MariaDB 版本。"
+  mariadb_version=$(printf '%s\n' "$mariadb_version" | awk 'NF { line = $0 } END { print line }' | tr -d '\r')
+  if [[ -z "$mariadb_version" || "$mariadb_version" == *$'\n'* || "$mariadb_version" == *"="* ]]; then
+    die "MariaDB 版本无法写入 manifest。没有修改站点。"
+  fi
   if [[ -d "$ROOT/.git" ]]; then
     git_commit=$(git -C "$ROOT" rev-parse HEAD)
   else
@@ -1241,6 +1344,12 @@ export_write_manifest() {
     private_abs=""
   fi
   file_rows=$(count_site_files "$ROOT" "$private_abs") || die "无法统计上传文件。"
+  hash_salt=$(export_read_hash_salt) || die "无法读取 hash_salt。没有修改站点。"
+  if [[ -n "$hash_salt" ]]; then
+    log_line "manifest 将记录 hash_salt。日志和终端不打印该值。"
+  else
+    log_line "settings 中 hash_salt 为空，manifest 不记录。导入时保留新生成的值。"
+  fi
   db_hash=$(sha256_file "$WORK/payload/database.sql.gz")
   pub_hash=$(sha256_file "$WORK/payload/public-files.tgz")
   priv_hash=""
@@ -1261,6 +1370,9 @@ export_write_manifest() {
     printf 'files文件数=%s\n' "$file_rows"
     printf '私有文件路径=%s\n' "$private_raw"
     printf '私有文件绝对路径=%s\n' "$private_abs"
+    if [[ -n "$hash_salt" ]]; then
+      printf 'hash_salt=%s\n' "$hash_salt"
+    fi
     printf 'sha256 database.sql.gz %s\n' "$db_hash"
     printf 'sha256 public-files.tgz %s\n' "$pub_hash"
     if [[ -n "$priv_hash" ]]; then
@@ -1269,7 +1381,7 @@ export_write_manifest() {
   } >"$WORK/payload/manifest.txt"
   chmod 600 "$WORK/payload/manifest.txt"
   log_line "已生成 manifest。"
-  tee -a "$LOG" <"$WORK/payload/manifest.txt"
+  show_manifest "$WORK/payload/manifest.txt" | tee -a "$LOG"
 }
 
 # --- export 步骤 7：打成单个权限 600 的 tgz，并提示传输和保密 ---
@@ -1306,7 +1418,7 @@ export_write_package() {
 用 scp 把包拷到新服务器，例如：
   scp ${final} root@新服务器:/root/
 
-包含用户邮箱和密码哈希，不要放进 GitHub，用完在两边删除。
+包含用户邮箱、密码哈希，以及可能包含 hash_salt。不要放进 GitHub，用完在两边删除。
 EOF
 }
 
@@ -1395,13 +1507,13 @@ import_verify_pack() {
     die "包内有 private-files.tgz，但 manifest 没有它的 sha256。"
   fi
   log_line "manifest 如下："
-  tee -a "$LOG" <"$manifest"
+  show_manifest "$manifest" | tee -a "$LOG"
   validate_sql_gz "$WORK/payload/database.sql.gz" || die "数据库包无效。站点没有改动。"
   import_stage_archives
 }
 
 import_stage_archives() {
-  local manifest raw abs dest
+  local manifest raw abs
   extract_checked_tar "$WORK/payload/public-files.tgz" "$WORK/public-unpack" "公共文件" || die "公共文件没有通过检查。站点没有改动。"
   if [[ ! -d "$WORK/public-unpack/files" ]]; then
     die "公共文件包里没有 files 目录。站点没有改动。"
@@ -1410,25 +1522,17 @@ import_stage_archives() {
   raw=$(manifest_value "私有文件路径" "$manifest")
   abs=$(manifest_value "私有文件绝对路径" "$manifest")
   if [[ ! -f "$WORK/payload/private-files.tgz" ]]; then
-    if [[ -n "$raw" ]]; then
-      warn "manifest 记录了私有文件路径 ${raw}，但包内没有 private-files.tgz。"
+    if [[ -n "$raw" || -n "$abs" ]]; then
+      warn "manifest 记录了私有文件路径，但包内没有 private-files.tgz。"
     fi
     printf '\n' >"$WORK/private-dest.txt"
     return 0
   fi
-  if [[ -n "$abs" ]]; then
-    dest="$abs"
-  elif [[ "$raw" == /* ]]; then
-    dest="$raw"
-  elif [[ -n "$raw" ]]; then
-    dest=$(readlink -m "$ROOT/web/$raw")
-  else
+  if [[ -z "$raw" && -z "$abs" ]]; then
     die "有 private-files.tgz，但 manifest 没有私有文件路径。站点没有改动。"
   fi
-  assert_safe_delete_path "$dest" "私有文件目录"
   extract_checked_tar "$WORK/payload/private-files.tgz" "$WORK/private-unpack" "私有文件" || die "私有文件没有通过检查。站点没有改动。"
-  printf '%s\n' "$dest" >"$WORK/private-dest.txt"
-  log_line "私有文件将解压到 ${dest}。覆盖前还会再备份现有文件。"
+  log_line "私有文件已在临时目录校验通过。最终目录在读取 settings.php 之后决定。"
 }
 
 # --- import 步骤 2：站点不存在或未安装时运行 install-restore.sh ---
@@ -1532,16 +1636,21 @@ import_backup_existing() {
   ts=$(date '+%Y%m%d%H%M%S')
   PREMIGRATE_SQL="/root/xedc-premigrate-${ts}.sql.gz"
   PREMIGRATE_FILES="/root/xedc-premigrate-${ts}-files.tgz"
+  SETTINGS_BACKUP="/root/xedc-premigrate-${ts}-settings.php"
   private_abs=$(current_private_dir || true)
   backup_database "$PREMIGRATE_SQL" || die "覆盖前数据库备份失败。没有删除现有数据。"
   if ! backup_files_tree "$PREMIGRATE_FILES" "$private_abs"; then
     die "覆盖前文件备份失败。数据库备份留在 ${PREMIGRATE_SQL}。没有删除现有数据。"
   fi
+  if ! backup_settings_file "$SETTINGS_BACKUP"; then
+    die "覆盖前 settings.php 备份失败。数据库备份留在 ${PREMIGRATE_SQL}。没有删除现有数据。"
+  fi
   log_line "覆盖前备份：数据库 ${PREMIGRATE_SQL}"
   log_line "覆盖前备份：文件 ${PREMIGRATE_FILES}"
+  log_line "覆盖前备份：settings.php ${SETTINGS_BACKUP}"
   log_line "回滚命令：${0} rollback --backup ${PREMIGRATE_SQL} --root ${ROOT} --yes"
-  printf '\n覆盖前备份：\n数据库：%s\n文件：%s\n回滚命令：\n  %s rollback --backup %s --root %s --yes\n\n' \
-    "$PREMIGRATE_SQL" "$PREMIGRATE_FILES" "$0" "$PREMIGRATE_SQL" "$ROOT" | tee -a "$LOG"
+  printf '\n覆盖前备份：\n数据库：%s\n文件：%s\nsettings.php：%s\n回滚命令：\n  %s rollback --backup %s --root %s --yes\n同时间戳的 -settings.php 会在 rollback 时一并恢复。\n\n' \
+    "$PREMIGRATE_SQL" "$PREMIGRATE_FILES" "$SETTINGS_BACKUP" "$0" "$PREMIGRATE_SQL" "$ROOT" | tee -a "$LOG"
 }
 
 # --- import 步骤 4：维护模式、替换数据库和文件、更新、清缓存 ---
@@ -1564,8 +1673,11 @@ import_extract_files() {
 
 import_extract_private() {
   local dest files_dir
-  dest=$(tr -d '\r' <"$WORK/private-dest.txt" || true)
+  dest=$(tr -d '\r\n' <"$WORK/private-dest.txt" || true)
   if [[ -z "$dest" ]]; then
+    if [[ -f "$WORK/payload/private-files.tgz" ]]; then
+      die "私有文件还没有确定解压目录。数据库已经导入，可使用回滚命令。"
+    fi
     log_line "没有需要放入站点的私有文件。"
     return 0
   fi
@@ -1573,6 +1685,7 @@ import_extract_private() {
     die "私有文件还没有解压到临时目录。数据库已经导入，可使用回滚命令。"
   fi
   files_dir="$ROOT/web/sites/default/files"
+  assert_safe_delete_path "$dest" "私有文件目录"
   if [[ -L "$dest" ]]; then
     die "私有文件路径是符号链接，拒绝删除其内容：${dest}"
   fi
@@ -1589,149 +1702,692 @@ import_extract_private() {
   log_line "私有文件已解压到 ${dest}。"
 }
 
-import_confirm_private_path() {
-  local dest report settings_private resolved_settings resolved_dest
-  dest=$(tr -d '\r' <"$WORK/private-dest.txt" || true)
-  if [[ -z "$dest" ]]; then
-    log_line "没有私有文件路径需要和 settings.php 对照。"
+private_dest_allowed() {
+  local path="$1"
+  if [[ "$path" != /* ]]; then
+    return 1
+  fi
+  case "$path" in
+    /|/root|/root/*|/etc|/etc/*|/usr|/usr/*|/bin|/bin/*|/sbin|/sbin/*|/lib|/lib/*|/lib64|/lib64/*|/boot|/boot/*|/dev|/dev/*|/proc|/proc/*|/sys|/sys/*|/run|/run/*|/tmp|/tmp/*|/var|/var/log|/var/log/*|/home|/opt|/srv)
+      return 1
+      ;;
+  esac
+  if [[ "${path#/}" != */* ]]; then
+    return 1
+  fi
+  case "$path" in
+    "$ROOT"|"$ROOT/web"|"$ROOT/web/sites"|"$ROOT/web/sites/default"|"$ROOT/web/sites/default/files")
+      return 1
+      ;;
+  esac
+  if [[ -L "$path" ]]; then
+    return 1
+  fi
+  return 0
+}
+
+resolve_private_setting() {
+  local raw="$1"
+  if [[ -z "$raw" ]]; then
     return 0
   fi
-  report=$(read_settings_report) || die "无法读取 settings.php 中的 file_private_path。"
+  if [[ "$raw" == /* ]]; then
+    readlink -m "$raw"
+  else
+    readlink -m "$ROOT/web/$raw"
+  fi
+}
+
+append_pattern_file() {
+  local file="$1"
+  local item="$2"
+  if [[ -z "$item" ]]; then
+    return 0
+  fi
+  if [[ "$item" == *$'\n'* || "$item" == *xedc-migrate:* || ${#item} -gt 200 ]]; then
+    warn "跳过无法安全保留的 trusted_host_patterns 项。"
+    return 0
+  fi
+  if grep -Fxq -e "$item" "$file"; then
+    return 0
+  fi
+  printf '%s\n' "$item" >>"$file"
+}
+
+resolve_old_host() {
+  local manifest_host
+  manifest_host=$(manifest_value "旧站域名" "$WORK/payload/manifest.txt")
+  manifest_host=$(printf '%s' "$manifest_host" | tr -d '\r' | tr '[:upper:]' '[:lower:]')
+  if [[ -n "$OLD_DOMAIN" ]]; then
+    OLD_HOST=$(printf '%s' "$OLD_DOMAIN" | tr '[:upper:]' '[:lower:]')
+    if [[ -n "$manifest_host" && "$OLD_HOST" != "$manifest_host" ]]; then
+      warn "--old-domain ${OLD_HOST} 与 manifest 的旧站域名 ${manifest_host} 不同，按命令行参数处理。"
+    fi
+  else
+    OLD_HOST="$manifest_host"
+  fi
+  if [[ -n "$OLD_HOST" && ! "$OLD_HOST" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+    warn "旧域名格式无效，跳过按旧域名的配置更新和残留扫描。"
+    OLD_HOST=""
+  fi
+  DOMAIN_LC=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
+  log_line "旧域名：${OLD_HOST:-（无）}。新域名：${DOMAIN_LC}。"
+}
+
+# 私有文件优先解压到 settings.php 已有的 file_private_path。
+# 该值为空或不能安全使用时，改用 $ROOT/private（或仍在站点根目录下的原路径），并写回 settings.php。
+import_finalize_private_dest() {
+  local manifest raw abs report settings_raw settings_resolved manifest_resolved dest
+  : >"$WORK/private-settings-update.txt"
+  manifest="$WORK/payload/manifest.txt"
+  raw=$(manifest_value "私有文件路径" "$manifest")
+  abs=$(manifest_value "私有文件绝对路径" "$manifest")
+  if [[ ! -f "$WORK/payload/private-files.tgz" ]]; then
+    printf '\n' >"$WORK/private-dest.txt"
+    PRIVATE_NOTE="私有文件：包内没有私有文件。"
+    log_line "$PRIVATE_NOTE"
+    return 0
+  fi
+  if [[ ! -d "$WORK/private-unpack" ]]; then
+    die "私有文件还没有在临时目录解压。数据库已经导入，可使用回滚命令。"
+  fi
+  report=$(read_settings_report) || die "无法读取 settings.php，不能对齐私有文件路径。数据库已经导入，可使用回滚命令。"
+  settings_raw=$(printf '%s\n' "$report" | awk -F '\t' '$1 == "PRIVATE" { print $2; exit }')
+  settings_resolved=""
+  if [[ -n "$settings_raw" ]]; then
+    settings_resolved=$(resolve_private_setting "$settings_raw")
+  fi
+  manifest_resolved=""
+  if [[ -n "$abs" ]]; then
+    manifest_resolved=$(readlink -m "$abs")
+  elif [[ "$raw" == /* ]]; then
+    manifest_resolved=$(readlink -m "$raw")
+  elif [[ -n "$raw" ]]; then
+    manifest_resolved=$(readlink -m "$ROOT/web/$raw")
+  fi
+  if [[ -n "$settings_resolved" ]] && private_dest_allowed "$settings_resolved"; then
+    dest="$settings_resolved"
+    if [[ -n "$manifest_resolved" && "$manifest_resolved" != "$dest" ]]; then
+      PRIVATE_NOTE="警告：私有文件改解压到 settings.php 的 file_private_path（${dest}）。导出时的绝对路径是 ${manifest_resolved}。已调整解压目标，使 Drupal 能找到这些文件。未改 file_private_path。"
+      warn "$PRIVATE_NOTE"
+    else
+      PRIVATE_NOTE="私有文件：解压路径与 file_private_path 一致（${dest}）。"
+      log_line "$PRIVATE_NOTE"
+    fi
+  else
+    if [[ -n "$settings_raw" ]]; then
+      warn "settings.php 的 file_private_path（${settings_raw}）不能作为解压目录。"
+    fi
+    dest=""
+    if [[ -n "$manifest_resolved" && "$manifest_resolved" == "$ROOT"/* ]] && private_dest_allowed "$manifest_resolved"; then
+      dest="$manifest_resolved"
+    else
+      dest="$ROOT/private"
+    fi
+    if ! private_dest_allowed "$dest"; then
+      die "没有安全的私有文件目录可用。数据库已经导入，可使用回滚命令。"
+    fi
+    printf '%s\n' "$dest" >"$WORK/private-settings-update.txt"
+    PRIVATE_NOTE="警告：file_private_path 为空或不能使用。私有文件将解压到 ${dest}，并写入 settings.php 的 file_private_path。"
+    if [[ -n "$manifest_resolved" && "$manifest_resolved" != "$dest" ]]; then
+      PRIVATE_NOTE="${PRIVATE_NOTE} 导出时的绝对路径是 ${manifest_resolved}。"
+    fi
+    warn "$PRIVATE_NOTE"
+  fi
+  printf '%s\n' "$dest" >"$WORK/private-dest.txt"
+  log_line "私有文件最终目录：${dest}"
+}
+
+settings_adapt_fail() {
+  local msg="$1"
+  local src="$WORK/settings.php.before-adapt"
+  local dest="$ROOT/web/sites/default/settings.php"
+  if [[ -f "$src" ]]; then
+    cp "$src" "$dest" || true
+    if [[ -n "${SETTINGS_MODE:-}" ]]; then
+      chmod "$SETTINGS_MODE" "$dest" || true
+    fi
+    if [[ -n "${SETTINGS_OWNER:-}" ]]; then
+      chown "$SETTINGS_OWNER" "$dest" || true
+    fi
+    log_err "已把 settings.php 恢复为域名适配之前的内容。"
+  fi
+  die "$msg"
+}
+
+import_apply_settings() {
+  local settings report key pattern host required_www patterns_file salt
+  local write_salt private_path write_private public_raw new_public write_public
+  local note_salt note_public php_err rc verify_out dir tmp
+  settings="$ROOT/web/sites/default/settings.php"
+  [[ -f "$settings" ]] || die "找不到 settings.php，无法做域名适配。数据库已经导入，可使用回滚命令。"
+  resolve_old_host
+  report=$(read_settings_report) || die "无法读取 settings.php。数据库已经导入，可使用回滚命令。"
+  patterns_file="$WORK/trusted-patterns.txt"
+  : >"$patterns_file"
+  chmod 600 "$patterns_file"
+  while IFS=$'\t' read -r key pattern; do
+    [[ "$key" == "PATTERN" ]] || continue
+    append_pattern_file "$patterns_file" "$pattern"
+  done <<<"$report"
+  append_pattern_file "$patterns_file" "$(pattern_for_host "$DOMAIN_LC")"
+  required_www=""
+  if [[ "$DOMAIN_LC" == www.* ]]; then
+    host="${DOMAIN_LC#www.}"
+  else
+    host="www.${DOMAIN_LC}"
+  fi
+  if [[ "$host" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+    required_www=$(pattern_for_host "$host")
+    append_pattern_file "$patterns_file" "$required_www"
+  fi
+  if ! grep -Fxq -e "$(pattern_for_host "$DOMAIN_LC")" "$patterns_file"; then
+    die "无法生成新域名的 trusted_host_patterns。数据库已经导入，可使用回滚命令。"
+  fi
+
+  salt=$(manifest_value "hash_salt" "$WORK/payload/manifest.txt")
+  salt=${salt//$'\r'/}
+  write_salt=0
+  note_salt=""
+  if [[ -z "$salt" ]]; then
+    note_salt="manifest 没有 hash_salt，保留 settings.php 里现有的值。Drupal 8 及以上的用户密码哈希不依赖 hash_salt。"
+  elif [[ "$salt" == *$'\n'* || "$salt" == *xedc-migrate:* || ${#salt} -lt 8 || ${#salt} -gt 512 ]]; then
+    note_salt="manifest 里的 hash_salt 无法安全写回，保留 settings.php 里现有的值。"
+    warn "$note_salt"
+    salt=""
+  else
+    write_salt=1
+    note_salt="已把导出的 hash_salt 写入 settings.php。日志不打印该值。Drupal 8 及以上的用户密码哈希不依赖它，写回是为了一次性登录链接和部分 token。"
+  fi
+
+  private_path=""
+  write_private=0
+  if [[ -s "$WORK/private-settings-update.txt" ]]; then
+    private_path=$(tr -d '\r\n' <"$WORK/private-settings-update.txt")
+    if [[ -n "$private_path" ]]; then
+      write_private=1
+    fi
+  fi
+
+  public_raw=$(printf '%s\n' "$report" | awk -F '\t' '$1 == "PUBLIC_BASE" { print $2; exit }')
+  new_public=""
+  write_public=0
+  note_public=""
+  if [[ -n "$public_raw" && -n "$OLD_HOST" ]]; then
+    # shellcheck disable=SC2016
+    new_public=$(php -r '
+      $raw = (string) ($argv[1] ?? "");
+      $old = strtolower((string) ($argv[2] ?? ""));
+      $new = strtolower((string) ($argv[3] ?? ""));
+      $parts = parse_url($raw);
+      if (!is_array($parts) || empty($parts["host"]) || strtolower((string) $parts["host"]) !== $old) {
+        exit(0);
+      }
+      $scheme = $parts["scheme"] ?? "https";
+      if ($scheme !== "http" && $scheme !== "https") {
+        $scheme = "https";
+      }
+      $path = $parts["path"] ?? "";
+      if ($path === "/") {
+        $path = "";
+      }
+      $port = isset($parts["port"]) ? ":" . $parts["port"] : "";
+      $query = isset($parts["query"]) ? "?" . $parts["query"] : "";
+      echo $scheme, "://", $new, $port, $path, $query;
+    ' "$public_raw" "$OLD_HOST" "$DOMAIN_LC" || true)
+    if [[ -n "$new_public" && "$new_public" != "$public_raw" ]]; then
+      write_public=1
+      note_public="已把 file_public_base_url 的主机改为 ${DOMAIN_LC}。"
+    fi
+  fi
+
+  cp -p "$settings" "$WORK/settings.php.before-adapt"
+  chmod 600 "$WORK/settings.php.before-adapt"
+  SETTINGS_MODE=$(stat -c '%a' "$settings")
+  SETTINGS_OWNER=$(stat -c '%u:%g' "$settings")
+  php_err=$(mktemp)
+  set +e
+  SETTINGS_PATH="$settings" \
+    SETTINGS_OUT="$WORK/settings.php.new" \
+    PATTERNS_FILE="$patterns_file" \
+    WRITE_SALT="$write_salt" \
+    HASH_SALT_VALUE="$salt" \
+    WRITE_PRIVATE="$write_private" \
+    PRIVATE_PATH_VALUE="$private_path" \
+    WRITE_PUBLIC="$write_public" \
+    PUBLIC_BASE_VALUE="$new_public" \
+    php <<'PHP' >"$php_err" 2>&1
+<?php
+$settings_path = getenv('SETTINGS_PATH');
+$out_path = getenv('SETTINGS_OUT');
+$patterns_file = getenv('PATTERNS_FILE');
+$raw = file_get_contents($settings_path);
+if ($raw === false) {
+  fwrite(STDERR, "无法读取 settings.php\n");
+  exit(1);
+}
+$raw = preg_replace("#\n?// xedc-migrate:begin\n.*?\n// xedc-migrate:end\n#s", "\n", $raw);
+if (!is_string($raw)) {
+  fwrite(STDERR, "无法清理旧的迁移标记\n");
+  exit(1);
+}
+$lines = file($patterns_file, FILE_IGNORE_NEW_LINES);
+if ($lines === false) {
+  fwrite(STDERR, "无法读取域名模式\n");
+  exit(1);
+}
+$patterns = [];
+foreach ($lines as $line) {
+  if ($line === '') {
+    continue;
+  }
+  if (str_contains($line, "\n") || str_contains($line, 'xedc-migrate:') || strlen($line) > 200) {
+    fwrite(STDERR, "域名模式无效\n");
+    exit(1);
+  }
+  $patterns[] = $line;
+}
+$patterns = array_values(array_unique($patterns));
+if ($patterns === []) {
+  fwrite(STDERR, "没有可写入的 trusted_host_patterns\n");
+  exit(1);
+}
+$block = "\n// xedc-migrate:begin\n";
+$block .= "// Written by migrate-site.sh. Later assignments override earlier ones.\n";
+$block .= '$settings[\'trusted_host_patterns\'] = ' . var_export($patterns, true) . ";\n";
+if (getenv('WRITE_SALT') === '1') {
+  $salt = getenv('HASH_SALT_VALUE');
+  if (!is_string($salt) || $salt === '' || str_contains($salt, "\n") || str_contains($salt, "\0") || str_contains($salt, 'xedc-migrate:')) {
+    fwrite(STDERR, "hash_salt 无法安全写入\n");
+    exit(1);
+  }
+  $block .= '$settings[\'hash_salt\'] = ' . var_export($salt, true) . ";\n";
+}
+if (getenv('WRITE_PRIVATE') === '1') {
+  $private = getenv('PRIVATE_PATH_VALUE');
+  if (!is_string($private) || $private === '' || $private[0] !== '/' || str_contains($private, "\n") || str_contains($private, "\0")) {
+    fwrite(STDERR, "file_private_path 无法安全写入\n");
+    exit(1);
+  }
+  $block .= '$settings[\'file_private_path\'] = ' . var_export($private, true) . ";\n";
+}
+if (getenv('WRITE_PUBLIC') === '1') {
+  $public = getenv('PUBLIC_BASE_VALUE');
+  if (!is_string($public) || !preg_match('#^https?://#', $public) || str_contains($public, "\n")) {
+    fwrite(STDERR, "file_public_base_url 无法安全写入\n");
+    exit(1);
+  }
+  $block .= '$settings[\'file_public_base_url\'] = ' . var_export($public, true) . ";\n";
+}
+$block .= "// xedc-migrate:end\n";
+if (!str_ends_with($raw, "\n")) {
+  $raw .= "\n";
+}
+if (file_put_contents($out_path, $raw . $block) === false) {
+  fwrite(STDERR, "无法写入新的 settings.php\n");
+  exit(1);
+}
+PHP
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]]; then
+    log_err "生成新的 settings.php 失败。"
+    print_captured_error "$php_err"
+    rm -f "$php_err" "$WORK/settings.php.new"
+    die "settings.php 没有被替换。数据库已经导入，可使用回滚命令。"
+  fi
+  rm -f "$php_err"
+  if ! php -l "$WORK/settings.php.new" >/dev/null 2>&1; then
+    rm -f "$WORK/settings.php.new"
+    die "新的 settings.php 语法无效，原文件没有替换。数据库已经导入，可使用回滚命令。"
+  fi
+  verify_out=$(mktemp)
+  set +e
+  CHECK_DOMAIN="$DOMAIN_LC" \
+    REQUIRED_PATTERN="$(pattern_for_host "$DOMAIN_LC")" \
+    REQUIRED_WWW="$required_www" \
+    WRITE_SALT="$write_salt" \
+    HASH_SALT_VALUE="$salt" \
+    WRITE_PRIVATE="$write_private" \
+    PRIVATE_PATH_VALUE="$private_path" \
+    WRITE_PUBLIC="$write_public" \
+    PUBLIC_BASE_VALUE="$new_public" \
+    SETTINGS_PATH="$WORK/settings.php.new" \
+    APP_ROOT="$ROOT/web" \
+    php <<'PHP' >"$verify_out" 2>&1
+<?php
+$settings = [];
+$databases = [];
+$config = [];
+$app_root = getenv('APP_ROOT');
+$site_path = 'sites/default';
+include getenv('SETTINGS_PATH');
+$patterns = $settings['trusted_host_patterns'] ?? [];
+if (!is_array($patterns)) {
+  fwrite(STDERR, "trusted_host_patterns 不是数组\n");
+  exit(1);
+}
+$required = getenv('REQUIRED_PATTERN');
+$required_www = getenv('REQUIRED_WWW');
+if (!in_array($required, $patterns, true)) {
+  fwrite(STDERR, "缺少新域名模式\n");
+  exit(1);
+}
+if (is_string($required_www) && $required_www !== '' && !in_array($required_www, $patterns, true)) {
+  fwrite(STDERR, "缺少 www 或裸域名模式\n");
+  exit(1);
+}
+$domain = (string) getenv('CHECK_DOMAIN');
+$matched = false;
+foreach ($patterns as $pattern) {
+  if (!is_string($pattern)) {
+    continue;
+  }
+  if (@preg_match('{' . $pattern . '}i', $domain) === 1) {
+    $matched = true;
+  }
+}
+if (!$matched) {
+  fwrite(STDERR, "trusted_host_patterns 没有匹配新域名\n");
+  exit(1);
+}
+if (getenv('WRITE_SALT') === '1' && (($settings['hash_salt'] ?? null) !== getenv('HASH_SALT_VALUE'))) {
+  fwrite(STDERR, "hash_salt 没有写回成功\n");
+  exit(2);
+}
+if (getenv('WRITE_PRIVATE') === '1' && (($settings['file_private_path'] ?? '') !== getenv('PRIVATE_PATH_VALUE'))) {
+  fwrite(STDERR, "file_private_path 没有写回成功\n");
+  exit(3);
+}
+if (getenv('WRITE_PUBLIC') === '1' && (($settings['file_public_base_url'] ?? '') !== getenv('PUBLIC_BASE_VALUE'))) {
+  fwrite(STDERR, "file_public_base_url 没有写回成功\n");
+  exit(4);
+}
+echo "SETTINGS_OK\n";
+PHP
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]] || ! grep -q '^SETTINGS_OK$' "$verify_out"; then
+    log_err "新的 settings.php 校验失败。"
+    print_captured_error "$verify_out"
+    rm -f "$verify_out" "$WORK/settings.php.new"
+    die "settings.php 没有被替换。数据库已经导入，可使用回滚命令。"
+  fi
+  rm -f "$verify_out"
+  dir=$(dirname "$settings")
+  tmp=$(mktemp "$dir/settings.php.migrate.XXXXXX")
+  cp "$WORK/settings.php.new" "$tmp" || { rm -f "$tmp"; settings_adapt_fail "无法复制新的 settings.php。数据库已经导入，可使用回滚命令。"; }
+  chmod "$SETTINGS_MODE" "$tmp" || { rm -f "$tmp"; settings_adapt_fail "无法设置 settings.php 权限。数据库已经导入，可使用回滚命令。"; }
+  chown "$SETTINGS_OWNER" "$tmp" || { rm -f "$tmp"; settings_adapt_fail "无法设置 settings.php 所有者。数据库已经导入，可使用回滚命令。"; }
+  mv -f "$tmp" "$settings" || { rm -f "$tmp"; settings_adapt_fail "无法替换 settings.php。数据库已经导入，可使用回滚命令。"; }
+  rm -f "$WORK/settings.php.new"
+  SETTINGS_NOTE="域名适配：trusted_host_patterns 已包含 $(pattern_for_host "$DOMAIN_LC")"
+  if [[ -n "$required_www" ]]; then
+    SETTINGS_NOTE="${SETTINGS_NOTE} 和 ${required_www}"
+  fi
+  SETTINGS_NOTE="${SETTINGS_NOTE}。${note_salt}"
+  if [[ -n "$note_public" ]]; then
+    SETTINGS_NOTE="${SETTINGS_NOTE}${note_public}"
+  fi
+  log_line "$SETTINGS_NOTE"
+  reload_php_fpm
+}
+
+reload_php_fpm() {
+  local unit name
+  if ! command -v systemctl >/dev/null 2>&1; then
+    return 0
+  fi
+  while read -r unit _; do
+    [[ -n "$unit" ]] || continue
+    name="${unit%.service}"
+    if systemctl reload "$name"; then
+      log_line "已 reload ${name}。"
+    else
+      warn "reload ${name} 失败。若首页返回 400，请手动 reload PHP-FPM。"
+    fi
+  done < <(systemctl list-units --type=service --no-legend 'php*-fpm.service' 2>/dev/null || true)
+}
+
+import_verify_private_alignment() {
+  local dest report settings_private resolved
+  dest=$(tr -d '\r\n' <"$WORK/private-dest.txt" || true)
+  if [[ -z "$dest" ]]; then
+    return 0
+  fi
+  report=$(read_settings_report) || die "无法再读 settings.php 核对私有路径。数据库已经导入，可使用回滚命令。"
   settings_private=$(printf '%s\n' "$report" | awk -F '\t' '$1 == "PRIVATE" { print $2; exit }')
   if [[ -z "$settings_private" ]]; then
-    warn "settings.php 没有 file_private_path，包内私有文件在 ${dest}。脚本不会修改 settings.php。"
+    die "settings.php 仍然没有 file_private_path，但私有文件已解压到 ${dest}。可使用回滚命令。"
+  fi
+  resolved=$(resolve_private_setting "$settings_private")
+  if [[ "$resolved" != "$(readlink -m "$dest")" ]]; then
+    die "私有文件目录 ${dest} 与 file_private_path（${settings_private}，解析为 ${resolved}）仍然不一致。可使用回滚命令。"
+  fi
+  log_line "已核对：私有文件目录与 file_private_path 一致。"
+}
+
+# 只改已知的标量 URL。不扫描 SQL，不改序列化字段，不改节点正文和菜单链接。
+# 允许：simple_sitemap.settings:base_url。
+# 不改：邮件、SMTP、Matomo 子域、Metatag（含序列化）、用户内容。
+import_apply_domain_config() {
+  local php out err rc summary
+  php=$(mktemp "$WORK/domain-config.XXXXXX.php")
+  cat >"$php" <<'PHP'
+<?php
+
+$newHost = strtolower((string) getenv('NEW_HOST'));
+if ($newHost === '') {
+  fwrite(STDERR, "缺少新域名\n");
+  exit(1);
+}
+$allow = [
+  'simple_sitemap.settings' => ['base_url'],
+];
+$factory = \Drupal::configFactory();
+foreach ($allow as $name => $keys) {
+  $editable = $factory->getEditable($name);
+  if ($editable->isNew()) {
+    echo "SKIP\t{$name}\t配置不存在\n";
+    continue;
+  }
+  foreach ($keys as $key) {
+    $current = $editable->get($key);
+    if (!is_string($current) || $current === '') {
+      echo "SKIP\t{$name}\t{$key}\t不是非空字符串\n";
+      continue;
+    }
+    if (preg_match('/^[aObis]:\d+:/', $current) === 1) {
+      echo "SKIP\t{$name}\t{$key}\t疑似序列化，不改写\n";
+      continue;
+    }
+    $parts = parse_url($current);
+    if (!is_array($parts) || empty($parts['host'])) {
+      echo "SKIP\t{$name}\t{$key}\t不是绝对 URL\n";
+      continue;
+    }
+    $scheme = $parts['scheme'] ?? 'https';
+    if ($scheme !== 'http' && $scheme !== 'https') {
+      $scheme = 'https';
+    }
+    $path = $parts['path'] ?? '';
+    if ($path === '/') {
+      $path = '';
+    }
+    $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+    $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+    $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+    $updated = $scheme . '://' . $newHost . $port . $path . $query . $fragment;
+    if ($updated === $current) {
+      echo "UNCHANGED\t{$name}\t{$key}\n";
+      continue;
+    }
+    try {
+      $editable->set($key, $updated)->save();
+    } catch (Throwable $exception) {
+      fwrite(STDERR, "更新 {$name} {$key} 失败：" . $exception::class . "\n");
+      exit(1);
+    }
+    echo "UPDATED\t{$name}\t{$key}\t{$updated}\n";
+  }
+}
+PHP
+  out=$(mktemp)
+  err=$(mktemp)
+  set +e
+  OLD_HOST="${OLD_HOST}" NEW_HOST="${DOMAIN_LC}" "${DRUSH[@]}" php:script "$php" >"$out" 2>"$err"
+  rc=$?
+  set -e
+  if [[ -s "$out" ]]; then
+    redact_stream <"$out" | tee -a "$LOG"
+  fi
+  if [[ "$rc" -ne 0 ]]; then
+    STEP_FAILED=1
+    log_err "更新已知域名配置失败。"
+    print_captured_error "$err" "$out"
+  elif [[ -s "$err" ]]; then
+    redact_file "$err" >>"$LOG"
+  fi
+  rm -f "$err"
+  summary=$(awk -F '\t' '$1 == "UPDATED" { printf "%s:%s=%s; ", $2, $3, $4 }' "$out")
+  rm -f "$out"
+  if [[ -n "$summary" ]]; then
+    SETTINGS_NOTE="${SETTINGS_NOTE} 已用配置 API 更新：${summary}"
+    log_line "已用配置 API 更新：${summary}"
+  elif [[ "$rc" -eq 0 ]]; then
+    SETTINGS_NOTE="${SETTINGS_NOTE} 已知域名配置无需改写，或对应配置不存在。"
+    log_line "已知域名配置无需改写，或对应配置不存在。"
+  else
+    SETTINGS_NOTE="${SETTINGS_NOTE} 已知域名配置更新失败，详见日志。"
+  fi
+}
+
+import_scan_leftover_domain() {
+  local php out err rc files_dir hit shown
+  DOMAIN_SCAN_PATH="$WORK/domain-scan.txt"
+  : >"$DOMAIN_SCAN_PATH"
+  chmod 600 "$DOMAIN_SCAN_PATH"
+  if [[ -z "$OLD_HOST" || "$OLD_HOST" == "$DOMAIN_LC" ]]; then
+    printf '残留旧域名：新旧域名相同或没有旧域名，跳过扫描。\n' >>"$DOMAIN_SCAN_PATH"
+    log_line "残留旧域名：新旧域名相同或没有旧域名，跳过扫描。"
     return 0
   fi
-  if [[ "$settings_private" == /* ]]; then
-    resolved_settings=$(readlink -m "$settings_private")
-  else
-    resolved_settings=$(readlink -m "$ROOT/web/$settings_private")
-  fi
-  resolved_dest=$(readlink -m "$dest")
-  if [[ "$settings_private" == "$dest" || "$resolved_settings" == "$resolved_dest" ]]; then
-    log_line "settings.php 的 file_private_path 与解压路径一致：${resolved_dest}"
-  else
-    warn "settings.php 的 file_private_path（${settings_private}，解析为 ${resolved_settings}）与包内路径（${resolved_dest}）不一致。脚本不会修改 settings.php。"
-  fi
-}
+  php=$(mktemp "$WORK/domain-scan.XXXXXX.php")
+  cat >"$php" <<'PHP'
+<?php
 
-import_chown_files() {
-  local dest
-  dest=$(tr -d '\r' <"$WORK/private-dest.txt" || true)
-  chown_web_files "$dest"
-}
-
-import_update_database() {
-  if ! drush_run updb -y; then
-    STEP_FAILED=1
-    warn "drush updb -y 失败。继续做缓存重建和验收，整体不会记为成功。"
-  fi
-}
-
-import_rebuild_cache() {
-  if ! drush_run cr; then
-    STEP_FAILED=1
-    warn "drush cr 失败。继续验收，整体不会记为成功。"
-  fi
-}
-
-import_disable_maintenance() {
-  if ! disable_maintenance import; then
-    STEP_FAILED=1
-    warn "无法关闭维护模式。首页检查可能得到 503。脚本不会假装已经关闭。"
-  fi
-}
-
-# --- import 步骤 5：域名不同时只提示，不改配置 ---
-import_warn_domain() {
-  local manifest old_domain old_lc new_lc base report pattern matched php
-  manifest="$WORK/payload/manifest.txt"
-  old_domain=$(manifest_value "旧站域名" "$manifest")
-  old_lc=$(printf '%s' "$old_domain" | tr '[:upper:]' '[:lower:]')
-  new_lc=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
-  report=$(read_settings_report || true)
-  matched=0
-  if [[ -z "$report" ]]; then
-    warn "无法读取 settings.php 的 trusted_host_patterns。"
-  else
-    if ! printf '%s\n' "$report" | grep -q $'^PATTERN\t'; then
-      warn "settings.php 的 trusted_host_patterns 为空。脚本不会修改 settings.php。"
-    fi
-    while IFS=$'\t' read -r key pattern; do
-      [[ "$key" == "PATTERN" ]] || continue
-      printf 'trusted_host_patterns：%s\n' "$pattern" | tee -a "$LOG"
-      # shellcheck disable=SC2016
-      if php -r '
-        $pattern = $argv[1];
-        $domain = $argv[2];
-        $regex = "\x01" . $pattern . "\x01";
-        $result = @preg_match($regex, $domain);
-        exit($result === 1 ? 0 : 1);
-      ' "$pattern" "$DOMAIN"; then
-        matched=1
-      fi
-    done <<<"$report"
-    if [[ "$matched" -ne 1 ]]; then
-      warn "settings.php 的 trusted_host_patterns 没有包含 ${DOMAIN}。脚本不会修改 settings.php。"
-    else
-      log_line "trusted_host_patterns 包含 ${DOMAIN}。"
-    fi
-  fi
-  if [[ -n "$old_lc" && "$old_lc" != "$new_lc" ]]; then
-    if base=$(drush_stdout config:get simple_sitemap.settings base_url --format=string); then
-      base=$(printf '%s\n' "$base" | awk 'NF { print; exit }')
-      log_line "simple_sitemap.settings base_url=${base}"
-      if printf '%s' "$base" | tr '[:upper:]' '[:lower:]' | grep -F -q "$old_lc"; then
-        warn "simple_sitemap.settings base_url 仍包含旧域名 ${old_domain}。脚本不会自动修改。"
-      fi
-    else
-      warn "无法读取 simple_sitemap.settings base_url。"
-    fi
-    php=$(mktemp "$WORK/scan-host.XXXXXX.php")
-    cat >"$php" <<'PHP'
-$old = getenv("OLD_HOST");
-$new = getenv("NEW_HOST");
-if (!is_string($old) || $old === "" || strcasecmp($old, (string) $new) === 0) {
+$old = strtolower((string) getenv('OLD_HOST'));
+$new = strtolower((string) getenv('NEW_HOST'));
+if ($old === '' || strcasecmp($old, $new) === 0) {
+  echo "残留旧域名：没有可扫描的旧域名。\n";
   return;
 }
+echo "残留旧域名扫描（只报告，不改写节点正文、菜单链接和其他用户内容）：\n";
+
+function host_mentioned(string $value, string $old): bool {
+  $quoted = preg_quote($old, '/');
+  $pattern = '/(?<![A-Za-z0-9-])(?:[A-Za-z0-9-]+\.)*' . $quoted . '(?![A-Za-z0-9.-])/i';
+  return preg_match($pattern, $value) === 1;
+}
+
 $shown = 0;
+$truncated = false;
 foreach (\Drupal::configFactory()->listAll() as $name) {
   $data = \Drupal::config($name)->getRawData();
   $keys = [];
   $walk = function ($value, $key) use (&$walk, &$keys, $old) {
     if (is_array($value)) {
       foreach ($value as $child_key => $child) {
-        $next = $key === "" ? (string) $child_key : $key . "." . $child_key;
+        $next = $key === '' ? (string) $child_key : $key . '.' . $child_key;
         $walk($child, $next);
       }
       return;
     }
-    if (!is_string($value) || !str_contains($value, $old)) {
+    if (!is_string($value) || !host_mentioned($value, $old)) {
       return;
     }
-    if (preg_match("/pass|secret|token|salt|credential|api_key/i", (string) $key)) {
+    if (preg_match('/pass|secret|token|salt|credential|api_key/i', (string) $key) === 1) {
       return;
     }
-    $keys[] = $key === "" ? "(root)" : $key;
+    $keys[] = $key === '' ? '(root)' : $key;
   };
-  $walk($data, "");
+  $walk($data, '');
   foreach ($keys as $key) {
-    echo $name, " ", $key, "\n";
-    $shown++;
     if ($shown >= 50) {
-      echo "（还有更多包含旧域名的配置，已停止列举）\n";
-      return;
+      $truncated = true;
+      break 2;
     }
+    echo "配置 ", $name, " ", $key, "\n";
+    $shown++;
+  }
+}
+if ($truncated) {
+  echo "（还有更多包含旧域名的配置，已停止列举）\n";
+}
+if ($shown === 0) {
+  echo "配置中没有再发现旧域名。\n";
+}
+
+$quoted = str_replace('.', '\\.', $old);
+$body_re = '(^|[^A-Za-z0-9-])([A-Za-z0-9-]+\\.)*' . $quoted . '([^A-Za-z0-9.-]|$)';
+$mail_re = '@([A-Za-z0-9-]+\\.)*' . $quoted . '$';
+$checks = [
+  ['node__body', 'body_value', $body_re, 'node__body.body_value'],
+  ['menu_link_content_data', 'link__uri', $body_re, 'menu_link_content_data.link__uri'],
+  ['users_field_data', 'mail', $mail_re, 'users_field_data.mail'],
+];
+$database = \Drupal::database();
+$schema = $database->schema();
+foreach ($checks as [$table, $column, $pattern, $label]) {
+  if (!$schema->tableExists($table) || !$schema->fieldExists($table, $column)) {
+    echo $label, " 不存在，跳过。\n";
+    continue;
+  }
+  $sql = 'SELECT COUNT(*) FROM {' . $table . '} WHERE ' . $column . ' REGEXP :re';
+  $count = $database->query($sql, [':re' => $pattern])->fetchField();
+  echo $label, ' 含旧域名的行数=', (string) $count, "\n";
+}
+
+$settings_file = DRUPAL_ROOT . '/sites/default/settings.php';
+if (is_readable($settings_file)) {
+  $text = file_get_contents($settings_file);
+  if (is_string($text) && host_mentioned($text, $old)) {
+    echo "settings.php 文本中仍有旧域名。文件末尾的迁移块已写入新域名；前面的旧 trusted_host_patterns 会被后面的赋值覆盖。\n";
   }
 }
 PHP
-    log_line "仍包含旧域名 ${old_domain} 的配置名（不打印配置值）："
-    if ! OLD_HOST="$old_domain" NEW_HOST="$DOMAIN" "${DRUSH[@]}" php:script - --format=string <"$php" | redact_stream | tee -a "$LOG"; then
-      warn "扫描旧域名时出错。上面是错误原文。脚本没有修改这些配置。"
-    fi
+  out=$(mktemp)
+  err=$(mktemp)
+  set +e
+  OLD_HOST="$OLD_HOST" NEW_HOST="$DOMAIN_LC" "${DRUSH[@]}" php:script "$php" >"$out" 2>"$err"
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]]; then
+    warn "扫描旧域名时出错。验收继续，整体不因此单独判失败。"
+    print_captured_error "$err" "$out"
+    printf '残留旧域名扫描失败，详见日志。\n' >>"$DOMAIN_SCAN_PATH"
   else
-    log_line "新旧域名相同（${DOMAIN}），不提示域名替换。"
+    redact_stream <"$out" >>"$DOMAIN_SCAN_PATH"
+    if [[ -s "$err" ]]; then
+      redact_file "$err" >>"$LOG"
+    fi
   fi
+  rm -f "$out" "$err"
+  files_dir="$ROOT/web/sites/default/files"
+  shown=0
+  if [[ -d "$files_dir" ]]; then
+    while IFS= read -r hit; do
+      if grep -q -F -I -- "$OLD_HOST" "$hit"; then
+        printf '生成文件仍含旧域名：%s\n' "${hit#"$files_dir"/}" >>"$DOMAIN_SCAN_PATH"
+        shown=$((shown + 1))
+        if [[ "$shown" -ge 20 ]]; then
+          printf '生成文件还有更多匹配，已停止列举。\n' >>"$DOMAIN_SCAN_PATH"
+          break
+        fi
+      fi
+    done < <(find "$files_dir" -type f \( -name 'sitemap*.xml' -o -name 'robots.txt' \) -print)
+  fi
+  log_line "残留旧域名扫描已写入验收报告。"
 }
 
 compare_count() {
@@ -1770,6 +2426,9 @@ import_acceptance() {
   fi
   HTTP_CODE=$(http_code_for "$DOMAIN")
   log_line "首页 HTTP ${HTTP_CODE}，Host=${DOMAIN}"
+  if [[ "$HTTP_CODE" == "400" ]]; then
+    warn "首页返回 400。常见原因是 trusted_host_patterns 未生效，请确认 PHP-FPM 已读到新的 settings.php。"
+  fi
   if [[ "$HTTP_CODE" =~ ^5[0-9][0-9]$ ]]; then
     print_http_errors
   fi
@@ -1791,9 +2450,12 @@ import_write_report() {
 import_print_hints() {
   cat <<EOF | tee -a "$LOG"
 
-导入后的管理员账号是旧站的，不是 install-restore.sh 生成的 admin。
-切 DNS 前先用 hosts 文件或 curl 带 Host 头测试。
-旧服务器至少保留几天。
+导入后可以用旧站账号和原密码登录。install-restore.sh 生成的 admin 会被旧库覆盖。
+Drupal 8 及以上的密码哈希不依赖 hash_salt。manifest 里若有该值，脚本已写回，用来保持一次性登录链接和部分 token。
+trusted_host_patterns 已包含新域名。simple_sitemap.settings 的 base_url 会在该配置存在时改为新域名。
+节点正文、菜单链接和其他用户内容里的绝对 URL 没有自动改写。验收报告列出仍含旧域名的配置名和若干字段计数。
+邮件、Nginx、SSL、cron，以及未提交到 Git 的代码修改，需要导入后再处理。
+切 DNS 前先用 hosts，或 curl -H "Host: 新域名" 测试。旧服务器至少再留几天。
 EOF
 }
 
@@ -1805,14 +2467,17 @@ import_main() {
   OVERWRITE_STARTED=1
   import_enable_maintenance
   import_database
+  import_finalize_private_dest
+  import_apply_settings
   import_extract_files
   import_extract_private
-  import_confirm_private_path
+  import_verify_private_alignment
   import_chown_files
   import_update_database
+  import_apply_domain_config
   import_rebuild_cache
+  import_scan_leftover_domain
   import_disable_maintenance
-  import_warn_domain
   import_acceptance
   import_write_report
   import_print_hints
@@ -1829,6 +2494,7 @@ rollback_resolve_backup() {
   validate_sql_gz "$BACKUP" || die "备份不是有效的数据库压缩包。没有修改站点。"
   sibling="${BACKUP%.sql.gz}-files.tgz"
   printf '%s\n' "$sibling" >"$WORK/rollback-files.txt"
+  printf '%s\n' "${BACKUP%.sql.gz}-settings.php" >"$WORK/rollback-settings.txt"
   if [[ -f "$sibling" ]]; then
     log_line "找到同时间戳的文件备份：${sibling}"
     extract_checked_tar "$sibling" "$WORK/rollback-unpack" "回滚文件" || die "文件备份无法解压或路径不安全。没有修改站点。"
@@ -1902,7 +2568,7 @@ rollback_restore_files() {
 
 # --- rollback 步骤 2：确认、备份现状、恢复、清缓存、验收 ---
 rollback_apply() {
-  local ts host private_abs
+  local ts host private_abs settings_src
   if [[ ! -d "$ROOT" ]]; then
     die "Drupal 根目录不存在：${ROOT}"
   fi
@@ -1912,17 +2578,27 @@ rollback_apply() {
   ts=$(date '+%Y%m%d%H%M%S')
   PREMIGRATE_SQL="/root/xedc-prerollback-${ts}.sql.gz"
   PREMIGRATE_FILES="/root/xedc-prerollback-${ts}-files.tgz"
+  SETTINGS_BACKUP="/root/xedc-prerollback-${ts}-settings.php"
   private_abs=$(current_private_dir || true)
   backup_database "$PREMIGRATE_SQL" || die "回滚前的数据库备份失败。没有删除现有数据。"
   if ! backup_files_tree "$PREMIGRATE_FILES" "$private_abs"; then
     die "回滚前的文件备份失败。数据库备份留在 ${PREMIGRATE_SQL}。没有删除现有数据。"
   fi
-  log_line "回滚前又做了一份当前数据备份：${PREMIGRATE_SQL} 和 ${PREMIGRATE_FILES}"
+  if ! backup_settings_file "$SETTINGS_BACKUP"; then
+    die "回滚前的 settings.php 备份失败。数据库备份留在 ${PREMIGRATE_SQL}。没有删除现有数据。"
+  fi
+  log_line "回滚前又做了一份当前数据备份：${PREMIGRATE_SQL}、${PREMIGRATE_FILES} 和 ${SETTINGS_BACKUP}"
   enable_maintenance rollback || die "无法打开维护模式。没有删除现有数据。"
   OVERWRITE_STARTED=1
   drop_tables || die "drush sql:drop 失败。当前库的备份在 ${PREMIGRATE_SQL}。"
   import_sql_gz "$BACKUP" || die "恢复备份失败。当前库的备份在 ${PREMIGRATE_SQL}。"
   rollback_restore_files || die "数据库已恢复为指定备份，但文件恢复失败。回滚前的文件在 ${PREMIGRATE_FILES}。"
+  settings_src=$(tr -d '\r\n' <"$WORK/rollback-settings.txt")
+  if [[ -f "$settings_src" ]]; then
+    restore_settings_file "$settings_src" || die "数据库已恢复，但 settings.php 恢复失败。回滚前的 settings.php 在 ${SETTINGS_BACKUP}。"
+  else
+    warn "没有 ${settings_src}，这次不恢复 settings.php。"
+  fi
   private_abs=""
   if [[ -f "$WORK/private-dest.txt" ]]; then
     private_abs=$(tr -d '\r' <"$WORK/private-dest.txt")

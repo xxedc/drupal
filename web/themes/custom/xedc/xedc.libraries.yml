@@ -3,7 +3,6 @@ style:
   css:
     theme:
       build/css/main.style.css: {}
-      css/home.css: {}
       css/inputs.css: {}
       css/xedc-pill.css: {}
   js:
@@ -14,11 +13,16 @@ style:
 xedc_auth:
   css:
     theme:
-      css/auth.css: {}
+      css/login-dialog.css: {}
   js:
     js/auth.js: {}
   dependencies:
     - core/drupal
+
+xedc_auth_form:
+  css:
+    theme:
+      css/auth.css: {}
 
 meta:
   css:
@@ -152,6 +156,12 @@ meitu-card:
   css:
     theme:
       css/meitu-card.css: {}
+
+home-page:
+  version: 1.0
+  css:
+    theme:
+      css/home.css: {}
 
 home:
   version: 1.1

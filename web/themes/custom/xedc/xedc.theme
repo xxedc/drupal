@@ -259,6 +259,7 @@ function xedc_preprocess_page(&$variables) {
     );
   }
   if (\Drupal::service('path.matcher')->isFrontPage()) {
+    $variables['#attached']['library'][] = 'xedc/home-page';
     $variables['home_slides'] = [];
     $variables['home_categories'] = [];
     if (\Drupal::moduleHandler()->moduleExists('xedc_home')) {
@@ -343,6 +344,10 @@ function xedc_library_info_alter(array &$libraries, $extension) {
 }
 
 function xedc_page_attachments_alter(array &$attachments) {
+  $attachments['#cache']['contexts'] = \Drupal\Core\Cache\Cache::mergeContexts(
+    $attachments['#cache']['contexts'] ?? [],
+    ['route', 'url.path', 'languages:language_interface']
+  );
   $attachments['#attached']['html_head'][] = [
     [
       '#tag' => 'link',

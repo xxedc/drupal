@@ -99,6 +99,9 @@ function xedc_preprocess_html(array &$variables): void {
     return;
   }
   $variables['page']['#attached']['library'][] = 'xedc/xedc_auth';
+  if (_xedc_auth_is_auth_route()) {
+    $variables['page']['#attached']['library'][] = 'xedc/xedc_auth_form';
+  }
   $route_name = \Drupal::routeMatch()->getRouteName();
   $term = \Drupal::routeMatch()->getParameter('taxonomy_term');
   if ($route_name === 'xedc_models.detail' && $term instanceof \Drupal\taxonomy\TermInterface) {

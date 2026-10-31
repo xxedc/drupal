@@ -2,6 +2,8 @@
 
 namespace Drupal\xedc_home;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -29,6 +31,7 @@ class HomeCards {
     protected FileUrlGeneratorInterface $fileUrlGenerator,
     protected DateFormatterInterface $dateFormatter,
     protected Connection $database,
+    protected CacheBackendInterface $cache,
   ) {}
 
   /**
@@ -113,14 +116,21 @@ class HomeCards {
     if (!$tids) {
       return [];
     }
-    $counts = $this->database->query(
-      "SELECT c.field_categories_target_id AS tid, COUNT(DISTINCT c.entity_id) AS cnt
-       FROM {node__field_categories} c
-       INNER JOIN {node_field_data} n ON n.nid = c.entity_id AND n.langcode = c.langcode
-       WHERE c.deleted = 0 AND n.status = :status AND n.type = :type
-       GROUP BY c.field_categories_target_id",
-      [':status' => NodeInterface::PUBLISHED, ':type' => 'photo']
-    )->fetchAllKeyed();
+    $cached = $this->cache->get('xedc_home:photo_category_counts');
+    if ($cached) {
+      $counts = $cached->data;
+    }
+    else {
+      $counts = $this->database->query(
+        "SELECT c.field_categories_target_id AS tid, COUNT(DISTINCT c.entity_id) AS cnt
+         FROM {node__field_categories} c
+         INNER JOIN {node_field_data} n ON n.nid = c.entity_id AND n.langcode = c.langcode
+         WHERE c.deleted = 0 AND n.status = :status AND n.type = :type
+         GROUP BY c.field_categories_target_id",
+        [':status' => NodeInterface::PUBLISHED, ':type' => 'photo']
+      )->fetchAllKeyed();
+      $this->cache->set('xedc_home:photo_category_counts', $counts, Cache::PERMANENT, ['node_list:photo']);
+    }
     $terms = $term_storage->loadMultiple($tids);
     $repository = \Drupal::service('entity.repository');
     $out = [];

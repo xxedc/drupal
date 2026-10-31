@@ -39,6 +39,11 @@ class MemberAliasPathProcessor implements InboundPathProcessorInterface, Outboun
     if ($slug === '' || str_contains($slug, '.') || $this->aliasManager->isReservedSlug($lower)) {
       return $path;
     }
+    // Member aliases are a single short path segment. Longer or invalid
+    // segments cannot match, so skip the lookup on ordinary content URLs.
+    if (mb_strlen($slug) > 32 || !preg_match('/^[\p{L}\p{N}][\p{L}\p{N}_-]*$/u', $slug)) {
+      return $path;
+    }
     $uid = $this->aliasManager->findUidBySlug($slug);
     if ($uid <= 0) {
       return $path;
