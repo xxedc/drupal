@@ -28,7 +28,10 @@
 #    clone 之后、域名替换之前，只在工作副本上按顶层 id 做配置自愈，不改仓库里的 config/sync。
 #    自愈后仍有无法处理的问题则预检失败：打印明细，不执行 site:install，但继续写凭据。
 #    site:install 无论成败都再执行 drush cim。日志在 /var/log/xedc-restore-install.log。
-#    导入失败时状态写失败并附第一条错误，绝不写成成功。
+#    每次 cim 前等待并必要时清除 config_importer 锁，核对同步目录可读，并检查导入计划。
+#    cim 成功必须看到成功原文，且不能出现配置锁警告；不能只看退出码。
+#    判定成功后继续多轮 cim，直到差异不再下降。失败时状态写失败并附原因，绝不写成成功。
+#    回写差异只改本次 clone 的工作副本。本脚本不执行 git commit 或 git push。
 #
 # 用法：
 #   sudo ./install-restore.sh example.com
@@ -107,9 +110,24 @@ FIRST_ERROR_BLOCK=""
 LAST_DRUSH_LOG=""
 PARSED_ENTITY_TYPE=""
 PARSED_ENTITY_ID=""
+CIM_JUDGED_OK=0
+OVERALL_STATUS="未执行"
+FAIL_REASON=""
+PLAN_DETAIL=""
+HTTP_ERROR_EXCERPT=""
+NODE_TYPE_EXPECTED="未统计"
+NODE_TYPE_ACTUAL="未统计"
+SYNC_LIST_COUNT=0
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%F %T')" "$*"
+}
+
+note_log() {
+  log "$*"
+  if [[ "${INSTALL_LOG_READY:-0}" -eq 1 && -n "${INSTALL_LOG:-}" && -f "$INSTALL_LOG" ]]; then
+    printf '[%s] %s\n' "$(date '+%F %T')" "$*" >>"$INSTALL_LOG"
+  fi
 }
 
 warn() {
@@ -133,7 +151,7 @@ usage() {
 drush site:install --existing-config。不再先安装 standard 再分阶段导入。
 导入前会在工作副本上自愈 config/sync，再把属于本站的绝对地址改成本次域名。
 安装前预检配置。预检失败会写明错误、阻止 site:install，并继续写凭据文件。
-site:install 无论成败都会再执行 drush cim。
+site:install 无论成败都会再执行 drush cim。cim 前会核对锁、同步目录和导入计划。
 
 选项：
   --domain 域名         站点域名，也可作为第一个位置参数
@@ -341,11 +359,54 @@ regex_host() {
   printf '^%s$\n' "$escaped"
 }
 
+apt_get_install() {
+  if ! apt-get install -y "$@"; then
+    die "apt-get install 失败。"
+  fi
+}
+
+apt_get_update() {
+  local attempt source_file switched=0
+  for attempt in 1 2 3; do
+    if apt-get update; then
+      return 0
+    fi
+    warn "apt-get update 失败（第 ${attempt}/3 次）。清空 /var/lib/apt/lists 后重试。"
+    rm -rf /var/lib/apt/lists/*
+    mkdir -p /var/lib/apt/lists/partial
+    if [[ "$attempt" -lt 3 ]]; then
+      log "等待 20 秒后再次执行 apt-get update。"
+      sleep 20
+    fi
+  done
+  shopt -s nullglob
+  for source_file in /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+    if [[ -f "$source_file" ]] && grep -q 'ec2.archive.ubuntu.com' "$source_file"; then
+      sed -i 's/ec2\.archive\.ubuntu\.com/archive.ubuntu.com/g' "$source_file"
+      note_log "已把 ${source_file} 里的 ec2.archive.ubuntu.com 改为 archive.ubuntu.com。"
+      switched=1
+    fi
+  done
+  shopt -u nullglob
+  if [[ "$switched" -eq 1 ]]; then
+    rm -rf /var/lib/apt/lists/*
+    mkdir -p /var/lib/apt/lists/partial
+    note_log "等待 20 秒后，改用 archive.ubuntu.com 再执行一次 apt-get update。"
+    sleep 20
+    if apt-get update; then
+      return 0
+    fi
+    warn "改用 archive.ubuntu.com 后 apt-get update 仍失败。"
+  fi
+  note_log "apt-get update 多次失败。索引不完整时仍继续安装；只有随后的 apt-get install 失败才中止。"
+  return 1
+}
+
 install_packages() {
   export DEBIAN_FRONTEND=noninteractive
   log "安装基础软件包与 PHP 8.5。"
-  apt-get update
-  apt-get install -y \
+  apt_get_update || warn "apt-get update 未完全成功，继续尝试安装软件包。"
+  apt_get_install \
     ca-certificates \
     curl \
     gnupg \
@@ -357,14 +418,14 @@ install_packages() {
   if ! apt-cache show php8.5-cli >/dev/null 2>&1; then
     log "系统源没有 PHP 8.5，添加 ondrej/php。"
     add-apt-repository -y ppa:ondrej/php
-    apt-get update
+    apt_get_update || warn "添加 PPA 后 apt-get update 未完全成功，继续尝试安装 PHP。"
   else
     log "软件源已提供 PHP 8.5，不再重复添加 PPA。"
   fi
   if ! apt-cache show php8.5-cli >/dev/null 2>&1; then
     die "Ubuntu ${VERSION_ID:-unknown} 的软件源中没有 php8.5-cli。请确认 ondrej/php 已支持该版本。"
   fi
-  apt-get install -y \
+  apt_get_install \
     nginx \
     mariadb-server \
     php8.5-cli \
@@ -575,6 +636,33 @@ assert_database_safe() {
   else
     log "数据库 ${DB_NAME} 已有 Drupal 表，但 node_field_data 为 0 且没有 uid>1 的用户。这不是已有真实站点，不会因此跳过后续导入。"
   fi
+}
+
+database_has_no_real_content() {
+  local exists node_table user_table node_rows extra_users
+  if [[ -z "${SQL_BIN:-}" || -z "${DB_NAME:-}" ]]; then
+    warn "无法确认数据库内容，拒绝删除配置锁。"
+    return 1
+  fi
+  exists=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='${DB_NAME}'")
+  if [[ "$exists" -eq 0 ]]; then
+    return 0
+  fi
+  node_table=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name='node_field_data'")
+  user_table=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name='users_field_data'")
+  node_rows=0
+  extra_users=0
+  if [[ "$node_table" -ge 1 ]]; then
+    node_rows=$(sql_scalar_required "SELECT COUNT(*) FROM \`${DB_NAME}\`.node_field_data")
+  fi
+  if [[ "$user_table" -ge 1 ]]; then
+    extra_users=$(sql_scalar_required "SELECT COUNT(*) FROM \`${DB_NAME}\`.users_field_data WHERE uid>1")
+  fi
+  if [[ "$node_rows" -eq 0 && "$extra_users" -eq 0 ]]; then
+    return 0
+  fi
+  warn "数据库已有真实站点内容：node_field_data ${node_rows} 行，uid>1 的用户 ${extra_users} 个。"
+  return 1
 }
 
 clone_repository() {
@@ -1552,6 +1640,12 @@ PHP
     SELF_HEAL_UNHANDLED=""
   fi
   log "配置自愈结束。"
+  if [[ "${INSTALL_LOG_READY:-0}" -eq 1 && -n "${SELF_HEAL_RECORD:-}" && -f "${INSTALL_LOG:-}" ]]; then
+    {
+      printf '\n===== 自愈记录 =====\n'
+      printf '%s\n' "$SELF_HEAL_RECORD"
+    } >>"$INSTALL_LOG"
+  fi
   rm -f "$report" "$del_file" "$warn_file" "$uuid_file"
 }
 
@@ -1712,11 +1806,56 @@ finish_config_preflight() {
   fi
 }
 
+extract_install_stack() {
+  local src label stack
+  label="$1"
+  src="${LAST_DRUSH_LOG:-}"
+  if [[ -z "$src" || ! -f "$src" ]]; then
+    src="${INSTALL_LOG:-}"
+  fi
+  if [[ -z "$src" || ! -f "$src" ]]; then
+    warn "没有安装日志，无法提取模块堆栈。"
+    return 0
+  fi
+  stack=$(awk '
+    /Missing bundle entity|\[Exception\]/ { n = 0; delete kept }
+    /modules\// || /profiles\// {
+      n++
+      kept[n] = $0
+    }
+    END {
+      show = n + 0
+      if (show > 15) {
+        show = 15
+      }
+      for (i = 1; i <= show; i++) {
+        print kept[i]
+      }
+    }
+  ' "$src" || true)
+  {
+    echo ""
+    echo "===== site:install stack ${label} ====="
+    if [[ -n "$stack" ]]; then
+      printf '%s\n' "$stack"
+    else
+      echo "堆栈中没有 modules/、core/modules 或 profiles/ 路径。"
+    fi
+  } >>"$INSTALL_LOG"
+  if [[ -n "$stack" ]]; then
+    printf '\n安装失败堆栈（%s，含模块路径的前 15 行）：\n%s\n' "$label" "$stack" >&2
+  else
+    warn "site:install 失败（${label}），堆栈中没有 modules/、core/modules 或 profiles/ 路径。"
+  fi
+  return 0
+}
+
 run_site_install_existing() {
   local db_url previous
   local -a args
   db_url=$(drupal_db_url)
   args=(
+    -vvv
     site:install
     --existing-config
     --config-dir="$APP_ROOT/config/sync"
@@ -1729,11 +1868,12 @@ run_site_install_existing() {
     "--db-url=${db_url}"
   )
   prepare_install_log
-  log "执行 drush site:install --existing-config --config-dir=${APP_ROOT}/config/sync（--locale=zh-hans）。"
+  log "执行 drush -vvv site:install --existing-config --config-dir=${APP_ROOT}/config/sync（--locale=zh-hans）。输出写入 ${INSTALL_LOG}。"
   if run_drush "${args[@]}" --locale=zh-hans; then
     log "site:install --existing-config 已成功。"
   else
     warn "site:install --existing-config（zh-hans）返回错误。这不代表整体失败，稍后仍会执行 drush cim。"
+    extract_install_stack "zh-hans" || true
     if site_installed; then
       warn "安装器已留下数据库表。不清空数据库，也不因已有表而跳过后续 cim。"
     else
@@ -1752,6 +1892,7 @@ run_site_install_existing() {
         log "不带 --locale 的 site:install --existing-config 已成功。"
       else
         warn "不带 --locale 的 site:install 仍返回错误。继续执行 drush cim。"
+        extract_install_stack "without-locale" || true
       fi
     fi
   fi
@@ -1849,8 +1990,299 @@ PHP
   return 0
 }
 
+mark_import_failure() {
+  local reason="$1"
+  IMPORT_FAILED=1
+  CIM_JUDGED_OK=0
+  OVERALL_STATUS="失败"
+  FAIL_REASON="$reason"
+  if [[ "$reason" == 失败：* ]]; then
+    CONFIG_IMPORT_STATUS="$reason"
+  else
+    CONFIG_IMPORT_STATUS="失败"
+  fi
+  warn "$reason"
+}
+
+sync_top_yml_count() {
+  local count
+  count=$(find "$APP_ROOT/config/sync" -maxdepth 1 -type f -name '*.yml' 2>/dev/null | wc -l | tr -d '[:space:]')
+  if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+    count=0
+  fi
+  printf '%s\n' "$count"
+}
+
+node_type_yml_count() {
+  local count
+  count=$(find "$APP_ROOT/config/sync" -maxdepth 1 -type f -name 'node.type.*.yml' 2>/dev/null | wc -l | tr -d '[:space:]')
+  if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+    count=0
+  fi
+  printf '%s\n' "$count"
+}
+
+database_node_type_count() {
+  local table count
+  if [[ -z "${SQL_BIN:-}" || -z "${DB_NAME:-}" ]]; then
+    printf '0\n'
+    return 0
+  fi
+  table=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name='node_type'")
+  if [[ "$table" -eq 0 ]]; then
+    printf '0\n'
+    return 0
+  fi
+  count=$(sql_scalar_required "SELECT COUNT(*) FROM \`${DB_NAME}\`.node_type")
+  printf '%s\n' "$count"
+}
+
+filter_config_names() {
+  awk '{
+    gsub(/^[ \t]+|[ \t]+$/, "")
+    if ($0 ~ /^[A-Za-z0-9][A-Za-z0-9_.]*$/ && index($0, ".")) print
+  }'
+}
+
+drush_text() {
+  local raw
+  set +e
+  raw=$(run_drush "$@")
+  set -e
+  printf '%s\n' "$raw"
+}
+
+drush_config_names() {
+  local raw rc
+  set +e
+  raw=$(run_drush "$@")
+  rc=$?
+  set -e
+  printf '%s\n' "$raw" | filter_config_names
+  return "$rc"
+}
+
+semaphore_names() {
+  local raw
+  raw=$(drush_text sqlq "SELECT name FROM semaphore WHERE name LIKE 'config_importer%'")
+  printf '%s\n' "$raw" | grep -E '^config_importer' || true
+}
+
+release_config_lock() {
+  local names
+  names=$(semaphore_names)
+  if [[ -z "$names" ]]; then
+    log "没有 config_importer 锁需要释放。"
+    return 0
+  fi
+  if ! database_has_no_real_content; then
+    mark_import_failure "配置导入锁未释放，且库内已有真实站点内容，拒绝删除锁"
+    return 1
+  fi
+  log "库内没有真实站点内容，删除配置锁：${names}"
+  if ! run_drush sqlq "DELETE FROM semaphore WHERE name LIKE 'config_importer%'"; then
+    mark_import_failure "删除 config_importer 锁失败"
+    return 1
+  fi
+  return 0
+}
+
+wait_config_lock_and_verify_sync() {
+  local start now elapsed names files storage raw settings_out count_gap
+  log "重建缓存后检查 config_importer 锁。"
+  if ! run_drush cr; then
+    warn "drush cr 未成功，仍继续检查配置锁。"
+  fi
+  start=$(date +%s)
+  while true; do
+    names=$(semaphore_names)
+    if [[ -z "$names" ]]; then
+      log "配置导入锁已释放。"
+      break
+    fi
+    now=$(date +%s)
+    elapsed=$((now - start))
+    if [[ "$elapsed" -ge 60 ]]; then
+      log "等待配置锁已达 ${elapsed} 秒，仍存在：${names}"
+      if ! database_has_no_real_content; then
+        mark_import_failure "配置导入锁未释放，且库内已有真实站点内容，拒绝删除锁"
+        return 1
+      fi
+      log "库内没有真实站点内容，删除 config_importer 锁。"
+      if ! run_drush sqlq "DELETE FROM semaphore WHERE name LIKE 'config_importer%'"; then
+        mark_import_failure "等待 60 秒后删除 config_importer 锁失败"
+        return 1
+      fi
+      break
+    fi
+    log "配置锁仍在（${elapsed}s/60s）：${names}"
+    sleep 3
+  done
+
+  files=$(sync_top_yml_count)
+  set +e
+  raw=$(run_drush php:eval 'echo count(\Drupal::service("config.storage.sync")->listAll());')
+  set -e
+  storage=$(printf '%s\n' "$raw" | awk '/^[0-9]+$/ { n = $0 } END { print n + 0 }')
+  SYNC_LIST_COUNT="$storage"
+  log "工作副本 config/sync 顶层 YAML ${files} 个，config.storage.sync 列出 ${storage} 个。当前目录：$(pwd)"
+  count_gap=$((files > storage ? files - storage : storage - files))
+  if [[ "$storage" -eq 0 || "$count_gap" -gt 2 ]]; then
+    set +e
+    settings_out=$(run_drush php:eval 'echo \Drupal\Core\Site\Settings::get("config_sync_directory"), PHP_EOL, getcwd();')
+    set -e
+    mark_import_failure "失败：同步目录不可读"
+    {
+      echo ""
+      echo "===== 同步目录不可读 ====="
+      echo "shell pwd: $(pwd)"
+      echo "顶层 YAML: ${files}"
+      echo "listAll: ${storage}"
+      echo "Settings::get(config_sync_directory) 与 PHP getcwd："
+      printf '%s\n' "$settings_out"
+    } >>"$INSTALL_LOG"
+    printf '\n失败：同步目录不可读\n当前目录：%s\n顶层 YAML：%s\nlistAll：%s\n%s\n' "$(pwd)" "$files" "$storage" "$settings_out" >&2
+    return 1
+  fi
+  return 0
+}
+
+# 返回 0 表示不得执行 cim。Only in sync dir 为 0 且文件存在时，若同步存储可读、
+# 计划不会删除 core.extension / system.site / node.type.*，且库里已有 node 类型，
+# 则视为已经导入过，允许继续 cim，避免重复运行被误判。
+# core.entity_view_mode.*.token 在调用前已从 Only in DB 列表去掉。
+import_plan_is_abnormal() {
+  local only_db="$1"
+  local only_sync_count="$2"
+  local yml_count="$3"
+  local storage_count="$4"
+  local db_node_types="$5"
+  local dangerous storage_gap expected_types
+  dangerous=$(printf '%s\n' "$only_db" | grep -E '^(core\.extension|system\.site|node\.type\..+)$' || true)
+  if [[ -n "$dangerous" ]]; then
+    log "导入计划将删除核心配置：$(printf '%s\n' "$dangerous" | paste -sd, -)"
+    return 0
+  fi
+  if [[ "$only_sync_count" -eq 0 && "$yml_count" -gt 0 ]]; then
+    storage_gap=$((yml_count > storage_count ? yml_count - storage_count : storage_count - yml_count))
+    if [[ "$storage_count" -eq 0 || "$storage_gap" -gt 2 ]]; then
+      log "Only in sync dir 为 0，同步存储列出 ${storage_count} 项，顶层 YAML 有 ${yml_count} 个。"
+      return 0
+    fi
+    expected_types=$(node_type_yml_count)
+    if [[ "$db_node_types" -eq 0 && "$expected_types" -gt 0 ]]; then
+      log "Only in sync dir 为 0，config/sync 有 ${expected_types} 个 node.type，数据库 node 类型为 0。"
+      return 0
+    fi
+    log "Only in sync dir 为 0，同步存储可读，且计划不会删除 core.extension、system.site 或 node.type.*。"
+  fi
+  return 1
+}
+
+verify_import_plan() {
+  local attempt only_db only_sync only_sync_count yml_count db_nodes detail
+  local db_rc sync_rc
+  yml_count=$(sync_top_yml_count)
+  for attempt in 1 2 3; do
+    if ! wait_config_lock_and_verify_sync; then
+      return 1
+    fi
+    set +e
+    only_db=$(drush_config_names config:status --state='Only in DB' --format=list)
+    db_rc=$?
+    only_sync=$(drush_config_names config:status --state='Only in sync dir' --format=list)
+    sync_rc=$?
+    set -e
+    only_db=$(printf '%s\n' "$only_db" | grep -Ev '^core\.entity_view_mode\..+\.token$' || true)
+    only_sync_count=$(printf '%s\n' "$only_sync" | awk 'NF { c++ } END { print c + 0 }')
+    db_nodes=$(database_node_type_count)
+    log "导入计划第 ${attempt}/3 次：Only in sync dir ${only_sync_count} 项，数据库 node 类型 ${db_nodes} 个。"
+    detail=$(
+      printf 'Only in DB（前 20 项，已忽略 core.entity_view_mode.*.token）：\n'
+      if [[ -n "$only_db" ]]; then
+        printf '%s\n' "$only_db" | awk 'NF { c++; if (c <= 20) print }'
+      else
+        printf '（无）\n'
+      fi
+      printf 'Only in sync dir（前 20 项）：\n'
+      if [[ -n "$only_sync" ]]; then
+        printf '%s\n' "$only_sync" | awk 'NF { c++; if (c <= 20) print }'
+      else
+        printf '（无）\n'
+      fi
+    )
+    PLAN_DETAIL="$detail"
+    if [[ "$db_rc" -ne 0 || "$sync_rc" -ne 0 ]]; then
+      warn "config:status 退出码非 0，仍按解析出的名单判断导入计划（第 ${attempt}/3 次）。"
+    fi
+    if ! import_plan_is_abnormal "$only_db" "$only_sync_count" "$yml_count" "$SYNC_LIST_COUNT" "$db_nodes"; then
+      log "导入计划可以执行 cim。"
+      return 0
+    fi
+    warn "导入计划异常（第 ${attempt}/3 次）。"
+    if [[ "$attempt" -eq 3 ]]; then
+      break
+    fi
+    if ! release_config_lock; then
+      return 1
+    fi
+    log "等待 10 秒并重建缓存后重新验证导入计划。"
+    sleep 10
+    if ! run_drush cr; then
+      warn "重新验证前的 drush cr 未成功。"
+    fi
+  done
+  mark_import_failure "失败：导入计划异常"
+  {
+    echo ""
+    echo "===== 导入计划异常 ====="
+    printf '%s\n' "$PLAN_DETAIL"
+  } >>"$INSTALL_LOG"
+  printf '\n失败：导入计划异常\n%s\n' "$PLAN_DETAIL" >&2
+  return 1
+}
+
+cim_log_has() {
+  local needle="$1"
+  [[ -n "${LAST_DRUSH_LOG:-}" && -f "$LAST_DRUSH_LOG" ]] || return 1
+  grep -q -F -- "$needle" "$LAST_DRUSH_LOG"
+}
+
+run_cim_with_lock_retries() {
+  local attempt
+  for attempt in 1 2 3 4 5; do
+    if ! wait_config_lock_and_verify_sync; then
+      return 1
+    fi
+    log "执行 drush cim -y（第 ${attempt}/5 次）。成功必须看到导入成功原文，且不能出现配置锁警告。"
+    if ! run_drush cim -y; then
+      log "drush cim 退出码非 0，改按输出判定。"
+    fi
+    if cim_log_has "Another request may be synchronizing"; then
+      warn "第 ${attempt}/5 次 cim 出现配置锁警告，视为未执行。"
+      continue
+    fi
+    if cim_log_has "The configuration was imported successfully"; then
+      CIM_JUDGED_OK=1
+      log "drush cim 判定成功。"
+      return 0
+    fi
+    if cim_log_has "There are no changes to import"; then
+      CIM_JUDGED_OK=1
+      log "drush cim 判定成功（没有需要导入的变更）。"
+      return 0
+    fi
+    if cim_log_has "entity with ID"; then
+      return 2
+    fi
+    warn "第 ${attempt}/5 次 cim 的输出不含成功原文。"
+  done
+  mark_import_failure "cim 在 5 次尝试后仍未出现成功原文，或仍被配置锁挡住"
+  return 1
+}
+
 resolve_config_conflicts() {
-  local round
+  local round rc
   for round in 1 2 3 4 5 6 7 8; do
     if ! parse_entity_already_exists "$LAST_DRUSH_LOG"; then
       return 1
@@ -1864,72 +2296,18 @@ resolve_config_conflicts() {
       warn "删除配置实体失败，停止自动处理。"
       return 1
     fi
-    if run_drush cim -y; then
-      log "第 ${round} 轮后 drush cim 已成功。"
+    rc=0
+    run_cim_with_lock_retries || rc=$?
+    if [[ "$rc" -eq 0 ]]; then
+      log "第 ${round} 轮后 drush cim 判定成功。"
       return 0
+    fi
+    if [[ "$rc" -ne 2 ]]; then
+      return 1
     fi
   done
   warn "配置冲突已处理 8 轮，drush cim 仍未成功。"
   return 1
-}
-
-import_config_with_retries() {
-  local uuid extra_done=0
-  prepare_install_log
-  if site_installed; then
-    if ! point_config_at_sync_or_fail; then
-      IMPORT_FAILED=1
-      CONFIG_IMPORT_STATUS="失败"
-      FIRST_ERROR_TEXT="config_sync_directory 无法指回 ../config/sync"
-      FIRST_ERROR_BLOCK="$FIRST_ERROR_TEXT"
-      summarize_import_failure "未能把 config_sync_directory 指回 ../config/sync。"
-      return 0
-    fi
-    if uuid=$(read_site_uuid); then
-      log "导入前对齐 system.site uuid ${uuid}。"
-      if ! run_drush config:set system.site uuid "$uuid" -y; then
-        warn "未能写入系统 UUID，继续尝试导入。"
-      fi
-    else
-      warn "未能从 system.site.yml 读取 UUID，继续尝试导入。"
-    fi
-  else
-    warn "site:install 之后数据库里仍没有 Drupal 站点。仍会执行 drush cim，失败则按真实结果写失败。"
-  fi
-  log "执行 drush cim -y。输出写入 ${INSTALL_LOG}。"
-  if run_drush cim -y; then
-    extra_done=0
-  elif resolve_config_conflicts; then
-    extra_done=0
-  else
-    IMPORT_FAILED=1
-    CONFIG_IMPORT_STATUS="失败"
-    summarize_import_failure "drush cim 未成功。"
-    return 0
-  fi
-  log "drush cim 已成功，再执行一次 drush cim -y。"
-  if run_drush cim -y; then
-    extra_done=1
-  elif resolve_config_conflicts; then
-    extra_done=1
-  else
-    IMPORT_FAILED=1
-    CONFIG_IMPORT_STATUS="失败"
-    summarize_import_failure "第二次 drush cim 未成功。"
-    return 0
-  fi
-  if [[ "$extra_done" -ne 1 ]]; then
-    IMPORT_FAILED=1
-    CONFIG_IMPORT_STATUS="失败"
-    summarize_import_failure "drush cim 未成功。"
-    return 0
-  fi
-  IMPORT_FAILED=0
-  if ! run_drush updatedb -y; then
-    warn "导入后的 drush updatedb 未成功。"
-  fi
-  capture_stray_config_dir
-  return 0
 }
 
 collect_config_diffs() {
@@ -1950,6 +2328,9 @@ collect_config_diffs() {
   fi
   if [[ "$rc" -ne 0 ]]; then
     warn "drush config:status --format=list 未能正常结束。"
+    if [[ "$CONFIG_DIFF_COUNT" == "0" && -z "$CONFIG_DIFF_NAMES" ]]; then
+      CONFIG_DIFF_COUNT="未知"
+    fi
     return 1
   fi
   log "drush config:status 差异数量：${CONFIG_DIFF_COUNT}。"
@@ -1996,10 +2377,120 @@ log_remaining_diffs() {
   done <<< "$CONFIG_DIFF_NAMES"
 }
 
+log_partial_success_details() {
+  local only_sync different distribution
+  {
+    echo ""
+    echo "===== 差异分布 ====="
+    if [[ -n "$CONFIG_DIFF_NAMES" ]]; then
+      distribution=$(printf '%s\n' "$CONFIG_DIFF_NAMES" | awk '
+        NF {
+          n = split($0, parts, ".")
+          if (n >= 2) {
+            prefix = parts[1] "." parts[2]
+          } else {
+            prefix = $0
+          }
+          count[prefix]++
+        }
+        END {
+          for (prefix in count) {
+            printf "%d\t%s\n", count[prefix], prefix
+          }
+        }
+      ' | sort -t "$(printf '\t')" -k1,1nr)
+      printf '%s\n' "$distribution" | awk -F '\t' '{ printf "%s %s\n", $2, $1 }'
+      printf '分布：'
+      printf '%s\n' "$distribution" | awk -F '\t' 'NF { printf "%s%s %s", sep, $2, $1; sep="、" } END { print "" }'
+    else
+      echo "（无）"
+    fi
+  } >>"$INSTALL_LOG"
+  set +e
+  only_sync=$(drush_config_names config:status --state='Only in sync dir' --format=list)
+  different=$(drush_config_names config:status --state='Different' --format=list)
+  set -e
+  {
+    echo "===== Only in sync dir（全部） ====="
+    if [[ -n "$only_sync" ]]; then
+      printf '%s\n' "$only_sync"
+    else
+      echo "（无）"
+    fi
+    echo "===== Different（前 30） ====="
+    if [[ -n "$different" ]]; then
+      printf '%s\n' "$different" | awk 'NF { c++; if (c <= 30) print }'
+    else
+      echo "（无）"
+    fi
+  } >>"$INSTALL_LOG"
+  log_remaining_diffs || true
+}
+
+multi_pass_config_import() {
+  local round prev current stale rc
+  stale=0
+  if collect_config_diffs; then
+    prev="$CONFIG_DIFF_COUNT"
+  else
+    prev="未知"
+  fi
+  log "首轮 cim 判定成功后的配置差异：${prev}"
+  {
+    echo ""
+    echo "===== cim pass 0 diff ${prev} ====="
+    printf '%s\n' "$CONFIG_DIFF_NAMES"
+  } >>"$INSTALL_LOG"
+  if [[ "$prev" == "0" ]]; then
+    log "配置差异已是 0，不再继续多轮 cim。"
+    return 0
+  fi
+  for round in 1 2 3 4 5 6; do
+    log "多轮导入第 ${round}/6 轮。"
+    rc=0
+    run_cim_with_lock_retries || rc=$?
+    if [[ "$rc" -eq 2 ]]; then
+      if ! resolve_config_conflicts; then
+        mark_import_failure "多轮导入第 ${round} 轮遇到配置冲突且未能消除"
+        return 1
+      fi
+    elif [[ "$rc" -ne 0 ]]; then
+      return 1
+    fi
+    if collect_config_diffs; then
+      current="$CONFIG_DIFF_COUNT"
+    else
+      current="未知"
+    fi
+    log "第 ${round} 轮后配置差异：${current}"
+    {
+      echo ""
+      echo "===== cim pass ${round} diff ${current} ====="
+      printf '%s\n' "$CONFIG_DIFF_NAMES"
+    } >>"$INSTALL_LOG"
+    if [[ "$current" == "0" ]]; then
+      log "配置差异已降到 0。"
+      return 0
+    fi
+    if [[ "$current" =~ ^[0-9]+$ && "$prev" =~ ^[0-9]+$ && "$current" -lt "$prev" ]]; then
+      stale=0
+    else
+      stale=$((stale + 1))
+    fi
+    prev="$current"
+    if [[ "$stale" -ge 2 ]]; then
+      log "配置差异连续两轮没有减少，停止多轮导入。"
+      return 0
+    fi
+  done
+  log "多轮导入已达 6 轮。"
+  return 0
+}
+
 reconcile_display_diffs() {
-  local copied
+  local copied py_rc copy_count keep_count
   if ! python3 -c 'import yaml' >/dev/null 2>&1; then
-    log "安装 python3-yaml，用于比较 entity form/view display。"
+    log "安装 python3-yaml，用于比较配置差异。"
     if ! apt-get install -y python3-yaml; then
       warn "无法安装 python3-yaml，不回写任何差异文件。"
       return 1
@@ -2007,12 +2498,14 @@ reconcile_display_diffs() {
   fi
   rm -rf /tmp/xedc-cex
   install -d -o "$WEB_USER" -g "$WEB_USER" -m 700 /tmp/xedc-cex
-  log "导出活动配置到 /tmp/xedc-cex，只回写 scheduler 造成的 display 差异。"
+  log "导出活动配置到 /tmp/xedc-cex。只在内容一致，或 display 仅有发布时间字段不同时，回写工作副本。不执行 git commit。"
   if ! run_drush cex -y --destination=/tmp/xedc-cex; then
     warn "drush cex 未成功，不回写任何差异文件。"
     return 1
   fi
+  set +e
   copied=$(SYNC="$APP_ROOT/config/sync" CEX=/tmp/xedc-cex python3 - "$CONFIG_DIFF_NAMES" <<'PY'
+import copy
 import os
 import shutil
 import sys
@@ -2023,103 +2516,316 @@ import yaml
 sync = Path(os.environ["SYNC"])
 cex = Path(os.environ["CEX"])
 names = [line.strip() for line in sys.argv[1].splitlines() if line.strip()]
+forbidden = ("views.view.", "node.type.", "field.", "media.type.")
+display = ("core.entity_form_display.", "core.entity_view_display.")
 
-def normalize(data):
-    if not isinstance(data, dict):
-        return data
-    for section in ("hidden", "content"):
-        block = data.get(section)
-        if isinstance(block, dict):
-            block.pop("publish_on", None)
-            block.pop("unpublish_on", None)
+def load_yaml(path):
+    with path.open(encoding="utf-8") as handle:
+        return yaml.safe_load(handle)
+
+def strip_scheduler(data):
+    data = copy.deepcopy(data)
+    if isinstance(data, dict):
+        for section in ("hidden", "content"):
+            block = data.get(section)
+            if isinstance(block, dict):
+                block.pop("publish_on", None)
+                block.pop("unpublish_on", None)
     return data
 
+def safe_name(name):
+    return bool(name) and all(ch.isalnum() or ch in "._" for ch in name)
+
 for name in names:
-    if not (
-        name.startswith("core.entity_form_display.")
-        or name.startswith("core.entity_view_display.")
-    ):
+    if not safe_name(name):
+        print(f"KEEP\t{name}\t文件名不安全")
         continue
-    if any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_." for ch in name):
+    if name.startswith(forbidden):
+        print(f"KEEP\t{name}\t禁止回写")
         continue
     src = cex / f"{name}.yml"
     dst = sync / f"{name}.yml"
     if not src.is_file() or not dst.is_file():
+        print(f"KEEP\t{name}\t导出文件或工作副本缺少对应 YAML")
         continue
-    with src.open(encoding="utf-8") as handle:
-        exported = yaml.safe_load(handle)
-    with dst.open(encoding="utf-8") as handle:
-        original = yaml.safe_load(handle)
-    if normalize(exported) == normalize(original):
+    try:
+        exported = load_yaml(src)
+        original = load_yaml(dst)
+    except Exception:
+        print(f"KEEP\t{name}\t无法解析 YAML")
+        continue
+    reason = ""
+    if exported == original:
+        reason = "内容相同（忽略键顺序）"
+    elif name.startswith(display) and strip_scheduler(exported) == strip_scheduler(original):
+        reason = "仅 hidden/content 下的 publish_on、unpublish_on 不同"
+    if reason == "":
+        print(f"KEEP\t{name}\t内容不同，保留工作副本")
+        continue
+    try:
         shutil.copyfile(src, dst)
-        print(name)
+    except OSError:
+        print(f"KEEP\t{name}\t无法写回工作副本")
+        continue
+    print(f"COPY\t{name}\t{reason}")
 PY
   )
-  if [[ -n "$copied" ]]; then
-    log "已把下列 display 配置从导出结果复制回工作副本："
-    printf '%s\n' "$copied" | sed 's/^/  - /'
-    {
-      echo ""
-      echo "===== copied display config back to working copy ====="
+  py_rc=$?
+  set -e
+  if [[ "$py_rc" -ne 0 ]]; then
+    warn "比较配置 YAML 失败，不回写。"
+    return 1
+  fi
+  {
+    echo ""
+    echo "===== config diff reconcile ====="
+    if [[ -n "$copied" ]]; then
       printf '%s\n' "$copied"
-    } >>"$INSTALL_LOG"
-  else
-    log "没有可安全回写的 display 差异。"
+    else
+      echo "(none)"
+    fi
+  } >>"$INSTALL_LOG"
+  copy_count=$(printf '%s\n' "$copied" | awk -F '\t' '$1=="COPY" { c++ } END { print c + 0 }')
+  keep_count=$(printf '%s\n' "$copied" | awk -F '\t' '$1=="KEEP" { c++ } END { print c + 0 }')
+  log "已回写工作副本 ${copy_count} 项，保留 ${keep_count} 项。明细在 ${INSTALL_LOG}。这些文件只存在于本次 clone，不会提交。"
+  if [[ "$copy_count" -gt 0 ]]; then
+    printf '%s\n' "$copied" | awk -F '\t' '$1=="COPY" { print "  - " $2 "（" $3 "）" }'
   fi
   return 0
 }
 
 finalize_config_status() {
-  local cex_ok=0
+  if [[ "$CIM_JUDGED_OK" -ne 1 || "$IMPORT_FAILED" -ne 0 ]]; then
+    log "cim 未判定成功，不回写 display 差异。原因：${FAIL_REASON:-未执行}"
+    return 0
+  fi
   if ! collect_config_diffs; then
-    if [[ "${CONFIG_DIFF_COUNT}" == "0" && -z "$CONFIG_DIFF_NAMES" ]]; then
-      CONFIG_DIFF_COUNT="未知"
-    fi
-    IMPORT_FAILED=0
-    CONFIG_IMPORT_STATUS="部分成功（差异 ${CONFIG_DIFF_COUNT} 项，详见日志）"
-    log_remaining_diffs || true
-    rm -rf /tmp/xedc-cex
+    warn "回写前未能统计 config:status。"
     return 0
   fi
   if [[ "$CONFIG_DIFF_COUNT" == "0" ]]; then
-    IMPORT_FAILED=0
-    CONFIG_IMPORT_STATUS="成功"
-    rm -rf /tmp/xedc-cex
-    log "配置与活动存储一致。"
+    log "多轮导入后 config:status 没有差异，不回写。"
     return 0
   fi
-  if reconcile_display_diffs; then
-    cex_ok=1
+  log "多轮导入后仍有 ${CONFIG_DIFF_COUNT} 项差异，开始比较导出文件。"
+  if ! reconcile_display_diffs; then
+    warn "差异比较未完成，保留现有工作副本。"
   fi
   if ! collect_config_diffs; then
-    CONFIG_DIFF_COUNT="未知"
-  fi
-  if [[ "$CONFIG_DIFF_COUNT" == "0" ]]; then
-    IMPORT_FAILED=0
-    CONFIG_IMPORT_STATUS="成功"
-    log "回写 display 差异后，config:status 已没有差异。"
+    warn "回写后未能再次统计 config:status。"
   else
-    IMPORT_FAILED=0
-    CONFIG_IMPORT_STATUS="部分成功（差异 ${CONFIG_DIFF_COUNT} 项，详见日志）"
-    log "仍有 ${CONFIG_DIFF_COUNT} 项配置差异。前 20 项及每项最多 5 行 diff 写入 ${INSTALL_LOG}。"
-    if [[ "$cex_ok" -eq 1 ]]; then
-      log_remaining_diffs || true
-    else
-      {
-        echo ""
-        echo "===== remaining config names (export unavailable) ====="
-        printf '%s\n' "$CONFIG_DIFF_NAMES"
-      } >>"$INSTALL_LOG"
-    fi
+    log "回写后 config:status 差异数量：${CONFIG_DIFF_COUNT}。"
   fi
-  rm -rf /tmp/xedc-cex
   return 0
 }
 
+import_config_with_retries() {
+  local uuid rc
+  prepare_install_log
+  if site_installed; then
+    if ! point_config_at_sync_or_fail; then
+      mark_import_failure "config_sync_directory 无法指回 ../config/sync"
+      summarize_import_failure "未能把 config_sync_directory 指回 ../config/sync。"
+      return 0
+    fi
+    if uuid=$(read_site_uuid); then
+      log "导入前对齐 system.site uuid ${uuid}。"
+      if ! run_drush config:set system.site uuid "$uuid" -y; then
+        warn "未能写入系统 UUID，继续尝试导入。"
+      fi
+    else
+      warn "未能从 system.site.yml 读取 UUID，继续尝试导入。"
+    fi
+  else
+    warn "site:install 之后数据库里仍没有 Drupal 站点。仍会执行 drush cim，失败则按真实结果写失败。"
+  fi
+  if ! verify_import_plan; then
+    if [[ "$CONFIG_IMPORT_STATUS" != 失败：* ]]; then
+      summarize_import_failure "${FAIL_REASON:-导入前校验未通过，未执行 cim。}"
+    else
+      summarize_import_failure "$CONFIG_IMPORT_STATUS"
+    fi
+    return 0
+  fi
+  rc=0
+  run_cim_with_lock_retries || rc=$?
+  if [[ "$rc" -eq 2 ]]; then
+    if ! resolve_config_conflicts; then
+      summarize_import_failure "drush cim 未成功。"
+      if [[ "$IMPORT_FAILED" -eq 0 ]]; then
+        mark_import_failure "drush cim 未成功"
+      fi
+      return 0
+    fi
+  elif [[ "$rc" -ne 0 ]]; then
+    summarize_import_failure "${FAIL_REASON:-drush cim 未成功。}"
+    return 0
+  fi
+  if ! multi_pass_config_import; then
+    summarize_import_failure "${FAIL_REASON:-多轮 drush cim 未成功。}"
+    return 0
+  fi
+  if ! run_drush updatedb -y; then
+    warn "导入后的 drush updatedb 未成功。"
+  fi
+  capture_stray_config_dir
+  return 0
+}
+
+log_skipped_followups() {
+  local reason="${1:-${FAIL_REASON:-cim 未判定成功}}"
+  warn "跳过主题安装、默认主题写入、翻译导入和 display 差异回写。原因：${reason}"
+  if [[ -n "${INSTALL_LOG:-}" && -f "$INSTALL_LOG" ]]; then
+    {
+      echo ""
+      echo "===== skip theme, translation, display writeback ====="
+      printf '%s\n' "$reason"
+    } >>"$INSTALL_LOG"
+  fi
+}
+
+php_fpm_log_path() {
+  local conf line path
+  local -a confs
+  confs=(/etc/php/8.5/fpm/php-fpm.conf /etc/php/8.5/fpm/pool.d/www.conf)
+  for conf in "${confs[@]}"; do
+    if [[ ! -f "$conf" ]]; then
+      continue
+    fi
+    line=$(grep -E '^[[:space:]]*error_log[[:space:]]*=' "$conf" | tail -n 1 || true)
+    path="${line#*=}"
+    path="${path%%;*}"
+    path="${path#"${path%%[![:space:]]*}"}"
+    path="${path%"${path##*[![:space:]]}"}"
+    if [[ -n "$path" && -f "$path" ]]; then
+      printf '%s\n' "$path"
+      return 0
+    fi
+  done
+  if [[ -f /var/log/php8.5-fpm.log ]]; then
+    printf '%s\n' /var/log/php8.5-fpm.log
+    return 0
+  fi
+  return 1
+}
+
+last_error_lines() {
+  local file="$1"
+  local lines=""
+  if [[ -f "$file" && -r "$file" ]]; then
+    lines=$(tail -n 400 "$file" | grep -E '\[error\]|\[crit\]|\[alert\]|\[emerg\]|PHP Fatal|PHP Parse|Uncaught|TypeError' | tail -n 3 || true)
+  fi
+  printf '%s\n' "$lines"
+}
+
+capture_http_error_excerpt() {
+  local fpm nginx_lines fpm_lines
+  nginx_lines=$(last_error_lines /var/log/nginx/error.log)
+  fpm="未找到"
+  fpm_lines=""
+  if fpm=$(php_fpm_log_path); then
+    fpm_lines=$(last_error_lines "$fpm")
+  fi
+  HTTP_ERROR_EXCERPT=$(
+    printf 'nginx /var/log/nginx/error.log 最后 3 条错误：\n'
+    if [[ -n "$nginx_lines" ]]; then
+      printf '%s\n' "$nginx_lines"
+    else
+      printf '（无）\n'
+    fi
+    printf 'PHP-FPM %s 最后 3 条错误：\n' "$fpm"
+    if [[ -n "$fpm_lines" ]]; then
+      printf '%s\n' "$fpm_lines"
+    else
+      printf '（无）\n'
+    fi
+  )
+  printf '\n首页 5xx，最近错误如下：\n%s\n' "$HTTP_ERROR_EXCERPT" >&2
+  if [[ -n "${INSTALL_LOG:-}" && -f "$INSTALL_LOG" ]]; then
+    {
+      echo ""
+      echo "===== homepage 5xx ====="
+      printf '%s\n' "$HTTP_ERROR_EXCERPT"
+    } >>"$INSTALL_LOG"
+  fi
+}
+
+decide_overall_status() {
+  local http_code="$1"
+  local node_actual="$2"
+  local node_expected="$3"
+  local http_good=0 nodes_good=0 why=""
+  if [[ "$http_code" == "200" || "$http_code" =~ ^3[0-9][0-9]$ ]]; then
+    http_good=1
+  fi
+  if [[ "$node_actual" =~ ^[0-9]+$ && "$node_expected" =~ ^[0-9]+$ && "$node_actual" -eq "$node_expected" ]]; then
+    nodes_good=1
+  fi
+  if [[ "$CONFIG_IMPORT_STATUS" == 已跳过* ]]; then
+    OVERALL_STATUS="已跳过"
+    return 0
+  fi
+  if [[ "$PREFLIGHT_FAILED" -eq 1 ]]; then
+    OVERALL_STATUS="失败"
+    FAIL_REASON="${FAIL_REASON:-预检失败，未执行 site:install}"
+    CONFIG_IMPORT_STATUS="失败"
+    IMPORT_FAILED=1
+    return 0
+  fi
+  if [[ "$CONFIG_IMPORT_STATUS" == 失败：* ]]; then
+    OVERALL_STATUS="失败"
+    FAIL_REASON="${FAIL_REASON:-$CONFIG_IMPORT_STATUS}"
+    IMPORT_FAILED=1
+    CIM_JUDGED_OK=0
+    return 0
+  fi
+  if [[ "$CIM_JUDGED_OK" -ne 1 || "$IMPORT_FAILED" -eq 1 ]]; then
+    OVERALL_STATUS="失败"
+    FAIL_REASON="${FAIL_REASON:-cim 未判定成功}"
+    CONFIG_IMPORT_STATUS="失败"
+    IMPORT_FAILED=1
+    return 0
+  fi
+  if [[ "$nodes_good" -ne 1 ]]; then
+    why="node 类型数量不符（数据库 ${node_actual}，config/sync ${node_expected}）"
+  fi
+  if [[ "$http_good" -ne 1 ]]; then
+    if [[ -n "$why" ]]; then
+      why="${why}；"
+    fi
+    why="${why}首页 HTTP ${http_code}"
+  fi
+  if [[ ! "$CONFIG_DIFF_COUNT" =~ ^[0-9]+$ ]]; then
+    if [[ -n "$why" ]]; then
+      why="${why}；"
+    fi
+    why="${why}未能统计 config:status 差异"
+  fi
+  if [[ -n "$why" ]]; then
+    OVERALL_STATUS="失败"
+    FAIL_REASON="$why"
+    CONFIG_IMPORT_STATUS="失败"
+    IMPORT_FAILED=1
+    return 0
+  fi
+  if [[ "$CONFIG_DIFF_COUNT" == "0" ]]; then
+    OVERALL_STATUS="成功"
+    CONFIG_IMPORT_STATUS="成功"
+    IMPORT_FAILED=0
+    FAIL_REASON=""
+    return 0
+  fi
+  OVERALL_STATUS="部分成功"
+  CONFIG_IMPORT_STATUS="部分成功"
+  IMPORT_FAILED=0
+  FAIL_REASON=""
+  log_partial_success_details || true
+  return 0
+}
 ensure_theme() {
   local current
-  if ! run_drush theme:enable xedc -y; then
-    warn "启用主题 xedc 时返回错误。若配置导入已经启用该主题，可以忽略。"
+  if ! run_drush theme:install xedc -y; then
+    warn "安装主题 xedc 时返回错误。若配置导入已经安装该主题，可以忽略。"
   fi
   current=$(run_drush config:get system.theme default --format=string | tr -d '[:space:]')
   if [[ "$current" != "xedc" ]]; then
@@ -2565,7 +3271,7 @@ EOF
 }
 
 write_acceptance() {
-  local saved_text saved_block boot raw http_code node_list
+  local saved_text saved_block boot raw http_code node_list node_actual node_expected
   if [[ "${ACCEPTANCE_READY:-0}" -ne 1 || "${ACCEPTANCE_DONE:-0}" -eq 1 ]]; then
     return 0
   fi
@@ -2585,19 +3291,51 @@ write_acceptance() {
     fi
   fi
   node_list="无"
+  node_actual="未统计"
   if [[ -n "${SQL_BIN:-}" && -n "${DB_NAME:-}" ]]; then
     set +e
     node_list=$("$SQL_BIN" --protocol=socket --batch --skip-column-names --user=root -e "SELECT type FROM \`${DB_NAME}\`.node_type ORDER BY type" 2>/dev/null | paste -sd, -)
     set -e
+    if [[ -n "$node_list" ]]; then
+      node_actual=$(printf '%s\n' "$node_list" | awk -F',' '{ print NF }')
+    else
+      node_list="无"
+      node_actual=0
+    fi
   fi
-  if [[ -z "$node_list" ]]; then
-    node_list="无"
+  if [[ -d "${APP_ROOT:-}/config/sync" ]]; then
+    node_expected=$(node_type_yml_count)
+  else
+    node_expected="未统计"
   fi
-  http_code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1 -H "Host: ${DOMAIN}" || true)
+  NODE_TYPE_ACTUAL="$node_actual"
+  NODE_TYPE_EXPECTED="$node_expected"
+  http_code=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 15 http://127.0.0.1 -H "Host: ${DOMAIN}" || true)
   if [[ ! "$http_code" =~ ^[0-9]{3}$ ]]; then
     http_code="000"
   fi
-  ACCEPTANCE_SUMMARY="验收：bootstrap=${boot}  配置差异=${CONFIG_DIFF_COUNT}  node类型=${node_list}  首页HTTP=${http_code}"
+  if [[ "$http_code" =~ ^5[0-9][0-9]$ ]]; then
+    capture_http_error_excerpt || true
+  fi
+  if [[ "$CIM_JUDGED_OK" -eq 1 && "$IMPORT_FAILED" -eq 0 ]]; then
+    collect_config_diffs || true
+  fi
+  decide_overall_status "$http_code" "$node_actual" "$node_expected"
+  ACCEPTANCE_SUMMARY="验收：bootstrap=${boot}  配置差异=${CONFIG_DIFF_COUNT}  node类型=${node_list}  首页HTTP=${http_code}  整体=${OVERALL_STATUS}"
+  if [[ -n "${INSTALL_LOG:-}" && -f "$INSTALL_LOG" ]]; then
+    {
+      echo ""
+      echo "===== acceptance ====="
+      printf '%s\n' "$ACCEPTANCE_SUMMARY"
+      printf '整体=%s\n' "$OVERALL_STATUS"
+      printf '配置导入=%s\n' "$CONFIG_IMPORT_STATUS"
+      printf 'node类型数量=%s/%s\n' "$node_actual" "$node_expected"
+      if [[ -n "${FAIL_REASON:-}" ]]; then
+        printf '原因=%s\n' "$FAIL_REASON"
+      fi
+    } >>"$INSTALL_LOG"
+  fi
+  rm -rf /tmp/xedc-cex
   ACCEPTANCE_DONE=1
   FIRST_ERROR_TEXT="$saved_text"
   FIRST_ERROR_BLOCK="$saved_block"
@@ -2651,7 +3389,10 @@ ${admin_line}
 登录路径：${PUBLIC_BASE:-}/user/login
 配置预检：${PREFLIGHT_STATUS}
 配置导入：${CONFIG_IMPORT_STATUS}
+整体：${OVERALL_STATUS}
+失败原因：${FAIL_REASON:-无}
 配置差异：${CONFIG_DIFF_COUNT}
+node类型数量：${NODE_TYPE_ACTUAL:-未统计}/${NODE_TYPE_EXPECTED:-未统计}
 域名替换：${URL_REWRITE_STATUS}
 安装日志：${INSTALL_LOG}
 EOF
@@ -2661,8 +3402,14 @@ EOF
     if [[ -n "${SELF_HEAL_RECORD:-}" ]]; then
       printf '\n自愈记录：\n%s\n' "$SELF_HEAL_RECORD"
     fi
-    if [[ "$CONFIG_IMPORT_STATUS" == "失败" && -n "${FIRST_ERROR_BLOCK:-}" ]]; then
+    if [[ "$OVERALL_STATUS" == "失败" && -n "${FIRST_ERROR_BLOCK:-}" ]]; then
       printf '\n第一条错误原文：\n%s\n' "$FIRST_ERROR_BLOCK"
+    fi
+    if [[ -n "${PLAN_DETAIL:-}" ]]; then
+      printf '\n导入计划：\n%s\n' "$PLAN_DETAIL"
+    fi
+    if [[ -n "${HTTP_ERROR_EXCERPT:-}" ]]; then
+      printf '\n首页错误：\n%s\n' "$HTTP_ERROR_EXCERPT"
     fi
     if [[ -n "${ACCEPTANCE_SUMMARY:-}" ]]; then
       printf '\n%s\n' "$ACCEPTANCE_SUMMARY"
@@ -2695,12 +3442,16 @@ EOF
   if [[ "$SSL_FAILED" -eq 1 ]]; then
     printf '\nHTTPS 证书没有申请成功，当前仅配置了 HTTP。\n'
   fi
+  if [[ -n "${FAIL_REASON:-}" ]]; then
+    printf '\n原因：%s\n' "$FAIL_REASON"
+  fi
+  printf '\n整体：%s\n配置导入：%s\n' "$OVERALL_STATUS" "$CONFIG_IMPORT_STATUS"
   if [[ "$PREFLIGHT_FAILED" -eq 1 ]]; then
     printf '\n配置预检未通过，已阻止 site:install。具体错误见上方输出和凭据文件。\n'
-  elif [[ "$IMPORT_FAILED" -eq 1 ]]; then
-    printf '\n配置导入失败。状态：%s。请根据 %s 中的第一条错误检查后重新执行本脚本。\n' "$CONFIG_IMPORT_STATUS" "$INSTALL_LOG"
-  elif [[ "$CONFIG_IMPORT_STATUS" == 部分成功* ]]; then
-    printf '\n%s\n' "$CONFIG_IMPORT_STATUS"
+  elif [[ "$OVERALL_STATUS" == "失败" || "$IMPORT_FAILED" -eq 1 ]]; then
+    printf '\n配置导入失败。状态：%s。请根据 %s 检查后重新执行本脚本。\n' "$CONFIG_IMPORT_STATUS" "$INSTALL_LOG"
+  elif [[ "$OVERALL_STATUS" == "部分成功" ]]; then
+    printf '\n部分成功。配置差异 %s 项，分布与名单见 %s。\n' "$CONFIG_DIFF_COUNT" "$INSTALL_LOG"
   fi
   if [[ "$REWRITE_FAILED" -eq 1 ]]; then
     printf '\n域名替换已中止，config/sync 已按替换前内容恢复。\n'
@@ -2743,6 +3494,7 @@ main() {
   preflight_database
   log "开始恢复。仓库：${GIT_REPO}，分支：${GIT_BRANCH}，目录：${APP_ROOT}，域名：${DOMAIN}。"
   ACCEPTANCE_READY=1
+  prepare_install_log || true
   log "风险提示：将用仓库中的 config/sync 执行 site:install --existing-config。它可能与原站点实际运行配置不一致；不恢复用户内容、上传文件和数据库数据。"
   install_packages
   systemctl enable --now "$DB_SERVICE"
@@ -2766,6 +3518,7 @@ main() {
   if [[ "$SITE_HAS_CONTENT" -eq 1 ]]; then
     log "已有真实站点且未传入 --reinstall，跳过 site:install 与配置导入，不改动已有数据。"
     CONFIG_IMPORT_STATUS="已跳过（站点已有内容，未改动数据）"
+    OVERALL_STATUS="已跳过"
     ensure_config_sync_directory
   else
     if ! rewrite_site_urls; then
@@ -2777,6 +3530,8 @@ main() {
     if [[ "$PREFLIGHT_FAILED" -eq 1 ]]; then
       CONFIG_IMPORT_STATUS="预检失败"
       IMPORT_FAILED=1
+      FAIL_REASON="预检失败，未执行 site:install"
+      OVERALL_STATUS="失败"
       warn "预检失败，已阻止 site:install。继续权限、cron、凭据与验收。"
     elif [[ "$REINSTALL" -eq 1 ]] || ! site_installed; then
       if [[ -z "$DRUPAL_ADMIN_PASS" ]]; then
@@ -2792,8 +3547,8 @@ main() {
     fi
     ensure_config_sync_directory
     if [[ "$PREFLIGHT_FAILED" -eq 1 ]]; then
-      warn "由于预检失败，跳过主题确认、翻译导入、sitemap 校验、缓存重建和配置比较。"
-    elif [[ "$IMPORT_FAILED" -eq 0 ]]; then
+      log_skipped_followups "${FAIL_REASON:-预检失败，未执行 site:install}"
+    elif [[ "$CIM_JUDGED_OK" -eq 1 && "$IMPORT_FAILED" -eq 0 ]]; then
       ensure_theme || warn "确认默认主题时出错，请稍后手动检查。"
       import_translations || warn "翻译导入未完成。"
       verify_site_base_url || warn "未能确认 sitemap base_url。"
@@ -2802,7 +3557,7 @@ main() {
       fi
       finalize_config_status
     else
-      warn "由于配置导入失败，跳过主题确认、翻译导入、sitemap 校验、缓存重建和配置比较。"
+      log_skipped_followups "${FAIL_REASON:-cim 未判定成功}"
     fi
   fi
   fix_permissions || warn "收尾权限调整未完全成功。"
@@ -2812,7 +3567,7 @@ main() {
   write_credentials || warn "凭据文件未能写入。"
   run_drush status --fields=bootstrap,drupal-version,db-status,uri || true
   print_summary
-  if [[ "$SSL_FAILED" -eq 1 || "$IMPORT_FAILED" -eq 1 || "$PREFLIGHT_FAILED" -eq 1 || "$REWRITE_FAILED" -eq 1 ]]; then
+  if [[ "$SSL_FAILED" -eq 1 || "$IMPORT_FAILED" -eq 1 || "$PREFLIGHT_FAILED" -eq 1 || "$REWRITE_FAILED" -eq 1 || "$OVERALL_STATUS" == "失败" ]]; then
     exit 1
   fi
 }

@@ -24,7 +24,7 @@ sudo /root/install-restore.sh example.com --yes
 sudo /root/install-restore.sh example.com --reinstall --yes
 ```
 
-默认目录 `/var/www/drupal`。该目录已存在且未加 `--yes` 时，脚本立即退出，不安装软件包，也不重启服务。管理员和数据库口令写在 `/root/xedc-restore-credentials.txt`（权限 `600`）。导入成功、部分成功、失败或预检失败都会写这个文件，失败时不会写成成功。
+默认目录 `/var/www/drupal`。该目录已存在且未加 `--yes` 时，脚本立即退出，不安装软件包，也不重启服务。管理员和数据库口令写在 `/root/xedc-restore-credentials.txt`（权限 `600`）。成功、部分成功、失败或已跳过都会写这个文件。凭据、日志和最后一行摘要里的「整体」是同一个值，失败不会写成成功。
 
 ## 配置自愈
 
@@ -40,13 +40,26 @@ sudo /root/install-restore.sh example.com --reinstall --yes
 
 空库使用 `drush site:install --existing-config --config-dir=<工作副本>/config/sync`，语言为 `zh-hans`。不再把 `standard` 当作安装参数，也不再分阶段 `--partial` 导入，更不会手工创建内容类型或词汇。
 
-自愈之后做预检，保留这些检查：`core.extension.yml`、`system.site.yml`、节点/分类 bundle 引用、模块和主题的 `.info.yml`。自愈后仍有无法处理的问题才算预检失败：打印明细，不执行 `site:install`，但继续设置权限、cron，并写凭据，状态为「预检失败」。
+自愈之后做预检，保留这些检查：`core.extension.yml`、`system.site.yml`、节点/分类 bundle 引用、模块和主题的 `.info.yml`。自愈后仍有无法处理的问题才算预检失败：打印明细，不执行 `site:install`，但继续设置权限、cron，并写凭据。配置预检记为「预检失败」，整体记为「失败」。
 
-`site:install` 的报错不等于整体失败。无论它是否报错，都会执行 `drush cim -y`，输出在 `/var/log/xedc-restore-install.log`。不能因为库里已经有表就跳过这次导入。中文安装没有留下站点时，才清空数据库并去掉 `--locale` 再试一次安装，然后仍然导入。
+`site:install` 使用 `drush -vvv`，输出写入 `/var/log/xedc-restore-install.log`。它报错不等于整体失败，也不会阻止后面的 `drush cim`。失败时会把异常之后、堆栈里含 `modules/`、`core/modules` 或 `profiles/` 的前 15 行打到终端和这份日志，用来定位 Missing bundle。中文安装没有留下站点时，才清空数据库并去掉 `--locale` 再试一次，然后仍然导入。不能因为库里已经有表就跳过导入。
 
-`cim` 失败时先打印 `[Exception]` 之后的原文（并把 `&#039;` 还原为 `'`，最多 15 行）。只有报错含 `entity with ID '<id>' already exists` 时，才按配置名前缀推断实体类型（例如 `metatag.metatag_defaults.*` 对应 `metatag_defaults`），执行 `drush entity:delete <实体类型> <id> -y` 后重试，最多 8 轮。只删除配置实体，不删除节点、用户、媒体。其他错误不自动处理。`cim` 成功后再执行一次 `drush cim -y`。
+每次 `drush cim -y` 之前先 `drush cr`，再每 3 秒查询 `semaphore` 里 `config_importer%` 的锁，最多等 60 秒。超时后，只有 `node_field_data` 行数为 0 且没有 `uid>1` 的用户时，才删除这把锁；库里已有真实内容则直接失败，不删锁。接着用 `drush php:eval` 数 `\Drupal::service('config.storage.sync')->listAll()`。这个数量为 0，或与工作副本 `config/sync` 顶层 `.yml` 相差超过 2，就记为「失败：同步目录不可读」，把 `Settings::get('config_sync_directory')` 和当前目录写入日志，并且不执行 `cim`。
 
-若 `drush config:status --format=list` 仍有差异，把活动配置导出到 `/tmp/xedc-cex`。只有名称以 `core.entity_form_display.` 或 `core.entity_view_display.` 开头，且用 python3 的 yaml 去掉 `hidden` / `content` 下的 `publish_on`、`unpublish_on` 后与工作副本相等（忽略键顺序）的文件，才复制回工作副本。这用于消掉 Scheduler 补上的发布时间字段和 view display 的键顺序差异。其余差异保留。复制后再统计一次。
+导入计划不用 `cim --no`。用 `drush config:status --state='Only in DB' --format=list` 和 `--state='Only in sync dir' --format=list`。`Only in DB` 里的 `core.entity_view_mode.*.token` 正常，忽略。下面任一情况视为计划异常，不执行 `cim -y`：
+
+- `Only in DB` 含 `core.extension`、`system.site` 或任何 `node.type.*`
+- `Only in sync dir` 为 0，而 `config/sync` 里有文件，并且同步存储读不到这些文件，或数据库里的 node 类型还是 0
+
+同步存储数量正常、计划不会删除上述核心配置、而且数据库里已经有 node 类型时，`Only in sync dir` 为 0 只表示没有待创建项，重复运行不会因此判成计划异常。计划异常时释放锁、等 10 秒、`drush cr` 后再验，最多 3 次。仍然异常则记为「失败：导入计划异常」，两个列表的前 20 项写入日志和凭据。随后继续权限、cron 和凭据，但跳过主题安装和翻译导入。
+
+`cim` 不能只看退出码。输出必须包含 `The configuration was imported successfully`，或者已经没有变更时的 `There are no changes to import`，并且不能包含 `Another request may be synchronizing`。出现这句锁警告就视为没执行，等待锁后重试，最多 5 次。只有报错含 `entity with ID '<id>' already exists` 时，才按配置名前缀删除配置实体后重试，最多 8 轮。只删除配置实体，不删除节点、用户、媒体。失败时仍打印 `[Exception]` 之后的原文。
+
+第一次判定成功后，再循环 `drush cim -y`，最多 6 轮。每轮之后用 `drush config:status --format=list` 统计差异并写入日志。差异为 0、连续两轮不再减少，或满 6 轮就停。循环中某轮报错或再次出现锁警告，按上面的 5 次锁重试处理。Drush 没有 `config:list`，所有 `config:status` 都带 `--format=list`。
+
+只有 `cim` 判定成功，才执行 `theme:install`、写入 `system.theme:default` 和翻译导入。否则这几步和差异回写全部跳过，并在日志写明原因。
+
+其后若仍有差异，用 `drush cex -y --destination=/tmp/xedc-cex` 导出，再用 python3 的 yaml 比较工作副本和导出文件（忽略键顺序）。只有内容相等，或差异仅仅是 `core.entity_form_display.*` / `core.entity_view_display.*` 里 `hidden` 和 `content` 下的 `publish_on`、`unpublish_on`，才把导出文件复制回工作副本。`views.view.*`、`node.type.*`、`field.*`、`media.type.*` 一律不回写。只改这次 clone 的本地文件，脚本不执行 `git commit` 或 `git push`。回写后再统计一次 `config:status`。
 
 导入后若 Drush 改写了 `config_sync_directory`，脚本只把这一项改回 `../config/sync`。若它指向 `sites/default/files` 下的随机目录，脚本改回该相对路径并删除多余目录，再执行 `drush cr`。
 
@@ -56,15 +69,16 @@ sudo /root/install-restore.sh example.com --reinstall --yes
 
 ## 状态
 
-凭据文件里的「配置导入」与日志一致：
+凭据文件、`/var/log/xedc-restore-install.log` 和终端最后一行使用同一个「整体」：
 
-| 状态 | 含义 |
+| 整体 | 含义 |
 | --- | --- |
-| 成功 | `cim` 完成，且最终 `config:status` 差异为 0 |
-| 部分成功（差异 N 项，详见日志） | `cim` 完成，仍有未回写的差异。日志里有前 20 个配置名，每项最多 5 行 diff |
-| 失败 | `cim` 最终失败，并附第一条错误原文 |
-| 预检失败 | 自愈后仍有无法处理的问题，未执行 `site:install` |
-| 已跳过（站点已有内容，未改动数据） | 已有真实站点，且没有 `--reinstall` |
+| 成功 | `cim` 判定成功，`config:status` 差异为 0，数据库 node 类型数等于 `config/sync/node.type.*.yml` 的数量，首页 HTTP 为 200 或 30x |
+| 部分成功 | `cim` 判定成功，node 类型数一致，首页为 200 或 30x，但 `config:status` 仍有差异。不设差异上限。日志按前缀统计（例如 `views.view 22、media.type 3`），列出 `Only in sync dir` 的全部项和 `Different` 的前 30 项 |
+| 失败 | `cim` 未成功、同步目录不可读、导入计划异常、node 类型数不符、首页 5xx，以及其余没有达到成功或部分成功的情况。日志和凭据写明原因 |
+| 已跳过 | 已有真实站点，且没有 `--reinstall`。这是保留的旧行为，不改数据库 |
+
+「失败：同步目录不可读」和「失败：导入计划异常」写在配置导入和失败原因里，整体仍是「失败」。预检未通过时整体也是「失败」，配置预检栏仍写「预检失败」。
 
 ## 域名会改哪些地址
 
@@ -115,10 +129,10 @@ sudo cat /root/xedc-restore-credentials.txt
 脚本结束时会在终端和凭据文件各写一行：
 
 ```text
-验收：bootstrap=<Successful|Failed>  配置差异=<N>  node类型=<列表>  首页HTTP=<状态码>
+验收：bootstrap=<Successful|Failed>  配置差异=<N>  node类型=<列表>  首页HTTP=<状态码>  整体=<成功|部分成功|失败>
 ```
 
-首页状态码来自 `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1 -H "Host: <域名>"`。
+已有真实站点且未重装时，整体为「已跳过」。首页状态码来自 `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1 -H "Host: <域名>"`。返回 5xx 时，脚本把 `/var/log/nginx/error.log` 和 PHP-FPM 日志里最后 3 条完整错误行写入日志、凭据，并打到终端，不截断。
 
 - 首页和 `/user/login` 可打开，CSS/JS 不是 404
 - 前台主题为 `xedc`：`drush config:get system.theme default`
@@ -127,6 +141,15 @@ sudo cat /root/xedc-restore-credentials.txt
 - 定时发布依赖 cron，默认每 15 分钟：`/etc/cron.d/xedc-drupal`
 
 确认可用后再删除 `*.bak.*` 备份。
+
+## 故障排查
+
+- **Missing bundle / `entity type node_type`**：看安装日志里的 `-vvv` 输出，以及终端上含 `modules/` 或 `profiles/` 的堆栈。这只用于定位模块，不代替配置导入。
+- **`Another request may be synchronizing` 且退出码为 0**：这次 `cim` 没有导入。崩溃的 `site:install` 可能留下 `config_importer` 锁。应等锁释放或在空库上删锁后再导入，不能把退出码 0 当成成功。
+- **导入计划全是 Delete**：同步目录未被读到，或锁还在。先看日志里的 `listAll` 数量和 `config_sync_directory`。这种计划会被拒绝，避免删掉 `core.extension` 和 node 类型。
+- **单轮 `cim` 后仍有差异**：正常。再跑几轮，直到 `config:status --format=list` 不再下降。`views.view`、`media.type` 一类差异会留在「部分成功」里，不会回写。
+- **首页 500，`TypeError` … `Language::sort()`**：配置没有真正导入，node 类型往往是 0。先看整体是不是「失败」，再看 nginx 和 PHP-FPM 的最后几条错误。
+- **`apt-get update` 报 `File has unexpected size` 或 `Mirror sync in progress`**：脚本会清空 `/var/lib/apt/lists` 后重试，最多 3 次，间隔 20 秒。源里仍是 `ec2.archive.ubuntu.com` 时会改成 `archive.ubuntu.com` 再试一次。只有最后的 `apt-get install` 失败才中止。
 
 ## HTTPS
 
