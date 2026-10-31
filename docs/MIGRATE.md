@@ -8,6 +8,45 @@
 
 请用 root 运行。
 
+## 快速使用
+
+从旧服务器打包到新服务器恢复，只需三步。
+
+### 1. 旧服务器打包
+
+```bash
+cd /var/www/drupal
+sudo ./migrate-site.sh export --out /root/xedc-migrate --maintenance --yes
+```
+
+跑完后终端会打印出完整的 `.tgz` 路径（例如 `/root/xedc-migrate/xedc-migrate-20261031-150000.tgz`），复制这个路径。
+
+### 2. 传到新服务器
+
+```bash
+scp /root/xedc-migrate/xedc-migrate-实际时间.tgz root@新服务器IP:/root/
+```
+
+也可以先下载到本地，再从本地上传到新服务器。包内含用户邮箱和密码哈希，用完后两边都删除。
+
+### 3. 新服务器恢复
+
+```bash
+curl -fsSL -o /root/migrate-site.sh \
+  https://raw.githubusercontent.com/xxedc/drupal/main/migrate-site.sh
+chmod +x /root/migrate-site.sh
+
+sudo /root/migrate-site.sh import \
+  --pack /root/xedc-migrate-实际时间.tgz \
+  --domain 你的新域名 \
+  --root /var/www/drupal \
+  --force --yes
+```
+
+导入结束后查看 `/root/xedc-migrate-report.txt`。用 `curl -sI -H "Host: 你的新域名" http://127.0.0.1` 验证首页。
+
+以下是详细说明。
+
 ## 流程
 
 1. 在旧服务器导出。
