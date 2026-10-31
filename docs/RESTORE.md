@@ -24,21 +24,47 @@ sudo /root/install-restore.sh example.com --yes
 sudo /root/install-restore.sh example.com --reinstall --yes
 ```
 
-默认目录 `/var/www/drupal`。该目录已存在且未加 `--yes` 时，脚本立即退出，不安装软件包，也不重启服务。管理员和数据库口令写在 `/root/xedc-restore-credentials.txt`（权限 `600`），其中包含配置导入状态。
+默认目录 `/var/www/drupal`。该目录已存在且未加 `--yes` 时，脚本立即退出，不安装软件包，也不重启服务。管理员和数据库口令写在 `/root/xedc-restore-credentials.txt`（权限 `600`）。导入成功、部分成功、失败或预检失败都会写这个文件，失败时不会写成成功。
+
+## 配置自愈
+
+每次重新 clone 之后、替换本站域名之前，脚本只处理这次 clone 出来的 `config/sync`。不改仓库里的文件，也不重命名。
+
+只检查顶层 `.yml`，跳过 `language/` 等子目录。只读顶层 `id`；没有顶层 `id` 的文件不处理。`name`、`vid`、`type` 不参与判断。文件名（去掉 `.yml`）若不以 `.` 加该 `id` 结尾，视为不一致。
+
+不一致文件只有同时满足三点才删除：目录里另有一个顶层 `id` 相同、且文件名本身与 `id` 一致的文件；把两个文件名里的 `_` 都换成 `.` 后完全相同。否则只告警。相同 `uuid` 的重复只告警，不因此删除。
+
+实际删除前会先打印「将要删除的文件」和「只告警的文件」。自愈结果写入日志和凭据文件的「自愈记录」。工作副本里还会放一个拒绝访问的 `config/sync/.htaccess`，该文件不进入仓库。
 
 ## 安装流程
 
-空库使用 `drush site:install --existing-config --config-dir=config/sync`，语言为 `zh-hans`。不再把 `standard` 当作安装参数，也不再分阶段 `--partial` 导入，更不会手工创建内容类型或词汇。
+空库使用 `drush site:install --existing-config --config-dir=<工作副本>/config/sync`，语言为 `zh-hans`。不再把 `standard` 当作安装参数，也不再分阶段 `--partial` 导入，更不会手工创建内容类型或词汇。
 
-安装前检查 `core.extension.yml`、`system.site.yml`、节点/分类 bundle 引用，以及模块和主题的 `.info.yml`。预检失败会写出具体错误并继续，避免还没写凭据文件就退出。
+自愈之后做预检，保留这些检查：`core.extension.yml`、`system.site.yml`、节点/分类 bundle 引用、模块和主题的 `.info.yml`。自愈后仍有无法处理的问题才算预检失败：打印明细，不执行 `site:install`，但继续设置权限、cron，并写凭据，状态为「预检失败」。
 
-若 `--existing-config` 失败，完整日志在 `/var/log/xedc-restore-install.log`，终端打印末尾 40 行，然后只回退一次：清空数据库，`drush site:install standard`，把 `system.site` 的 UUID 设为 `config/sync/system.site.yml` 里的值，再执行 `drush cim -y`。回退仍失败时输出错误摘要。无论导入成败，都会继续设置文件权限、cron 和凭据文件。
+`site:install` 的报错不等于整体失败。无论它是否报错，都会执行 `drush cim -y`，输出在 `/var/log/xedc-restore-install.log`。不能因为库里已经有表就跳过这次导入。中文安装没有留下站点时，才清空数据库并去掉 `--locale` 再试一次安装，然后仍然导入。
 
-成功后确认 `settings.php` 的 `config_sync_directory` 为 `../config/sync`。若 Drush 改写成 `sites/default/files` 下的随机目录，脚本改回该相对路径并删除多余目录，然后执行 `drush cr` 和 `drush config:status`。
+`cim` 失败时先打印 `[Exception]` 之后的原文（并把 `&#039;` 还原为 `'`，最多 15 行）。只有报错含 `entity with ID '<id>' already exists` 时，才按配置名前缀推断实体类型（例如 `metatag.metatag_defaults.*` 对应 `metatag_defaults`），执行 `drush entity:delete <实体类型> <id> -y` 后重试，最多 8 轮。只删除配置实体，不删除节点、用户、媒体。其他错误不自动处理。`cim` 成功后再执行一次 `drush cim -y`。
+
+若 `drush config:status --format=list` 仍有差异，把活动配置导出到 `/tmp/xedc-cex`。只有名称以 `core.entity_form_display.` 或 `core.entity_view_display.` 开头，且用 python3 的 yaml 去掉 `hidden` / `content` 下的 `publish_on`、`unpublish_on` 后与工作副本相等（忽略键顺序）的文件，才复制回工作副本。这用于消掉 Scheduler 补上的发布时间字段和 view display 的键顺序差异。其余差异保留。复制后再统计一次。
+
+导入后若 Drush 改写了 `config_sync_directory`，脚本只把这一项改回 `../config/sync`。若它指向 `sites/default/files` 下的随机目录，脚本改回该相对路径并删除多余目录，再执行 `drush cr`。
 
 域名替换只发生在本次 `git clone` 的 `config/sync` 上，并且只处理本站旧域名。替换后用 python3 的 yaml（没有该模块时用 PHP Symfony Yaml）确认全部 YAML 仍可解析；解析失败则恢复原文件并报错。
 
-已有节点或非管理员用户、且没有 `--reinstall` 时，跳过安装和配置导入，不改数据库。`--reinstall` 会删库后重新走 `--existing-config`；库里已有内容时还要同时传入 `--yes`。没有内容的已安装站点会跳过 `site:install`，只做一次完整 `drush cim`。
+已有真实站点是指 `node_field_data` 行数大于 0，或存在 `uid>1` 的用户。没有 `--reinstall` 时跳过安装和配置导入，不改数据库。不能用「库里有表」代替这个判断。`--reinstall` 会删库后重装；库里已有真实内容时还要同时传入 `--yes`。只有管理员、没有节点的已安装站点会跳过 `site:install`，但仍继续 `drush cim`。
+
+## 状态
+
+凭据文件里的「配置导入」与日志一致：
+
+| 状态 | 含义 |
+| --- | --- |
+| 成功 | `cim` 完成，且最终 `config:status` 差异为 0 |
+| 部分成功（差异 N 项，详见日志） | `cim` 完成，仍有未回写的差异。日志里有前 20 个配置名，每项最多 5 行 diff |
+| 失败 | `cim` 最终失败，并附第一条错误原文 |
+| 预检失败 | 自愈后仍有无法处理的问题，未执行 `site:install` |
+| 已跳过（站点已有内容，未改动数据） | 已有真实站点，且没有 `--reinstall` |
 
 ## 域名会改哪些地址
 
@@ -76,15 +102,23 @@ sudo /root/install-restore.sh example.com --reinstall --yes
 
 - `config/sync` 可能和原站点当时的实际配置不一致。空库安装以仓库里的 `config/sync` 为准。
 - 不恢复用户数据和上传文件。旧目录会备份为 `*.bak.时间戳`，其中的文件不会自动进新站点。
-- 默认数据库名是 `drupal`。同名库若已有节点或额外用户，且没有 `--reinstall`，脚本跳过安装，不删除数据。要删库重装必须同时传入 `--reinstall --yes`。
+- 默认数据库名是 `drupal`。同名库若 `node_field_data` 有行，或有 `uid>1` 的用户，且没有 `--reinstall`，脚本跳过安装，不删除数据。要删库重装必须同时传入 `--reinstall --yes`。
 - 每次克隆使用新的 `hash_salt`。锁定版本不是 11.4.11 时脚本停止。
-- 重复运行会再次克隆。已有内容时不重装；空站点会跳过 `site:install` 并重新导入配置。
+- 重复运行会再次克隆。已有真实内容时不重装；只有空表的站点会跳过 `site:install` 并重新导入配置。
 
 ## 执行后检查
 
 ```bash
 sudo cat /root/xedc-restore-credentials.txt
 ```
+
+脚本结束时会在终端和凭据文件各写一行：
+
+```text
+验收：bootstrap=<Successful|Failed>  配置差异=<N>  node类型=<列表>  首页HTTP=<状态码>
+```
+
+首页状态码来自 `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1 -H "Host: <域名>"`。
 
 - 首页和 `/user/login` 可打开，CSS/JS 不是 404
 - 前台主题为 `xedc`：`drush config:get system.theme default`

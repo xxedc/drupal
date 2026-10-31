@@ -19,16 +19,16 @@
 #    替换后校验全部 YAML 仍可解析；解析失败则恢复原文件并报错，不保留半截改写。
 # 3. 每次运行都会重新 git clone 指定分支的最新提交。目标目录已存在时，
 #    先整目录改名备份，再克隆。备份里可能有旧的上传文件，新站点不会使用它们。
-# 4. 仅当显式传入 --reinstall --yes 时才会删除已有数据库。
-#    若库里已有节点或除管理员以外的用户，且未传入 --reinstall，脚本跳过安装，不改动已有数据。
-#    已有内容时只传 --reinstall、不传 --yes，脚本拒绝删除。
+# 4. 已有真实站点只看 node_field_data 行数大于 0，或存在 uid>1 的用户。
+#    不能仅因库里已有表就跳过后续步骤。未传入 --reinstall 时不改动已有数据。
+#    --reinstall 会删除并重建数据库；库里已有真实内容时还必须同时传入 --yes。
 # 5. 始终使用 composer install 安装 composer.lock 中锁定的版本，不执行 composer update。
 # 6. 空库安装使用 drush site:install --existing-config，不再把 standard 当作 profile 参数，
-#    也不再分阶段 partial 导入或手工创建内容类型/词汇。安装前做配置预检：失败只记录并
-#    输出明确错误，不因此退出。--existing-config 失败时把完整日志写到
-#    /var/log/xedc-restore-install.log，输出末尾 40 行，然后回退一次：
-#    空库 standard 安装、写入 system.site uuid、再 drush cim -y。
-#    回退仍失败时输出错误摘要，并继续收尾，不回滚已生成的数据库口令。
+#    也不再分阶段 partial 导入或手工创建内容类型/词汇。
+#    clone 之后、域名替换之前，只在工作副本上按顶层 id 做配置自愈，不改仓库里的 config/sync。
+#    自愈后仍有无法处理的问题则预检失败：打印明细，不执行 site:install，但继续写凭据。
+#    site:install 无论成败都再执行 drush cim。日志在 /var/log/xedc-restore-install.log。
+#    导入失败时状态写失败并附第一条错误，绝不写成成功。
 #
 # 用法：
 #   sudo ./install-restore.sh example.com
@@ -85,8 +85,6 @@ DRUSH_BIN=""
 SERVER_NAMES=""
 BACKUP_PATH=""
 SITE_HAS_CONTENT=0
-EXISTING_OK=0
-FALLBACK_OK=0
 PREFLIGHT_FAILED=0
 PREFLIGHT_STATUS="未执行"
 PREFLIGHT_ERRORS=""
@@ -94,8 +92,21 @@ REWRITE_FAILED=0
 URL_REWRITE_STATUS="未执行"
 CONFIG_IMPORT_STATUS="未执行"
 CONFIG_DIFF_COUNT="未统计"
+CONFIG_DIFF_NAMES=""
 INSTALL_LOG="${INSTALL_LOG:-/var/log/xedc-restore-install.log}"
+INSTALL_LOG_READY=0
 STRAY_CONFIG_DIR=""
+SELF_HEAL_RECORD=""
+SELF_HEAL_UNHANDLED=""
+ACCEPTANCE_SUMMARY=""
+ACCEPTANCE_DONE=0
+ACCEPTANCE_PRINTED=0
+ACCEPTANCE_READY=0
+FIRST_ERROR_TEXT=""
+FIRST_ERROR_BLOCK=""
+LAST_DRUSH_LOG=""
+PARSED_ENTITY_TYPE=""
+PARSED_ENTITY_ID=""
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%F %T')" "$*"
@@ -111,7 +122,7 @@ die() {
 }
 
 trap 'rc=$?; printf "\n[错误] 第 %s 行失败（状态 %s）：%s\n" "$LINENO" "$rc" "$BASH_COMMAND" >&2; if [[ -n "${BACKUP_PATH:-}" ]]; then printf "旧目录备份仍在：%s\n" "$BACKUP_PATH" >&2; fi' ERR
-trap 'write_credentials || true' EXIT
+trap 'write_acceptance || true; write_credentials || true; print_acceptance_line || true' EXIT
 
 usage() {
   cat <<'EOF'
@@ -120,9 +131,9 @@ usage() {
 在 Ubuntu 24.04 或 26.04 上安装运行环境，克隆 https://github.com/xxedc/drupal 的最新代码，
 按 composer.lock 安装 Drupal 11.4.11，构建 xedc 主题，并用 config/sync 执行
 drush site:install --existing-config。不再先安装 standard 再分阶段导入。
-导入前会把配置里属于本站的绝对地址改成本次域名，并保留第三方服务地址。
-安装前预检配置；预检失败会写明错误并继续。--existing-config 失败时回退一次：
-空库 standard 安装、对齐 system.site UUID、再完整导入。
+导入前会在工作副本上自愈 config/sync，再把属于本站的绝对地址改成本次域名。
+安装前预检配置。预检失败会写明错误、阻止 site:install，并继续写凭据文件。
+site:install 无论成败都会再执行 drush cim。
 
 选项：
   --domain 域名         站点域名，也可作为第一个位置参数
@@ -516,15 +527,36 @@ sql_scalar_required() {
 }
 
 assert_database_safe() {
-  local exists users_table real_users node_count
+  local exists node_table user_table node_rows extra_users any_tables
   exists=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='${DB_NAME}'")
   if [[ "$exists" -eq 0 ]]; then
     log "数据库 ${DB_NAME} 尚不存在，稍后会创建空库。"
     return 0
   fi
-  users_table=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name='users_field_data'")
-  if [[ "$users_table" -eq 0 ]]; then
-    local any_tables
+  node_table=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name='node_field_data'")
+  user_table=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name='users_field_data'")
+  node_rows=0
+  extra_users=0
+  if [[ "$node_table" -ge 1 ]]; then
+    node_rows=$(sql_scalar_required "SELECT COUNT(*) FROM \`${DB_NAME}\`.node_field_data")
+  fi
+  if [[ "$user_table" -ge 1 ]]; then
+    extra_users=$(sql_scalar_required "SELECT COUNT(*) FROM \`${DB_NAME}\`.users_field_data WHERE uid>1")
+  fi
+  if [[ "$node_rows" -gt 0 || "$extra_users" -gt 0 ]]; then
+    if [[ "$REINSTALL" -eq 1 ]]; then
+      if [[ "$ASSUME_YES" -ne 1 ]]; then
+        die "数据库 ${DB_NAME} 已有真实站点（node_field_data ${node_rows} 行，uid>1 的用户 ${extra_users} 个）。删除该库并重新安装必须同时传入 --reinstall --yes。"
+      fi
+      warn "将按 --reinstall --yes 删除数据库 ${DB_NAME} 中的全部数据。"
+      return 0
+    fi
+    SITE_HAS_CONTENT=1
+    log "数据库 ${DB_NAME} 已有真实站点（node_field_data ${node_rows} 行，uid>1 的用户 ${extra_users} 个）。未传入 --reinstall，跳过安装，不删除数据库，也不导入配置。"
+    return 0
+  fi
+
+  if [[ "$user_table" -eq 0 ]]; then
     any_tables=$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}'")
     if [[ "$any_tables" -gt 0 && "$REINSTALL" -ne 1 ]]; then
       die "数据库 ${DB_NAME} 非空，但不是可识别的 Drupal 站点。请换一个空库，或同时传入 --reinstall --yes 以删除该库。"
@@ -535,31 +567,13 @@ assert_database_safe() {
     return 0
   fi
 
-  real_users=$(sql_scalar_required "SELECT COUNT(*) FROM \`${DB_NAME}\`.users_field_data WHERE uid>0")
-  node_count=0
-  if [[ "$(sql_scalar_required "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_NAME}' AND table_name='node'")" -ge 1 ]]; then
-    node_count=$(sql_scalar_required "SELECT COUNT(*) FROM \`${DB_NAME}\`.node")
-  fi
-  if [[ "$real_users" -gt 1 || "$node_count" -gt 0 ]]; then
-    if [[ "$REINSTALL" -eq 1 ]]; then
-      if [[ "$ASSUME_YES" -ne 1 ]]; then
-        die "数据库 ${DB_NAME} 已有内容（用户 ${real_users}，节点 ${node_count}）。删除该库并重新安装必须同时传入 --reinstall --yes。"
-      fi
-      warn "将按 --reinstall --yes 删除数据库 ${DB_NAME} 中的全部数据。"
-      return 0
-    fi
-    SITE_HAS_CONTENT=1
-    log "数据库 ${DB_NAME} 已有内容（用户 ${real_users}，节点 ${node_count}）。未传入 --reinstall，跳过安装，不删除数据库，也不导入配置。"
-    return 0
-  fi
-
   if [[ "$REINSTALL" -eq 1 ]]; then
     if [[ "$ASSUME_YES" -ne 1 ]]; then
       die "重新安装会删除数据库 ${DB_NAME}。请同时传入 --yes。"
     fi
     warn "数据库 ${DB_NAME} 将按 --reinstall 删除并重建。"
   else
-    log "数据库 ${DB_NAME} 已有空站点（无节点、无额外用户），将跳过 site:install，并重新导入 config/sync。"
+    log "数据库 ${DB_NAME} 已有 Drupal 表，但 node_field_data 为 0 且没有 uid>1 的用户。这不是已有真实站点，不会因此跳过后续导入。"
   fi
 }
 
@@ -689,7 +703,6 @@ site_installed() {
 }
 
 trusted_patterns() {
-  local host
   regex_host "$DOMAIN"
   if [[ "$WITH_WWW" -eq 1 && "$DOMAIN" != www.* ]]; then
     regex_host "www.${DOMAIN}"
@@ -1036,10 +1049,28 @@ configure_nginx() {
 }
 
 run_drush() {
+  local rc=0
+  local chunk
+  chunk=$(mktemp /tmp/xedc-drush.XXXXXX.log)
+  chmod 600 "$chunk" || true
+  if [[ -n "${LAST_DRUSH_LOG:-}" && -f "$LAST_DRUSH_LOG" ]]; then
+    rm -f "$LAST_DRUSH_LOG"
+  fi
+  LAST_DRUSH_LOG="$chunk"
+  if [[ "${INSTALL_LOG_READY:-0}" -ne 1 ]]; then
+    prepare_install_log || true
+  fi
+  set +e
   (
     cd "$APP_ROOT"
     runuser -u "$WEB_USER" -- env HOME=/tmp "$DRUSH_BIN" --root="$APP_ROOT/web" --uri="$PUBLIC_BASE" "$@"
-  )
+  ) 2>&1 | tee -a "$INSTALL_LOG" "$chunk"
+  rc=${PIPESTATUS[0]}
+  set -e
+  if [[ "$rc" -ne 0 ]]; then
+    print_first_error "$chunk" || true
+  fi
+  return "$rc"
 }
 
 urlencode() {
@@ -1055,12 +1086,22 @@ drupal_db_url() {
 }
 
 prepare_install_log() {
+  if [[ "${INSTALL_LOG_READY:-0}" -eq 1 && -f "$INSTALL_LOG" ]]; then
+    return 0
+  fi
   if ! : >"$INSTALL_LOG"; then
     warn "无法写入 ${INSTALL_LOG}，改用临时日志。"
     INSTALL_LOG=$(mktemp /tmp/xedc-restore-install.XXXXXX.log)
     : >"$INSTALL_LOG"
   fi
   chmod 600 "$INSTALL_LOG" || true
+  INSTALL_LOG_READY=1
+  if [[ -n "${SELF_HEAL_RECORD:-}" ]]; then
+    {
+      printf '\n===== 自愈记录 =====\n'
+      printf '%s\n' "$SELF_HEAL_RECORD"
+    } >>"$INSTALL_LOG"
+  fi
 }
 
 read_site_uuid() {
@@ -1195,6 +1236,323 @@ PHP
   fi
   warn "config_sync_directory 当前是 ${current}，不是 ../config/sync。"
   return 0
+}
+
+print_first_error() {
+  local src="${1:-${LAST_DRUSH_LOG:-}}"
+  local text=""
+  if [[ -z "$src" || ! -f "$src" ]]; then
+    src="${INSTALL_LOG:-}"
+  fi
+  if [[ -z "$src" || ! -f "$src" ]]; then
+    warn "没有日志，无法提取第一条错误。"
+    return 0
+  fi
+  text=$(SRC="$src" php <<'PHP'
+<?php
+$src = getenv('SRC');
+$raw = file_get_contents($src);
+if ($raw === false) {
+    exit(0);
+}
+$raw = str_replace(['&#039;', '&#39;'], "'", $raw);
+$marker = '[Exception]';
+$pos = strrpos($raw, $marker);
+if ($pos === false) {
+    $lines = preg_split("/\R/", $raw);
+    $lines = array_values(array_filter($lines, static fn($line) => trim($line) !== ''));
+    $slice = array_slice($lines, -15);
+    echo "日志中没有 [Exception]，以下是末尾输出：\n";
+    echo implode("\n", $slice);
+    exit(0);
+}
+$after = ltrim(substr($raw, $pos + strlen($marker)), "\r\n");
+$lines = preg_split("/\R/", $after);
+echo implode("\n", array_slice($lines, 0, 15));
+PHP
+)
+  FIRST_ERROR_BLOCK="$text"
+  FIRST_ERROR_TEXT=$(printf '%s\n' "$text" | awk 'NF { print; exit }')
+  printf '\n第一条错误原文：\n%s\n' "$text" >&2
+  if [[ -n "${INSTALL_LOG:-}" && -f "$INSTALL_LOG" && "$src" != "$INSTALL_LOG" ]]; then
+    {
+      printf '\n===== print_first_error =====\n'
+      printf '%s\n' "$text"
+    } >>"$INSTALL_LOG"
+  fi
+}
+
+ensure_sync_htaccess() {
+  local dest="$APP_ROOT/config/sync/.htaccess"
+  if [[ ! -d "$APP_ROOT/config/sync" ]]; then
+    return 0
+  fi
+  cat >"$dest" <<'EOF'
+# Deny all requests from Apache 2.4+.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+
+# Deny all requests from Apache 2.0-2.2.
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>
+
+# Turn off all options we don't need.
+Options -Indexes -ExecCGI -Includes -MultiViews
+
+# Set the catch-all handler to prevent scripts from being executed.
+SetHandler Drupal_Security_Do_Not_Remove_See_SA_2006_006
+<Files *>
+  # Override the handler again if we're run later in the evaluation list.
+  SetHandler Drupal_Security_Do_Not_Remove_See_SA_2013_003
+</Files>
+
+# If we know how to do it safely, disable the PHP engine entirely.
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+EOF
+  chmod 644 "$dest" || true
+  log "已在工作副本 config/sync 写入拒绝访问的 .htaccess。该文件只存在于本次 clone，不会写回仓库。"
+}
+
+self_heal_config_sync() {
+  local sync="$APP_ROOT/config/sync"
+  local report del_file warn_file uuid_file name real count
+  [[ -d "$sync" ]] || die "缺少 config/sync，无法自愈。"
+  log "配置自愈：只检查 ${sync} 顶层 .yml。只读顶层 id 与 uuid，忽略 name、vid、type。不处理子目录，不重命名。"
+  report=$(mktemp /tmp/xedc-self-heal.XXXXXX.txt)
+  del_file=$(mktemp /tmp/xedc-self-heal-del.XXXXXX.txt)
+  warn_file=$(mktemp /tmp/xedc-self-heal-warn.XXXXXX.txt)
+  uuid_file=$(mktemp /tmp/xedc-self-heal-uuid.XXXXXX.txt)
+  : >"$del_file"
+  : >"$warn_file"
+  : >"$uuid_file"
+  if ! SYNC="$sync" php >"$report" <<'PHP'
+<?php
+declare(strict_types=1);
+
+$sync = getenv('SYNC') ?: '';
+if ($sync === '' || !is_dir($sync)) {
+    fwrite(STDERR, "缺少 config/sync。\n");
+    exit(1);
+}
+$root = realpath($sync);
+if ($root === false) {
+    fwrite(STDERR, "无法解析 config/sync。\n");
+    exit(1);
+}
+
+function top_scalar(string $path, string $key): ?string {
+    $handle = fopen($path, 'rb');
+    if ($handle === false) {
+        return null;
+    }
+    $prefix = $key . ':';
+    while (($line = fgets($handle)) !== false) {
+        if ($line === '' || $line[0] === ' ' || $line[0] === "\t" || $line[0] === '#') {
+            continue;
+        }
+        if (!str_starts_with($line, $prefix)) {
+            continue;
+        }
+        $value = trim(substr($line, strlen($prefix)));
+        if ($value === '' || $value === '|' || $value === '>' || $value === '|-' || $value === '>-' || $value === '~' || strcasecmp($value, 'null') === 0) {
+            fclose($handle);
+            return null;
+        }
+        $quote = $value[0];
+        if (strlen($value) >= 2 && ($quote === "'" || $quote === '"') && str_ends_with($value, $quote)) {
+            $value = substr($value, 1, -1);
+        }
+        fclose($handle);
+        return $value === '' ? null : $value;
+    }
+    fclose($handle);
+    return null;
+}
+
+$files = [];
+foreach (scandir($sync) ?: [] as $name) {
+    if (!is_string($name) || !str_ends_with($name, '.yml')) {
+        continue;
+    }
+    $path = $sync . '/' . $name;
+    if (!is_file($path)) {
+        continue;
+    }
+    $real = realpath($path);
+    if ($real === false || !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) {
+        continue;
+    }
+    $files[] = [
+        'name' => $name,
+        'id' => top_scalar($path, 'id'),
+        'uuid' => top_scalar($path, 'uuid'),
+    ];
+}
+
+echo 'COUNT' . "\t" . count($files) . "\n";
+$delete = [];
+$warn = [];
+foreach ($files as $file) {
+    $id = $file['id'];
+    if (!is_string($id) || $id === '') {
+        continue;
+    }
+    $stem = substr($file['name'], 0, -4);
+    if (str_ends_with($stem, '.' . $id)) {
+        continue;
+    }
+    $matched = false;
+    foreach ($files as $other) {
+        if ($other['name'] === $file['name'] || $other['id'] !== $id) {
+            continue;
+        }
+        $otherStem = substr($other['name'], 0, -4);
+        if (!str_ends_with($otherStem, '.' . $id)) {
+            continue;
+        }
+        if (str_replace('_', '.', $file['name']) === str_replace('_', '.', $other['name'])) {
+            $matched = true;
+            break;
+        }
+    }
+    if ($matched) {
+        $delete[] = $file['name'];
+    } else {
+        $warn[] = $file['name'];
+    }
+}
+$deleteSet = array_fill_keys($delete, true);
+foreach ($delete as $name) {
+    echo 'DELETE' . "\t" . $name . "\n";
+}
+foreach ($warn as $name) {
+    echo 'WARN' . "\t" . $name . "\n";
+}
+$byUuid = [];
+foreach ($files as $file) {
+    if (!is_string($file['uuid']) || $file['uuid'] === '') {
+        continue;
+    }
+    $byUuid[$file['uuid']][] = $file['name'];
+}
+foreach ($byUuid as $uuid => $names) {
+    if (count($names) < 2) {
+        continue;
+    }
+    echo 'UUID' . "\t" . $uuid . "\t" . implode(',', $names) . "\n";
+    $remain = array_values(array_filter($names, static fn(string $name): bool => !isset($deleteSet[$name])));
+    if (count($remain) >= 2) {
+        foreach ($remain as $name) {
+            echo 'WARNUUID' . "\t" . $name . "\t" . $uuid . "\n";
+        }
+    }
+}
+PHP
+  then
+    warn "配置自愈扫描失败，没有删除任何文件。"
+    SELF_HEAL_UNHANDLED="配置自愈扫描失败，未能读取顶层 id。"
+    SELF_HEAL_RECORD=$'扫描失败，没有删除任何文件。\n'"${SELF_HEAL_UNHANDLED}"
+    rm -f "$report" "$del_file" "$warn_file" "$uuid_file"
+    return 0
+  fi
+
+  count=$(awk -F '\t' '$1=="COUNT" { print $2; exit }' "$report")
+  count=${count:-0}
+  log "已检查顶层 YAML ${count} 个。"
+  awk -F '\t' '$1=="DELETE" { print $2 }' "$report" >"$del_file"
+  awk -F '\t' '$1=="WARN" || $1=="WARNUUID" { print $2 }' "$report" | awk 'NF && !seen[$0]++' >"$warn_file"
+  awk -F '\t' '$1=="UUID" { print $2 "\t" $3 }' "$report" >"$uuid_file"
+
+  log "干运行结束。先列出将要删除的文件和只告警的文件，然后再删除。"
+  printf '将要删除的文件：\n'
+  if [[ ! -s "$del_file" ]]; then
+    printf '  （无）\n'
+  else
+    sed 's/^/  - /' "$del_file"
+  fi
+  printf '只告警的文件：\n'
+  if [[ ! -s "$warn_file" ]]; then
+    printf '  （无）\n'
+  else
+    sed 's/^/  - /' "$warn_file"
+  fi
+  if [[ -s "$uuid_file" ]]; then
+    log "同 uuid 只记录告警，不因此删除文件。"
+    while IFS=$'\t' read -r uuid names; do
+      [[ -z "$uuid" ]] && continue
+      log "同 uuid ${uuid}：${names}"
+    done <"$uuid_file"
+  fi
+
+  if [[ -s "$del_file" ]]; then
+    while IFS= read -r name; do
+      [[ -z "$name" ]] && continue
+      if [[ ! "$name" =~ ^[A-Za-z0-9_.-]+\.yml$ ]]; then
+        warn "拒绝删除异常文件名：${name}"
+        printf '%s\n' "$name" >>"$warn_file"
+        continue
+      fi
+      if [[ ! -f "$sync/$name" ]]; then
+        warn "将要删除的文件已不存在：${name}"
+        continue
+      fi
+      real=$(realpath -e "$sync/$name")
+      case "$real" in
+        "$sync"/*) ;;
+        *)
+          warn "拒绝删除同步目录之外的路径：${real}"
+          continue
+          ;;
+      esac
+      rm -f -- "$real"
+      log "已删除工作副本中的 ${name}。"
+    done <"$del_file"
+  else
+    log "没有需要删除的文件。"
+  fi
+
+  SELF_HEAL_RECORD=$(
+    printf '检查顶层 YAML：%s\n' "$count"
+    printf '将要删除：\n'
+    if [[ -s "$del_file" ]]; then
+      sed 's/^/- /' "$del_file"
+    else
+      printf -- '- （无）\n'
+    fi
+    printf '已删除：\n'
+    if [[ -s "$del_file" ]]; then
+      sed 's/^/- /' "$del_file"
+    else
+      printf -- '- （无）\n'
+    fi
+    printf '只告警：\n'
+    if [[ -s "$warn_file" ]]; then
+      sed 's/^/- /' "$warn_file"
+    else
+      printf -- '- （无）\n'
+    fi
+    printf '同 uuid（只告警，不因此删除）：\n'
+    if [[ -s "$uuid_file" ]]; then
+      while IFS=$'\t' read -r uuid names; do
+        [[ -z "$uuid" ]] && continue
+        printf -- '- %s：%s\n' "$uuid" "$names"
+      done <"$uuid_file"
+    else
+      printf -- '- （无）\n'
+    fi
+  )
+  if [[ -s "$warn_file" ]]; then
+    SELF_HEAL_UNHANDLED=$(sed 's/^/无法自动处理：/' "$warn_file")
+    warn "自愈后仍有只告警、未删除的文件。这些会计入预检失败。"
+  else
+    SELF_HEAL_UNHANDLED=""
+  fi
+  log "配置自愈结束。"
+  rm -f "$report" "$del_file" "$warn_file" "$uuid_file"
 }
 
 config_preflight() {
@@ -1332,19 +1690,31 @@ PHP
     rm -f "$errfile"
     return 0
   fi
-  PREFLIGHT_STATUS="未通过"
+  PREFLIGHT_STATUS="预检失败"
   PREFLIGHT_FAILED=1
   PREFLIGHT_ERRORS=$(cat "$errfile" || true)
+  if [[ -n "${SELF_HEAL_UNHANDLED:-}" ]]; then
+    PREFLIGHT_ERRORS="${SELF_HEAL_UNHANDLED}
+${PREFLIGHT_ERRORS}"
+  fi
   printf '%s\n' "$PREFLIGHT_ERRORS" >&2
   rm -f "$errfile"
-  warn "配置预检未通过。上面已列出具体错误。脚本不会在此退出，以免跳过凭据文件。"
+  warn "配置预检未通过。上面已列出具体错误。已阻止 site:install，脚本会继续写凭据文件。"
   return 0
 }
+finish_config_preflight() {
+  if [[ "$PREFLIGHT_FAILED" -eq 0 && -n "${SELF_HEAL_UNHANDLED:-}" ]]; then
+    PREFLIGHT_STATUS="预检失败"
+    PREFLIGHT_FAILED=1
+    PREFLIGHT_ERRORS="$SELF_HEAL_UNHANDLED"
+    printf '%s\n' "$PREFLIGHT_ERRORS" >&2
+    warn "自愈后仍有无法自动处理的配置问题。已阻止 site:install，脚本会继续写凭据文件。"
+  fi
+}
 
-try_existing_config() {
+run_site_install_existing() {
   local db_url previous
   local -a args
-  EXISTING_OK=0
   db_url=$(drupal_db_url)
   args=(
     site:install
@@ -1360,41 +1730,32 @@ try_existing_config() {
   )
   prepare_install_log
   log "执行 drush site:install --existing-config --config-dir=${APP_ROOT}/config/sync（--locale=zh-hans）。"
-  if run_drush "${args[@]}" --locale=zh-hans 2>&1 | tee "$INSTALL_LOG"; then
+  if run_drush "${args[@]}" --locale=zh-hans; then
     log "site:install --existing-config 已成功。"
-    EXISTING_OK=1
-    return 0
+  else
+    warn "site:install --existing-config（zh-hans）返回错误。这不代表整体失败，稍后仍会执行 drush cim。"
+    if site_installed; then
+      warn "安装器已留下数据库表。不清空数据库，也不因已有表而跳过后续 cim。"
+    else
+      warn "数据库里还没有 Drupal 站点。清空后去掉 --locale 再试一次 site:install。"
+      {
+        echo ""
+        echo "===== retry site:install --existing-config without --locale ====="
+      } >>"$INSTALL_LOG"
+      previous="$REINSTALL"
+      REINSTALL=1
+      apply_database
+      REINSTALL="$previous"
+      write_settings
+      fix_permissions writable-settings
+      if run_drush "${args[@]}"; then
+        log "不带 --locale 的 site:install --existing-config 已成功。"
+      else
+        warn "不带 --locale 的 site:install 仍返回错误。继续执行 drush cim。"
+      fi
+    fi
   fi
-  if site_installed; then
-    warn "中文 --existing-config 返回错误，但数据库里已经有 Drupal 站点，不再清空重装。"
-    EXISTING_OK=1
-    return 0
-  fi
-  warn "使用 zh-hans 的 --existing-config 未成功。将清空数据库后去掉 --locale 再试一次。"
-  {
-    echo ""
-    echo "===== retry site:install --existing-config without --locale ====="
-  } >>"$INSTALL_LOG"
-  previous="$REINSTALL"
-  REINSTALL=1
-  apply_database
-  REINSTALL="$previous"
-  write_settings
-  fix_permissions writable-settings
-  if run_drush "${args[@]}" 2>&1 | tee -a "$INSTALL_LOG"; then
-    log "不带 --locale 的 site:install --existing-config 已成功。"
-    EXISTING_OK=1
-    return 0
-  fi
-  if site_installed; then
-    warn "默认语言的 --existing-config 返回错误，但数据库里已经有 Drupal 站点，不再清空重装。"
-    EXISTING_OK=1
-    return 0
-  fi
-  warn "site:install --existing-config 失败。完整日志：${INSTALL_LOG}"
-  warn "日志末尾 40 行："
-  tail -n 40 "$INSTALL_LOG" >&2 || true
-  EXISTING_OK=0
+  DID_INSTALL=1
   return 0
 }
 
@@ -1413,7 +1774,7 @@ summarize_import_failure() {
 可能原因：
 - config/sync 引用的模块、主题或 bundle 在当前代码里不存在
 - system.site 的 UUID 与 config/sync/system.site.yml 不一致
-- 标准安装生成的配置无法被仓库配置覆盖
+- 配置实体 ID 重复，且不属于可自动删除的配置实体
 
 已生成的数据库口令不会回滚。可在修正配置后重新执行本脚本。
 EOF
@@ -1434,193 +1795,326 @@ point_config_at_sync_or_fail() {
   return 0
 }
 
-fallback_standard_install() {
-  local db_url previous uuid
-  local -a args
-  FALLBACK_OK=0
-  db_url=$(drupal_db_url)
-  args=(
-    site:install
-    standard
-    -y
-    "--site-name=${DRUPAL_SITE_NAME}"
-    "--site-mail=${DRUPAL_SITE_MAIL}"
-    "--account-name=${DRUPAL_ADMIN_USER}"
-    "--account-pass=${DRUPAL_ADMIN_PASS}"
-    "--account-mail=${DRUPAL_SITE_MAIL}"
-    "--db-url=${db_url}"
-  )
-  log "回退一次：清空数据库后执行 drush site:install standard，再写入 UUID 并 drush cim -y。"
-  {
-    echo ""
-    echo "===== fallback: empty database, site:install standard, uuid, cim ====="
-  } >>"$INSTALL_LOG"
-  previous="$REINSTALL"
-  REINSTALL=1
-  apply_database
-  REINSTALL="$previous"
-  write_settings
-  fix_permissions writable-settings
-  if ! run_drush "${args[@]}" --locale=zh-hans 2>&1 | tee -a "$INSTALL_LOG"; then
-    if site_installed; then
-      warn "回退的中文 standard 安装返回错误，但数据库里已经有站点，继续对齐 UUID 并导入。"
-    else
-      warn "回退的 zh-hans standard 安装未成功。清空数据库后改用默认语言再试。"
-      previous="$REINSTALL"
-      REINSTALL=1
-      apply_database
-      REINSTALL="$previous"
-      write_settings
-      fix_permissions writable-settings
-      if ! run_drush "${args[@]}" 2>&1 | tee -a "$INSTALL_LOG"; then
-        if site_installed; then
-          warn "回退的 standard 安装返回错误，但数据库里已经有站点，继续对齐 UUID 并导入。"
-        else
-          CIM_LOG="$INSTALL_LOG"
-          summarize_import_failure "回退的 standard 安装失败。"
-          return 0
-        fi
-      fi
-    fi
+parse_entity_already_exists() {
+  local src="$1"
+  local parsed rc
+  PARSED_ENTITY_TYPE=""
+  PARSED_ENTITY_ID=""
+  if [[ ! -f "$src" ]]; then
+    warn "没有本次 drush 日志，无法判断配置冲突。"
+    return 1
   fi
-  if ! point_config_at_sync_or_fail; then
-    CIM_LOG="$INSTALL_LOG"
-    summarize_import_failure "回退安装后未能把 config_sync_directory 指回 ../config/sync。"
-    return 0
-  fi
-  if ! uuid=$(read_site_uuid); then
-    CIM_LOG="$INSTALL_LOG"
-    summarize_import_failure "回退时无法从 config/sync/system.site.yml 读取 uuid。"
-    return 0
-  fi
-  log "回退：drush config:set system.site uuid ${uuid}"
-  if ! run_drush config:set system.site uuid "$uuid" -y 2>&1 | tee -a "$INSTALL_LOG"; then
-    CIM_LOG="$INSTALL_LOG"
-    summarize_import_failure "回退时未能写入系统 UUID。"
-    return 0
-  fi
-  log "回退：drush cim -y"
-  if ! run_drush cim -y 2>&1 | tee -a "$INSTALL_LOG"; then
-    CIM_LOG="$INSTALL_LOG"
-    summarize_import_failure "回退的完整导入失败。"
-    return 0
-  fi
-  log "回退路径的完整导入已成功。"
-  if ! run_drush updatedb -y; then
-    warn "回退后的 drush updatedb 未成功。"
-  fi
-  FALLBACK_OK=1
-  return 0
-}
-
-install_site() {
-  config_preflight
-  try_existing_config
-  if [[ "$EXISTING_OK" -eq 1 ]]; then
-    DID_INSTALL=1
-    IMPORT_FAILED=0
-    CONFIG_IMPORT_STATUS="成功（site:install --existing-config）"
-    if ! run_drush updatedb -y; then
-      warn "安装后的 drush updatedb 未成功。"
-    fi
-    capture_stray_config_dir
-    return 0
-  fi
-  fallback_standard_install
-  capture_stray_config_dir
-  if [[ "$FALLBACK_OK" -eq 1 ]]; then
-    DID_INSTALL=1
-    IMPORT_FAILED=0
-    CONFIG_IMPORT_STATUS="成功（回退：空库 standard 安装后完整导入）"
-    return 0
-  fi
-  DID_INSTALL=1
-  IMPORT_FAILED=1
-  CONFIG_IMPORT_STATUS="失败（--existing-config 与回退均未成功）"
-  warn "安装与回退都未成功。将继续处理文件权限、cron 和凭据文件。"
-  return 0
-}
-
-import_existing_config() {
-  local uuid
-  log "已有空站点，跳过 site:install。执行一次 drush cim -y，不做分阶段导入。"
-  if uuid=$(read_site_uuid); then
-    log "将站点 UUID 调整为 config/sync 中的 ${uuid}。"
-    if ! run_drush config:set system.site uuid "$uuid" -y; then
-      warn "未能写入系统 UUID，完整导入可能被拒绝。"
-    fi
-  else
-    warn "未能从 system.site.yml 读取 UUID。"
-  fi
-  if ! point_config_at_sync_or_fail; then
-    IMPORT_FAILED=1
-    CONFIG_IMPORT_STATUS="失败（已有空站点，config_sync_directory 无法指回 ../config/sync）"
-    return 0
-  fi
-  prepare_install_log
-  echo "===== existing empty site: drush cim -y =====" | tee "$INSTALL_LOG"
-  if run_drush cim -y 2>&1 | tee -a "$INSTALL_LOG"; then
-    log "完整导入已成功。"
-    IMPORT_FAILED=0
-    CONFIG_IMPORT_STATUS="成功（已有空站点，完整导入）"
-    if ! run_drush updatedb -y; then
-      warn "导入后的 drush updatedb 未成功。"
-    fi
-    return 0
-  fi
-  CIM_LOG="$INSTALL_LOG"
-  CONFIG_IMPORT_STATUS="失败（已有空站点的完整导入未成功）"
-  summarize_import_failure "已有空站点的 drush cim 未成功。没有再执行 standard 安装，以免覆盖当前库。"
-  return 0
-}
-
-record_config_diff() {
-  local status_out err_file count
-  err_file=$(mktemp /tmp/xedc-config-status.XXXXXX.txt)
-  if ! status_out=$(run_drush config:status --format=json 2>"$err_file"); then
-    warn "drush config:status 未能正常结束。"
-    if [[ -s "$err_file" ]]; then
-      cat "$err_file" >&2 || true
-    fi
-  fi
-  if [[ -s "$err_file" ]]; then
-    cat "$err_file" >&2 || true
-  fi
-  rm -f "$err_file"
-  count=$(CONFIG_STATUS_JSON="$status_out" php <<'PHP'
+  set +e
+  parsed=$(SRC="$src" php <<'PHP'
 <?php
-$raw = (string) getenv('CONFIG_STATUS_JSON');
-if (trim($raw) === '') {
-    echo 0;
-    exit(0);
+$src = getenv('SRC');
+$raw = file_get_contents($src);
+if ($raw === false) {
+    exit(1);
 }
-$objectPos = strpos($raw, '{');
-$listPos = strpos($raw, '[');
-$start = $objectPos;
-if ($start === false || ($listPos !== false && $listPos < $start)) {
-    $start = $listPos;
+$raw = str_replace(['&#039;', '&#39;'], "'", $raw);
+if (!preg_match("/entity with ID '([^']+)' already exists/", $raw, $idMatch)) {
+    exit(1);
 }
-if ($start === false) {
-    fwrite(STDERR, "unparsed\n");
+$entityId = $idMatch[1];
+$pattern = "/(?<![A-Za-z0-9_])([A-Za-z0-9_]+)\\.([A-Za-z0-9_]+)\\." . preg_quote($entityId, '/') . "(?![A-Za-z0-9_.])/";
+if (!preg_match($pattern, $raw, $nameMatch)) {
     exit(2);
 }
-$data = json_decode(substr($raw, $start), true);
-if (!is_array($data)) {
-    fwrite(STDERR, "unparsed\n");
-    exit(2);
-}
-echo count($data);
+echo $nameMatch[2], "\n", $entityId, "\n";
 PHP
-  ) || true
-  if [[ "$count" =~ ^[0-9]+$ ]]; then
-    CONFIG_DIFF_COUNT="$count"
+  )
+  rc=$?
+  set -e
+  if [[ "$rc" -eq 1 ]]; then
+    warn "该错误不含 entity with ID already exists，不自动处理。"
+    return 1
+  fi
+  if [[ "$rc" -ne 0 || -z "$parsed" ]]; then
+    warn "无法从配置名前缀推断实体类型，不自动删除。"
+    return 1
+  fi
+  PARSED_ENTITY_TYPE=$(printf '%s\n' "$parsed" | sed -n '1p')
+  PARSED_ENTITY_ID=$(printf '%s\n' "$parsed" | sed -n '2p')
+  if [[ ! "$PARSED_ENTITY_TYPE" =~ ^[A-Za-z0-9_]+$ || ! "$PARSED_ENTITY_ID" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+    warn "解析出的实体类型或 ID 无法安全删除，不自动处理。"
+    return 1
+  fi
+  case "$PARSED_ENTITY_TYPE" in
+    node|user|media)
+      warn "拒绝删除内容实体 ${PARSED_ENTITY_TYPE}/${PARSED_ENTITY_ID}。只允许删除配置实体。"
+      return 1
+      ;;
+  esac
+  return 0
+}
+
+resolve_config_conflicts() {
+  local round
+  for round in 1 2 3 4 5 6 7 8; do
+    if ! parse_entity_already_exists "$LAST_DRUSH_LOG"; then
+      return 1
+    fi
+    log "配置冲突第 ${round}/8 轮：删除配置实体 ${PARSED_ENTITY_TYPE} ${PARSED_ENTITY_ID}，然后重试 drush cim -y。"
+    {
+      echo ""
+      echo "===== resolve round ${round}: entity:delete ${PARSED_ENTITY_TYPE} ${PARSED_ENTITY_ID} ====="
+    } >>"$INSTALL_LOG"
+    if ! run_drush entity:delete "$PARSED_ENTITY_TYPE" "$PARSED_ENTITY_ID" -y; then
+      warn "删除配置实体失败，停止自动处理。"
+      return 1
+    fi
+    if run_drush cim -y; then
+      log "第 ${round} 轮后 drush cim 已成功。"
+      return 0
+    fi
+  done
+  warn "配置冲突已处理 8 轮，drush cim 仍未成功。"
+  return 1
+}
+
+import_config_with_retries() {
+  local uuid extra_done=0
+  prepare_install_log
+  if site_installed; then
+    if ! point_config_at_sync_or_fail; then
+      IMPORT_FAILED=1
+      CONFIG_IMPORT_STATUS="失败"
+      FIRST_ERROR_TEXT="config_sync_directory 无法指回 ../config/sync"
+      FIRST_ERROR_BLOCK="$FIRST_ERROR_TEXT"
+      summarize_import_failure "未能把 config_sync_directory 指回 ../config/sync。"
+      return 0
+    fi
+    if uuid=$(read_site_uuid); then
+      log "导入前对齐 system.site uuid ${uuid}。"
+      if ! run_drush config:set system.site uuid "$uuid" -y; then
+        warn "未能写入系统 UUID，继续尝试导入。"
+      fi
+    else
+      warn "未能从 system.site.yml 读取 UUID，继续尝试导入。"
+    fi
   else
-    CONFIG_DIFF_COUNT="未知"
+    warn "site:install 之后数据库里仍没有 Drupal 站点。仍会执行 drush cim，失败则按真实结果写失败。"
+  fi
+  log "执行 drush cim -y。输出写入 ${INSTALL_LOG}。"
+  if run_drush cim -y; then
+    extra_done=0
+  elif resolve_config_conflicts; then
+    extra_done=0
+  else
+    IMPORT_FAILED=1
+    CONFIG_IMPORT_STATUS="失败"
+    summarize_import_failure "drush cim 未成功。"
+    return 0
+  fi
+  log "drush cim 已成功，再执行一次 drush cim -y。"
+  if run_drush cim -y; then
+    extra_done=1
+  elif resolve_config_conflicts; then
+    extra_done=1
+  else
+    IMPORT_FAILED=1
+    CONFIG_IMPORT_STATUS="失败"
+    summarize_import_failure "第二次 drush cim 未成功。"
+    return 0
+  fi
+  if [[ "$extra_done" -ne 1 ]]; then
+    IMPORT_FAILED=1
+    CONFIG_IMPORT_STATUS="失败"
+    summarize_import_failure "drush cim 未成功。"
+    return 0
+  fi
+  IMPORT_FAILED=0
+  if ! run_drush updatedb -y; then
+    warn "导入后的 drush updatedb 未成功。"
+  fi
+  capture_stray_config_dir
+  return 0
+}
+
+collect_config_diffs() {
+  local raw rc
+  CONFIG_DIFF_NAMES=""
+  set +e
+  raw=$(run_drush config:status --format=list)
+  rc=$?
+  set -e
+  CONFIG_DIFF_NAMES=$(printf '%s\n' "$raw" | awk '{
+    gsub(/^[ \t]+|[ \t]+$/, "")
+    if ($0 ~ /^[A-Za-z0-9][A-Za-z0-9_.]*$/ && index($0, ".")) print
+  }')
+  if [[ -z "$CONFIG_DIFF_NAMES" ]]; then
+    CONFIG_DIFF_COUNT=0
+  else
+    CONFIG_DIFF_COUNT=$(printf '%s\n' "$CONFIG_DIFF_NAMES" | awk 'NF { c++ } END { print c + 0 }')
+  fi
+  if [[ "$rc" -ne 0 ]]; then
+    warn "drush config:status --format=list 未能正常结束。"
+    return 1
   fi
   log "drush config:status 差异数量：${CONFIG_DIFF_COUNT}。"
   return 0
 }
 
+log_remaining_diffs() {
+  local name sync_file cex_file shown=0
+  {
+    echo ""
+    echo "===== remaining config:status ====="
+    if [[ -n "$CONFIG_DIFF_NAMES" ]]; then
+      printf '%s\n' "$CONFIG_DIFF_NAMES"
+    else
+      echo "(none)"
+    fi
+    echo "===== first 20 diffs, up to 5 lines each ====="
+  } >>"$INSTALL_LOG"
+  if [[ -z "$CONFIG_DIFF_NAMES" ]]; then
+    return 0
+  fi
+  while IFS= read -r name; do
+    [[ -z "$name" ]] && continue
+    shown=$((shown + 1))
+    if [[ "$shown" -gt 20 ]]; then
+      break
+    fi
+    sync_file="$APP_ROOT/config/sync/${name}.yml"
+    cex_file="/tmp/xedc-cex/${name}.yml"
+    {
+      echo "--- ${name} ---"
+      if [[ -f "$sync_file" && -f "$cex_file" ]]; then
+        set +e
+        set +o pipefail
+        diff -u "$sync_file" "$cex_file" 2>/dev/null | head -n 5
+        set -o pipefail
+        set -e
+      elif [[ ! -f "$sync_file" ]]; then
+        echo "只存在于活动配置"
+      else
+        echo "只存在于工作副本 config/sync"
+      fi
+    } >>"$INSTALL_LOG"
+  done <<< "$CONFIG_DIFF_NAMES"
+}
+
+reconcile_display_diffs() {
+  local copied
+  if ! python3 -c 'import yaml' >/dev/null 2>&1; then
+    log "安装 python3-yaml，用于比较 entity form/view display。"
+    if ! apt-get install -y python3-yaml; then
+      warn "无法安装 python3-yaml，不回写任何差异文件。"
+      return 1
+    fi
+  fi
+  rm -rf /tmp/xedc-cex
+  install -d -o "$WEB_USER" -g "$WEB_USER" -m 700 /tmp/xedc-cex
+  log "导出活动配置到 /tmp/xedc-cex，只回写 scheduler 造成的 display 差异。"
+  if ! run_drush cex -y --destination=/tmp/xedc-cex; then
+    warn "drush cex 未成功，不回写任何差异文件。"
+    return 1
+  fi
+  copied=$(SYNC="$APP_ROOT/config/sync" CEX=/tmp/xedc-cex python3 - "$CONFIG_DIFF_NAMES" <<'PY'
+import os
+import shutil
+import sys
+from pathlib import Path
+
+import yaml
+
+sync = Path(os.environ["SYNC"])
+cex = Path(os.environ["CEX"])
+names = [line.strip() for line in sys.argv[1].splitlines() if line.strip()]
+
+def normalize(data):
+    if not isinstance(data, dict):
+        return data
+    for section in ("hidden", "content"):
+        block = data.get(section)
+        if isinstance(block, dict):
+            block.pop("publish_on", None)
+            block.pop("unpublish_on", None)
+    return data
+
+for name in names:
+    if not (
+        name.startswith("core.entity_form_display.")
+        or name.startswith("core.entity_view_display.")
+    ):
+        continue
+    if any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_." for ch in name):
+        continue
+    src = cex / f"{name}.yml"
+    dst = sync / f"{name}.yml"
+    if not src.is_file() or not dst.is_file():
+        continue
+    with src.open(encoding="utf-8") as handle:
+        exported = yaml.safe_load(handle)
+    with dst.open(encoding="utf-8") as handle:
+        original = yaml.safe_load(handle)
+    if normalize(exported) == normalize(original):
+        shutil.copyfile(src, dst)
+        print(name)
+PY
+  )
+  if [[ -n "$copied" ]]; then
+    log "已把下列 display 配置从导出结果复制回工作副本："
+    printf '%s\n' "$copied" | sed 's/^/  - /'
+    {
+      echo ""
+      echo "===== copied display config back to working copy ====="
+      printf '%s\n' "$copied"
+    } >>"$INSTALL_LOG"
+  else
+    log "没有可安全回写的 display 差异。"
+  fi
+  return 0
+}
+
+finalize_config_status() {
+  local cex_ok=0
+  if ! collect_config_diffs; then
+    if [[ "${CONFIG_DIFF_COUNT}" == "0" && -z "$CONFIG_DIFF_NAMES" ]]; then
+      CONFIG_DIFF_COUNT="未知"
+    fi
+    IMPORT_FAILED=0
+    CONFIG_IMPORT_STATUS="部分成功（差异 ${CONFIG_DIFF_COUNT} 项，详见日志）"
+    log_remaining_diffs || true
+    rm -rf /tmp/xedc-cex
+    return 0
+  fi
+  if [[ "$CONFIG_DIFF_COUNT" == "0" ]]; then
+    IMPORT_FAILED=0
+    CONFIG_IMPORT_STATUS="成功"
+    rm -rf /tmp/xedc-cex
+    log "配置与活动存储一致。"
+    return 0
+  fi
+  if reconcile_display_diffs; then
+    cex_ok=1
+  fi
+  if ! collect_config_diffs; then
+    CONFIG_DIFF_COUNT="未知"
+  fi
+  if [[ "$CONFIG_DIFF_COUNT" == "0" ]]; then
+    IMPORT_FAILED=0
+    CONFIG_IMPORT_STATUS="成功"
+    log "回写 display 差异后，config:status 已没有差异。"
+  else
+    IMPORT_FAILED=0
+    CONFIG_IMPORT_STATUS="部分成功（差异 ${CONFIG_DIFF_COUNT} 项，详见日志）"
+    log "仍有 ${CONFIG_DIFF_COUNT} 项配置差异。前 20 项及每项最多 5 行 diff 写入 ${INSTALL_LOG}。"
+    if [[ "$cex_ok" -eq 1 ]]; then
+      log_remaining_diffs || true
+    else
+      {
+        echo ""
+        echo "===== remaining config names (export unavailable) ====="
+        printf '%s\n' "$CONFIG_DIFF_NAMES"
+      } >>"$INSTALL_LOG"
+    fi
+  fi
+  rm -rf /tmp/xedc-cex
+  return 0
+}
 
 ensure_theme() {
   local current
@@ -2070,6 +2564,57 @@ EOF
   log "已安装 cron：每 15 分钟以 ${WEB_USER} 运行 drush cron。"
 }
 
+write_acceptance() {
+  local saved_text saved_block boot raw http_code node_list
+  if [[ "${ACCEPTANCE_READY:-0}" -ne 1 || "${ACCEPTANCE_DONE:-0}" -eq 1 ]]; then
+    return 0
+  fi
+  saved_text="${FIRST_ERROR_TEXT:-}"
+  saved_block="${FIRST_ERROR_BLOCK:-}"
+  boot="Failed"
+  if [[ -n "${DRUSH_BIN:-}" && -x "$DRUSH_BIN" && -d "${APP_ROOT:-}" ]]; then
+    set +e
+    raw=$(run_drush status --field=bootstrap)
+    set -e
+    boot=$(printf '%s\n' "$raw" | awk '{
+      gsub(/\r/, "")
+      if ($0 == "Successful" || $0 == "Failed") { value = $0 }
+    } END { print value }')
+    if [[ "$boot" != "Successful" ]]; then
+      boot="Failed"
+    fi
+  fi
+  node_list="无"
+  if [[ -n "${SQL_BIN:-}" && -n "${DB_NAME:-}" ]]; then
+    set +e
+    node_list=$("$SQL_BIN" --protocol=socket --batch --skip-column-names --user=root -e "SELECT type FROM \`${DB_NAME}\`.node_type ORDER BY type" 2>/dev/null | paste -sd, -)
+    set -e
+  fi
+  if [[ -z "$node_list" ]]; then
+    node_list="无"
+  fi
+  http_code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1 -H "Host: ${DOMAIN}" || true)
+  if [[ ! "$http_code" =~ ^[0-9]{3}$ ]]; then
+    http_code="000"
+  fi
+  ACCEPTANCE_SUMMARY="验收：bootstrap=${boot}  配置差异=${CONFIG_DIFF_COUNT}  node类型=${node_list}  首页HTTP=${http_code}"
+  ACCEPTANCE_DONE=1
+  FIRST_ERROR_TEXT="$saved_text"
+  FIRST_ERROR_BLOCK="$saved_block"
+}
+
+print_acceptance_line() {
+  if [[ "${ACCEPTANCE_READY:-0}" -ne 1 ]]; then
+    return 0
+  fi
+  write_acceptance || true
+  if [[ "${ACCEPTANCE_PRINTED:-0}" -eq 1 || -z "${ACCEPTANCE_SUMMARY:-}" ]]; then
+    return 0
+  fi
+  printf '%s\n' "$ACCEPTANCE_SUMMARY"
+  ACCEPTANCE_PRINTED=1
+}
+
 write_credentials() {
   local admin_line revision
   if [[ "${CREDENTIALS_WRITTEN:-0}" -eq 1 ]]; then
@@ -2113,6 +2658,15 @@ EOF
     if [[ -n "${PREFLIGHT_ERRORS:-}" ]]; then
       printf '\n预检详情：\n%s\n' "$PREFLIGHT_ERRORS"
     fi
+    if [[ -n "${SELF_HEAL_RECORD:-}" ]]; then
+      printf '\n自愈记录：\n%s\n' "$SELF_HEAL_RECORD"
+    fi
+    if [[ "$CONFIG_IMPORT_STATUS" == "失败" && -n "${FIRST_ERROR_BLOCK:-}" ]]; then
+      printf '\n第一条错误原文：\n%s\n' "$FIRST_ERROR_BLOCK"
+    fi
+    if [[ -n "${ACCEPTANCE_SUMMARY:-}" ]]; then
+      printf '\n%s\n' "$ACCEPTANCE_SUMMARY"
+    fi
   } >"$CREDENTIALS_FILE"
   then
     warn "无法写入凭据文件 ${CREDENTIALS_FILE}。"
@@ -2129,7 +2683,7 @@ print_summary() {
 
 站点地址：${PUBLIC_BASE}
 代码目录：${APP_ROOT}
-当前提交：$(git -C "$APP_ROOT" log -1 --pretty='%h %s')
+当前提交：$(git -C "$APP_ROOT" log -1 --pretty='%h %s' 2>/dev/null || echo 未知)
 Drupal：11.4.11（composer.lock）
 默认主题：xedc
 配置目录：${APP_ROOT}/config/sync
@@ -2142,13 +2696,14 @@ EOF
     printf '\nHTTPS 证书没有申请成功，当前仅配置了 HTTP。\n'
   fi
   if [[ "$PREFLIGHT_FAILED" -eq 1 ]]; then
-    printf '\n配置预检未通过。具体错误见上方输出和凭据文件。\n'
+    printf '\n配置预检未通过，已阻止 site:install。具体错误见上方输出和凭据文件。\n'
+  elif [[ "$IMPORT_FAILED" -eq 1 ]]; then
+    printf '\n配置导入失败。状态：%s。请根据 %s 中的第一条错误检查后重新执行本脚本。\n' "$CONFIG_IMPORT_STATUS" "$INSTALL_LOG"
+  elif [[ "$CONFIG_IMPORT_STATUS" == 部分成功* ]]; then
+    printf '\n%s\n' "$CONFIG_IMPORT_STATUS"
   fi
   if [[ "$REWRITE_FAILED" -eq 1 ]]; then
     printf '\n域名替换已中止，config/sync 已按替换前内容恢复。\n'
-  fi
-  if [[ "$IMPORT_FAILED" -eq 1 ]]; then
-    printf '\n配置导入未完全成功。请根据上面的错误摘要和 %s 检查后重新执行本脚本。\n' "$INSTALL_LOG"
   fi
   if [[ "$URL_REWRITE_STATUS" == "已完成" ]]; then
     printf '\n本站绝对地址已按本次域名改写。外部统计、SMTP 服务器和外部邮箱保持原配置，请核对日志。\n'
@@ -2158,6 +2713,7 @@ EOF
 建议立即检查：首页、/user/login、管理主题、语言切换、静态资源是否 200。
 本脚本没有恢复用户内容、上传文件或原数据库。
 EOF
+  print_acceptance_line
 }
 
 preflight_database() {
@@ -2186,6 +2742,7 @@ main() {
   fi
   preflight_database
   log "开始恢复。仓库：${GIT_REPO}，分支：${GIT_BRANCH}，目录：${APP_ROOT}，域名：${DOMAIN}。"
+  ACCEPTANCE_READY=1
   log "风险提示：将用仓库中的 config/sync 执行 site:install --existing-config。它可能与原站点实际运行配置不一致；不恢复用户内容、上传文件和数据库数据。"
   install_packages
   systemctl enable --now "$DB_SERVICE"
@@ -2193,6 +2750,8 @@ main() {
   configure_php
   configure_mariadb
   clone_repository
+  self_heal_config_sync
+  ensure_sync_htaccess
   composer_install
   build_theme
   apply_database
@@ -2205,7 +2764,7 @@ main() {
   fix_permissions writable-settings
   configure_nginx
   if [[ "$SITE_HAS_CONTENT" -eq 1 ]]; then
-    log "站点已有内容且未传入 --reinstall，跳过 site:install 与配置导入，不改动已有数据。"
+    log "已有真实站点且未传入 --reinstall，跳过 site:install 与配置导入，不改动已有数据。"
     CONFIG_IMPORT_STATUS="已跳过（站点已有内容，未改动数据）"
     ensure_config_sync_directory
   else
@@ -2213,32 +2772,43 @@ main() {
       REWRITE_FAILED=1
       warn "域名替换已中止。后续安装将使用恢复后的 config/sync。"
     fi
-    if [[ "$REINSTALL" -eq 1 ]] || ! site_installed; then
+    config_preflight
+    finish_config_preflight
+    if [[ "$PREFLIGHT_FAILED" -eq 1 ]]; then
+      CONFIG_IMPORT_STATUS="预检失败"
+      IMPORT_FAILED=1
+      warn "预检失败，已阻止 site:install。继续权限、cron、凭据与验收。"
+    elif [[ "$REINSTALL" -eq 1 ]] || ! site_installed; then
       if [[ -z "$DRUPAL_ADMIN_PASS" ]]; then
         DRUPAL_ADMIN_PASS=$(random_secret 24)
       fi
-      install_site
+      run_site_install_existing
       write_settings
       fix_permissions writable-settings
+      import_config_with_retries
     else
-      log "检测到已安装且无用户内容的站点，跳过 drush site:install。"
-      import_existing_config
+      log "检测到已安装、且没有真实内容的站点，跳过 drush site:install，继续 drush cim。"
+      import_config_with_retries
     fi
     ensure_config_sync_directory
-    if [[ "$IMPORT_FAILED" -eq 0 ]]; then
+    if [[ "$PREFLIGHT_FAILED" -eq 1 ]]; then
+      warn "由于预检失败，跳过主题确认、翻译导入、sitemap 校验、缓存重建和配置比较。"
+    elif [[ "$IMPORT_FAILED" -eq 0 ]]; then
       ensure_theme || warn "确认默认主题时出错，请稍后手动检查。"
       import_translations || warn "翻译导入未完成。"
       verify_site_base_url || warn "未能确认 sitemap base_url。"
       if ! run_drush cr; then
         warn "drush cr 未成功。"
       fi
-      record_config_diff
+      finalize_config_status
     else
-      warn "由于配置导入未完成，跳过主题确认、翻译导入、sitemap 校验、缓存重建和 config:status。"
+      warn "由于配置导入失败，跳过主题确认、翻译导入、sitemap 校验、缓存重建和配置比较。"
     fi
   fi
   fix_permissions || warn "收尾权限调整未完全成功。"
+  ensure_sync_htaccess || warn "未能写入 config/sync/.htaccess。"
   install_cron || warn "未能安装 cron。"
+  write_acceptance || true
   write_credentials || warn "凭据文件未能写入。"
   run_drush status --fields=bootstrap,drupal-version,db-status,uri || true
   print_summary
